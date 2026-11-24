@@ -33,7 +33,7 @@ export default function RootLayout() {
         <Stack.Screen name="historique/[date]" options={{ title: 'Résultat du défi' }} />
         <Stack.Screen name="galerie" options={{ title: 'Ma galerie' }} />
         <Stack.Screen name="collection" options={{ title: 'Ma collection' }} />
-        <Stack.Screen name="bienvenue" options={{ title: 'Découvrir Katch' }} />
+        <Stack.Screen name="bienvenue" options={{ title: 'Découvrir Katch', headerShown: false }} />
         <Stack.Screen name="compte/connexion" options={{ title: 'Connexion' }} />
         <Stack.Screen name="compte/inscription" options={{ title: 'Inscription' }} />
       </Stack>

@@ -4,7 +4,7 @@ import Screen from '@/components/ui/Screen';
 export default function ConfirmPhotoPage() {
   return (
     <Screen>
-      <NavigationLink href="/defi/resultat" label="Valider la photo" replace />
+      <NavigationLink href="/defi/resultat" label="Valider la photo" variant="primarySolid" replace />
     </Screen>
   );
 }
