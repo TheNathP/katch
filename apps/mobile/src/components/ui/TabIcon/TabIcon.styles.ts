@@ -10,6 +10,14 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  glyph: {
+    width: 23,
+    height: 23,
+  },
+  captureGlyph: {
+    width: 28,
+    height: 28,
+  },
   selected: {
     backgroundColor: TabIconColors.selected,
     backgroundImage: TabIconColors.selectedGradient,

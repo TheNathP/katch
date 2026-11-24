@@ -1,34 +1,35 @@
-import { SymbolView, type SymbolViewProps } from 'expo-symbols';
+import { Image, type ImageProps } from 'expo-image';
 import { View } from 'react-native';
 
 import { TabIconColors } from '@/styles/theme';
 
 import { styles } from './TabIcon.styles';
 
-const symbols = {
-  home: { ios: 'house.fill', android: 'home', web: 'home' },
-  trophy: { ios: 'trophy', android: 'emoji_events', web: 'emoji_events' },
-  challenge: { ios: 'camera.fill', android: 'photo_camera', web: 'photo_camera' },
-  rewards: { ios: 'gift', android: 'redeem', web: 'redeem' },
-  profile: { ios: 'person', android: 'person', web: 'person' },
-} as const satisfies Record<string, SymbolViewProps['name']>;
+const icons = {
+  home: require('@/assets/icons/home.svg'),
+  community: require('@/assets/icons/community.svg'),
+  camera: require('@/assets/icons/camera.svg'),
+  gift: require('@/assets/icons/gift.svg'),
+  profile: require('@/assets/icons/profile.svg'),
+} as const satisfies Record<string, ImageProps['source']>;
 
 type TabIconProps = {
-  name: keyof typeof symbols;
-  color: SymbolViewProps['tintColor'];
+  name: keyof typeof icons;
+  color: string;
   focused: boolean;
 };
 
 export default function TabIcon({ name, color, focused }: TabIconProps) {
-  const isCapture = name === 'challenge';
+  const isCapture = name === 'camera';
   const appearance = isCapture ? styles.capture : focused && styles.selected;
 
   return (
     <View aria-hidden style={[styles.icon, appearance, isCapture && focused && styles.captureSelected]}>
-      <SymbolView
-        name={symbols[name]}
+      <Image
+        source={icons[name]}
+        contentFit="contain"
         tintColor={isCapture ? TabIconColors.captureIcon : color}
-        size={isCapture ? 28 : 23}
+        style={isCapture ? styles.captureGlyph : styles.glyph}
       />
     </View>
   );
