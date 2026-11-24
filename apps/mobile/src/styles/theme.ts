@@ -86,7 +86,7 @@ export const OnboardingColors = {
   muted: '#514561',
   purple: '#6424E8',
   purplePressed: '#5018BB',
-  target: '#8A3FFC',
+  target: '#FF7A1A',
   lavender: '#EFE4FC',
   lilac: '#AE8BE9',
   track: '#DFD0EC',

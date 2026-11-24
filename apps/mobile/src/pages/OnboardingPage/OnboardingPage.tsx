@@ -49,7 +49,7 @@ const slides = [
     scene: 'trial',
     title: 'À toi de',
     accent: 'jouer !',
-    description: 'Repère un objet de ce violet autour de toi et prends-le en photo.',
+    description: 'Repère un objet de cette couleur autour de toi et prends-le en photo.',
   },
 ] as const;
 

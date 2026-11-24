@@ -107,7 +107,7 @@ export default function OnboardingPageArt({ scene, height }: Props) {
             <View style={styles.colorSwatch} />
             <View>
               <Text style={styles.colorRole}>Couleur à retrouver</Text>
-              <Text style={styles.colorName}>Violet</Text>
+              <Text style={styles.colorName}>{color.target}</Text>
             </View>
           </View>
         </View>

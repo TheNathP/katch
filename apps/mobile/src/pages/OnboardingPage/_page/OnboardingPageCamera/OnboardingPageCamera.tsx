@@ -64,10 +64,10 @@ export default function OnboardingPageCamera({ onCapture, photoUri }: Props) {
 
   return (
     <View style={styles.content}>
-      <Text accessibilityRole="header" style={styles.title}>Capture du violet</Text>
+      <Text accessibilityRole="header" style={styles.title}>Capture la couleur</Text>
       <View style={styles.target}>
         <View aria-hidden style={styles.swatch} />
-        <Text style={styles.targetText}>Violet · {OnboardingColors.target}</Text>
+        <Text style={styles.targetText}>{OnboardingColors.target}</Text>
       </View>
 
       {photoUri || canPreview ? (
