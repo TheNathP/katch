@@ -18,6 +18,7 @@ Expo Router is part of the [mobile stack](001-react-native-expo.md). File-based 
 ## Consequences
 
 - The [root stack](../../apps/mobile/src/app/_layout.tsx) defines secondary routes. The [tab layout](../../apps/mobile/src/app/%28tabs%29/_layout.tsx) defines the primary destinations.
+- The rankings tab keeps the global, friends, and weekly streak rankings in one stack. The profile provides access to the friends screen and search.
 - Renaming or moving a route can change its URL. Check links that reference the route when making this change.
 - The app uses a common navigation structure on iOS and Android. Verify the interaction and rendering on both platforms.
 
