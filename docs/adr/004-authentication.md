@@ -1,7 +1,7 @@
 # ADR-003: Email/Password Authentication with an Encrypted Session
 
-**Status:** Proposed  
-**Date:** 2026-11-24
+**Status:** Accepted  
+**Date:** 2026-11-25
 
 ## Decision
 
