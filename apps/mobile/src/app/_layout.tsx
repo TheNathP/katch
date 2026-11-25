@@ -1,7 +1,12 @@
-import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
+import { DarkTheme, DefaultTheme, SplashScreen, Stack, ThemeProvider } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 
+import { SessionProvider, useSession } from '@/data/session-provider';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+
+// Keep the splash screen until the stored session has been read, so a
+// signed-in player never sees the sign-in screen flash.
+SplashScreen.preventAutoHideAsync();
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -11,9 +16,34 @@ export default function RootLayout() {
   const colorScheme = useColorScheme();
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
-      <Stack screenOptions={{ headerBackButtonDisplayMode: 'minimal', headerBackTitle: 'Retour' }}>
+    <SessionProvider>
+      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+        <RootNavigator />
+      </ThemeProvider>
+    </SessionProvider>
+  );
+}
+
+/**
+ * Every screen requires a signed-in player, except the account screens:
+ * signed-out players land on the sign-in screen. Any route file NOT declared below is public by default: declare
+ * new screens inside the signed-in group.
+ *
+ * This only hides screens client-side; the real access control is the JWT
+ * check in Edge Functions.
+ */
+function RootNavigator() {
+  const { user, isLoading } = useSession();
+
+  if (isLoading) return null;
+  SplashScreen.hide();
+
+  const isSignedIn = user !== null;
+
+  return (
+    <Stack screenOptions={{ headerBackButtonDisplayMode: 'minimal', headerBackTitle: 'Retour' }}>
+      <Stack.Protected guard={isSignedIn} redirectTo="/compte/connexion">
         <Stack.Screen name="(tabs)" options={{ title: 'Katch', headerShown: false }} />
         <Stack.Screen name="defi/import" options={{ title: 'Importer une photo' }} />
         <Stack.Screen name="defi/zone" options={{ title: 'Sélectionner la zone' }} />
@@ -33,10 +63,12 @@ export default function RootLayout() {
         <Stack.Screen name="historique/[date]" options={{ title: 'Résultat du défi' }} />
         <Stack.Screen name="galerie" options={{ title: 'Ma galerie' }} />
         <Stack.Screen name="collection" options={{ title: 'Ma collection' }} />
-        <Stack.Screen name="bienvenue" options={{ title: 'Découvrir Katch' }} />
+      </Stack.Protected>
+
+      <Stack.Protected guard={!isSignedIn} redirectTo="/">
         <Stack.Screen name="compte/connexion" options={{ title: 'Connexion' }} />
         <Stack.Screen name="compte/inscription" options={{ title: 'Inscription' }} />
-      </Stack>
-    </ThemeProvider>
+      </Stack.Protected>
+    </Stack>
   );
 }
