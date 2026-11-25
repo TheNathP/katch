@@ -3,7 +3,7 @@ import { AppState } from "react-native";
 
 import { secureSessionStorage } from "./secure-session-storage";
 
-const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
+const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL?.replace(/\/+$/, "");
 const supabasePublishableKey = process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
 if (!supabaseUrl || !supabasePublishableKey) {
@@ -12,7 +12,9 @@ if (!supabaseUrl || !supabasePublishableKey) {
   );
 }
 
-export const supabase = createClient(supabaseUrl, supabasePublishableKey, {
+export const supabaseConfig = { url: supabaseUrl, publishableKey: supabasePublishableKey };
+
+export const supabase = createClient(supabaseConfig.url, supabaseConfig.publishableKey, {
   auth: {
     storage: secureSessionStorage,
     autoRefreshToken: true,
