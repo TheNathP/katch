@@ -4,7 +4,7 @@ import Screen from '@/components/ui/Screen';
 export default function ImportPhotoPage() {
   return (
     <Screen>
-      <NavigationLink href="/defi/zone" label="Sélectionner la zone" />
+      <NavigationLink href="/defi/zone" label="Sélectionner la zone" variant="primarySolid" />
     </Screen>
   );
 }

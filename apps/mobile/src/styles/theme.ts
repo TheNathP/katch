@@ -70,3 +70,53 @@ export const TabIconColors = {
   captureSelectedGradient: 'linear-gradient(165deg, #8F56FF, #6220EE 42%, #4500CB)',
   captureSelectedBorder: '#B49AFF',
 } as const;
+
+export const ComicFeedbackColors = {
+  ink: '#160D31',
+  paper: '#FFFFFF',
+  validated: { background: '#361393', middle: '#7234EF', shade: '#471AB4', accent: '#DFFF25' },
+  rejected: { background: '#961742', middle: '#EC146B', shade: '#B00751', accent: '#FFCE67' },
+} as const;
+
+export const OnboardingColors = {
+  canvas: '#FAF4FC',
+  card: '#FFFCFF',
+  white: '#FFFFFF',
+  ink: '#161229',
+  muted: '#514561',
+  purple: '#6424E8',
+  purplePressed: '#5018BB',
+  target: '#FF7A1A',
+  lavender: '#EFE4FC',
+  lilac: '#AE8BE9',
+  track: '#DFD0EC',
+  lime: '#DFFF25',
+  limeShade: '#A5CA09',
+  avatarAmber: '#FFF0C4',
+  avatarCoral: '#FFD2CC',
+  avatarAmethyst: '#EDE0FE',
+  violetEdge: '#AE87F6',
+  rankingHighlight: 'linear-gradient(105deg, #4B17B9, #742FF9)',
+  cardShadow: '0 8px 20px rgba(57, 18, 128, 0.12)',
+  feedbackRejected: '#932745',
+  rejectedScoreGradient: 'linear-gradient(180deg, #EB7897, #C84369 60%, #AB2F54)',
+  rejectedScoreShadow: 'inset 0 1px 3px rgba(255, 255, 255, 0.35), 0 2px 5px rgba(176, 46, 84, 0.21)',
+  scoreTrackShadow: 'inset 0 1px 4px rgba(62, 28, 121, 0.16)',
+  scoreFillGradient: 'linear-gradient(180deg, #A374FF, #7839F4 52%, #5420C9)',
+  scoreFillShadow: 'inset 0 1px 3px rgba(255, 255, 255, 0.39), 0 2px 5px rgba(89, 34, 198, 0.34)',
+} as const;
+
+export const ButtonTokens = {
+  primarySolid: {
+    minHeight: 58,
+    foreground: '#FFFFFF',
+    background: '#6424E8',
+    gradient: 'linear-gradient(180deg, #7943EC, #6326DC 66%, #5D23CD)',
+    border: '#5825C3',
+    base: '#4817A3',
+    shadow: 'inset 0 1px 3px rgba(255, 255, 255, 0.18), 0 4px 10px rgba(67, 23, 150, 0.19)',
+    pressedGradient: 'linear-gradient(180deg, #713ADF, #5820C3)',
+    pressedBackground: '#5820C3',
+    pressedShadow: 'inset 0 1px 3px rgba(255, 255, 255, 0.10), 0 1px 4px rgba(67, 23, 150, 0.16)',
+  },
+} as const;
