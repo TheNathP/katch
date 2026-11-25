@@ -28,7 +28,6 @@ export const socialStyles = StyleSheet.create({
     justifyContent: 'center', alignItems: 'center',
   },
   iconAction: { width: 44, height: 44, paddingHorizontal: 0, borderRadius: 22 },
-  actionIcon: { width: 20, height: 20 },
   pressed: { opacity: 0.65 },
   disabled: { opacity: 0.45 },
   empty: { padding: Spacing.three, borderRadius: 18, gap: Spacing.one },

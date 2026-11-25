@@ -20,9 +20,6 @@ const corner = require('@/assets/icon-illus/decorations/onboarding-purple-corner
 const duo = require('@/assets/images/pix/friends-high-five.png');
 const emptyPix = require('@/assets/images/pix/happy-rose.png');
 const chevron = require('@/assets/icons/chevron-right.svg');
-const check = require('@/assets/icons/check.svg');
-const close = require('@/assets/icons/x-mark.svg');
-const more = require('@/assets/icons/more-horizontal.svg');
 
 const sections = [
   { relationship: 'incoming', title: 'Demandes reçues' },
@@ -109,16 +106,16 @@ export default function FriendsPage() {
                   onOpen={() => router.push({ pathname: '/joueurs/[playerId]', params: { playerId: player.id } })}
                   trailing={relationship === 'incoming' ? (
                     <View style={styles.requestActions}>
-                      <SocialAction label="Refuser" icon={close} accessibilityLabel={`Refuser la demande de ${player.name}`}
+                      <SocialAction label="Refuser" icon="xMark" accessibilityLabel={`Refuser la demande de ${player.name}`}
                         disabled={actions.busy} onPress={() => void actions.change('remove', player.id)} />
-                      <SocialAction label="Accepter" icon={check} accent accessibilityLabel={`Accepter la demande de ${player.name}`}
+                      <SocialAction label="Accepter" icon="check" accent accessibilityLabel={`Accepter la demande de ${player.name}`}
                         disabled={actions.busy} onPress={() => void actions.change('accept', player.id)} />
                     </View>
                   ) : relationship === 'outgoing' ? (
                     <SocialAction label="Annuler" accessibilityLabel={`Annuler la demande à ${player.name}`}
                       disabled={actions.busy} onPress={() => void actions.change('remove', player.id)} />
                   ) : (
-                    <SocialAction label="Options" icon={more} quiet accessibilityLabel={`Options pour ${player.name}`}
+                    <SocialAction label="Options" icon="moreHorizontal" quiet accessibilityLabel={`Options pour ${player.name}`}
                       disabled={actions.busy} onPress={() => confirmRemoval(player)} />
                   )}
                 />

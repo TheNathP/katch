@@ -119,11 +119,20 @@ export const OnboardingColors = {
   rankingHighlight: 'linear-gradient(105deg, #4B17B9, #742FF9)',
   cardShadow: '0 8px 20px rgba(57, 18, 128, 0.12)',
   feedbackRejected: '#932745',
-  rejectedScoreGradient: 'linear-gradient(180deg, #EB7897, #C84369 60%, #AB2F54)',
-  rejectedScoreShadow: 'inset 0 1px 3px rgba(255, 255, 255, 0.35), 0 2px 5px rgba(176, 46, 84, 0.21)',
-  scoreTrackShadow: 'inset 0 1px 4px rgba(62, 28, 121, 0.16)',
-  scoreFillGradient: 'linear-gradient(180deg, #A374FF, #7839F4 52%, #5420C9)',
-  scoreFillShadow: 'inset 0 1px 3px rgba(255, 255, 255, 0.39), 0 2px 5px rgba(89, 34, 198, 0.34)',
+} as const;
+
+export const ProgressBarTokens = {
+  trackShadow: 'inset 0 1px 4px rgba(62, 28, 121, 0.16)',
+  primary: {
+    backgroundColor: OnboardingColors.purple,
+    backgroundImage: 'linear-gradient(180deg, #A374FF, #7839F4 52%, #5420C9)',
+    boxShadow: 'inset 0 1px 3px rgba(255, 255, 255, 0.39), 0 2px 5px rgba(89, 34, 198, 0.34)',
+  },
+  rejected: {
+    backgroundColor: OnboardingColors.feedbackRejected,
+    backgroundImage: 'linear-gradient(180deg, #EB7897, #C84369 60%, #AB2F54)',
+    boxShadow: 'inset 0 1px 3px rgba(255, 255, 255, 0.35), 0 2px 5px rgba(176, 46, 84, 0.21)',
+  },
 } as const;
 
 export const dailySwatchRadius = 18;
