@@ -1,4 +1,4 @@
-// Mirrors the public push contract in apps/backend/supabase/functions/_shared/types.ts.
+// Mirrors the public contract in apps/backend/supabase/functions/_shared/types.ts.
 export type PushRegistrationRequest = {
   token: string;
 };
@@ -8,3 +8,10 @@ export type PushRegistrationResponse = {
 };
 
 export type PushDestination = '/defi' | '/progression/serie' | '/classement/amis';
+
+export type DailyColorResponse = {
+  date: string;
+  colorHex: string;
+  endsAt: string;
+  serverTime: string;
+};

@@ -4,7 +4,7 @@ import Screen from '@/components/ui/Screen';
 export default function ColorAreaPage() {
   return (
     <Screen>
-      <NavigationLink href="/defi/confirmation" label="Confirmer la photo" />
+      <NavigationLink href="/defi/confirmation" label="Confirmer la photo" variant="primarySolid" />
     </Screen>
   );
 }

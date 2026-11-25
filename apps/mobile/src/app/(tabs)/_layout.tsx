@@ -8,9 +8,9 @@ import { Colors, Spacing } from '@/styles/theme';
 
 const tabs = [
   { name: 'index', title: 'Katch', label: 'Accueil', icon: 'home' },
-  { name: 'amis', title: 'Mes amis', label: 'Amis', icon: 'trophy' },
-  { name: 'defi', title: 'Capturer ma couleur', label: 'Capturer ma couleur', icon: 'challenge' },
-  { name: 'recompenses', title: 'Récompenses', label: 'Récompenses', icon: 'rewards' },
+  { name: 'classement', title: 'Classement', label: 'Classement', icon: 'trophy' },
+  { name: 'defi', title: 'Capturer ma couleur', label: 'Capturer ma couleur', icon: 'camera' },
+  { name: 'recompenses', title: 'Récompenses', label: 'Récompenses', icon: 'gift' },
   { name: 'profil', title: 'Mon profil', label: 'Profil', icon: 'profile' },
 ] as const;
 
@@ -24,8 +24,6 @@ export default function TabLayout() {
       screenOptions={{
         tabBarShowLabel: false,
         tabBarLabelPosition: 'below-icon',
-        tabBarActiveTintColor: Colors.light.tabBarIcon,
-        tabBarInactiveTintColor: theme.tabBarIcon,
         tabBarIconStyle: tabBarStyles.iconArea,
         tabBarStyle: [
           tabBarStyles.bar,
@@ -43,10 +41,15 @@ export default function TabLayout() {
           name={name}
           options={{
             title,
+            headerShown: name !== 'index' && name !== 'classement',
             tabBarLabel: label,
             tabBarAccessibilityLabel: label,
-            tabBarIcon: ({ focused, color }) => (
-              <TabIcon name={icon} focused={focused} color={color} />
+            tabBarIcon: ({ focused }) => (
+              <TabIcon
+                name={icon}
+                focused={focused}
+                color={focused ? Colors.light.tabBarIcon : theme.tabBarIcon}
+              />
             ),
           }}
         />

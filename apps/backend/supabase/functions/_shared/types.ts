@@ -13,3 +13,10 @@ export type PushNotification = {
   body: string;
   destination: PushDestination;
 };
+
+export type DailyColorResponse = {
+  date: string;
+  colorHex: string;
+  endsAt: string;
+  serverTime: string;
+};
