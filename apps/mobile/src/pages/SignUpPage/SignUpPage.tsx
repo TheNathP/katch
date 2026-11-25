@@ -1,38 +1,34 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { View } from "react-native";
 
+import AvatarPicker from "@/components/ui/AvatarPicker";
 import Button from "@/components/ui/Button";
 import NavigationLink from "@/components/ui/NavigationLink";
 import Screen from "@/components/ui/Screen";
 import TextField from "@/components/ui/TextField";
 import ThemedText from "@/components/ui/ThemedText";
 import type { AuthResult } from "@/data/adapters/auth.adapters";
-import type { AvatarCatalog } from "@/data/adapters/avatar-catalog.adapters";
 import { signUpWithEmail } from "@/data/auth";
-import {
-  getCachedAvatarCatalog,
-  refreshAvatarCatalog,
-} from "@/data/avatar-catalog";
+import { useAvatarCatalog } from "@/data/avatar-catalog-provider";
 import { isValidEmail } from "@/lib/email";
 import {
   DISPLAY_NAME_MAX_LENGTH,
   isChoiceInCatalog,
-  randomAvatarChoice,
+  newAvatarSeed,
+  seededAvatarChoice,
   validateDisplayName,
   type AvatarChoice,
 } from "@/lib/profile";
 
-import SignUpPageAvatarPicker from "./_page/SignUpPageAvatarPicker";
 import { styles } from "./SignUpPage.styles";
 
 const MIN_PASSWORD_LENGTH = 6;
 
 export default function SignUpPage() {
   const [displayName, setDisplayName] = useState("");
-  const [catalog, setCatalog] = useState<AvatarCatalog | null>(null);
-  const [catalogFailed, setCatalogFailed] = useState(false);
-  const [catalogAttempt, setCatalogAttempt] = useState(0);
-  const [avatarChoice, setAvatarChoice] = useState<AvatarChoice | null>(null);
+  const avatarCatalog = useAvatarCatalog();
+  const [avatarSeed] = useState(newAvatarSeed);
+  const [pickedAvatar, setPickedAvatar] = useState<AvatarChoice | null>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirmation, setPasswordConfirmation] = useState("");
@@ -40,37 +36,14 @@ export default function SignUpPage() {
   const [error, setError] = useState<string | null>(null);
   const [confirmationSent, setConfirmationSent] = useState(false);
 
-  useEffect(() => {
-    const controller = new AbortController();
-    let refreshed = false;
-
-    function applyCatalog(next: AvatarCatalog) {
-      setCatalog(next);
-      setCatalogFailed(false);
-      // Keep the player's pick when it still exists, otherwise draw a new one.
-      setAvatarChoice((current) =>
-        current && isChoiceInCatalog(current, next)
-          ? current
-          : randomAvatarChoice(next),
-      );
-    }
-
-    getCachedAvatarCatalog().then((cached) => {
-      if (cached && !refreshed && !controller.signal.aborted)
-        applyCatalog(cached);
-    });
-    refreshAvatarCatalog(controller.signal).then(
-      (fresh) => {
-        refreshed = true;
-        applyCatalog(fresh);
-      },
-      () => {
-        if (!controller.signal.aborted) setCatalogFailed(true);
-      },
-    );
-
-    return () => controller.abort();
-  }, [catalogAttempt]);
+  // Keep the player's pick while it exists in the catalog, otherwise show a
+  // random default (stable for this screen thanks to the seed).
+  const { catalog } = avatarCatalog;
+  const avatarChoice = !catalog
+    ? null
+    : pickedAvatar && isChoiceInCatalog(pickedAvatar, catalog)
+      ? pickedAvatar
+      : seededAvatarChoice(catalog, avatarSeed);
 
   async function run(action: () => Promise<AuthResult>) {
     setPending(true);
@@ -130,15 +103,12 @@ export default function SignUpPage() {
   return (
     <Screen>
       <View style={styles.form}>
-        <SignUpPageAvatarPicker
+        <AvatarPicker
           catalog={catalog}
-          loadFailed={catalogFailed}
-          onRetry={() => {
-            setCatalogFailed(false);
-            setCatalogAttempt((attempt) => attempt + 1);
-          }}
+          loadFailed={avatarCatalog.loadFailed}
+          onRetry={avatarCatalog.retry}
           value={avatarChoice}
-          onChange={setAvatarChoice}
+          onChange={setPickedAvatar}
         />
         <TextField
           label="Pseudo"

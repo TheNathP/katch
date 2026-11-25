@@ -11,15 +11,28 @@ export type AvatarChoice = {
   background: string;
 };
 
-function pickRandom<T>(items: readonly T[]): T {
-  return items[Math.floor(Math.random() * items.length)];
+/** Two numbers in [0, 1), e.g. from `Math.random()`, drawn once per screen. */
+export type AvatarSeed = readonly [number, number];
+
+export function newAvatarSeed(): AvatarSeed {
+  return [Math.random(), Math.random()];
 }
 
-/** A random avatar on a random background, used as the default profile picture. */
-export function randomAvatarChoice(catalog: CatalogIds): AvatarChoice {
+function pickAt<T>(items: readonly T[], seed: number): T {
+  return items[Math.floor(seed * items.length) % items.length];
+}
+
+/**
+ * A random avatar on a random background, used as the default profile
+ * picture. The same seed always gives the same choice for a given catalog.
+ */
+export function seededAvatarChoice(
+  catalog: CatalogIds,
+  seed: AvatarSeed,
+): AvatarChoice {
   return {
-    avatar: pickRandom(catalog.avatars).id,
-    background: pickRandom(catalog.backgrounds).id,
+    avatar: pickAt(catalog.avatars, seed[0]).id,
+    background: pickAt(catalog.backgrounds, seed[1]).id,
   };
 }
 

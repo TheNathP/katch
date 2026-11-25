@@ -6,10 +6,9 @@ import ThemedText from "@/components/ui/ThemedText";
 import type { AvatarCatalog } from "@/data/adapters/avatar-catalog.adapters";
 import type { AvatarChoice } from "@/lib/profile";
 
-import { styles } from "./SignUpPageAvatarPicker.styles";
+import { styles } from "./AvatarPicker.styles";
 
-type SignUpPageAvatarPickerProps = {
-  /** null while loading, or when loading failed and nothing is cached. */
+type AvatarPickerProps = {
   catalog: AvatarCatalog | null;
   loadFailed: boolean;
   onRetry: () => void;
@@ -17,14 +16,13 @@ type SignUpPageAvatarPickerProps = {
   onChange: (value: AvatarChoice) => void;
 };
 
-/** Shows the profile picture; tapping it reveals the avatar and background lists. */
-export default function SignUpPageAvatarPicker({
+export default function AvatarPicker({
   catalog,
   loadFailed,
   onRetry,
   value,
   onChange,
-}: SignUpPageAvatarPickerProps) {
+}: AvatarPickerProps) {
   const [open, setOpen] = useState(false);
 
   if (!catalog || !value) {
@@ -33,14 +31,20 @@ export default function SignUpPageAvatarPicker({
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Photo de profil"
-          accessibilityHint={loadFailed ? "Réessaie de charger les photos" : undefined}
+          accessibilityHint={
+            loadFailed ? "Réessaie de charger les photos" : undefined
+          }
           disabled={!loadFailed}
           onPress={onRetry}
           style={styles.preview}
         >
           <Avatar size={112} />
         </Pressable>
-        <ThemedText type="small" themeColor="textSecondary" style={styles.status}>
+        <ThemedText
+          type="small"
+          themeColor="textSecondary"
+          style={styles.status}
+        >
           {loadFailed
             ? "Impossible de charger les photos. Touche pour réessayer."
             : "Chargement des photos…"}
