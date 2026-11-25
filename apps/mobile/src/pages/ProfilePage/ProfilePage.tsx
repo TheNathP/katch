@@ -25,6 +25,7 @@ export default function ProfilePage() {
         </ThemedText>
       )}
       <NavigationLink href="/profil/modifier" label="Modifier mon profil" />
+      <NavigationLink href="/amis" label="Mes amis" />
       <NavigationLink href="/progression" label="Ma progression" />
       <NavigationLink href="/historique" label="Historique des défis" />
       <NavigationLink href="/collection" label="Ma collection" />

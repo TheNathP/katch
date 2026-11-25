@@ -7,7 +7,8 @@
     "stop": "supabase stop",
     "status": "supabase status",
     "db:reset": "supabase db reset",
-    "functions:serve": "supabase functions serve"
+    "functions:serve": "supabase functions serve",
+    "test:daily-color": "pnpm dlx deno@2.9.6 test --no-config --no-lock --node-modules-dir=none --allow-env --allow-read supabase/tests/daily-color_test.ts"
   },
   "devDependencies": {
     "supabase": "^3.3.0"
