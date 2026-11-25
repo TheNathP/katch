@@ -65,6 +65,7 @@ function RootNavigator() {
         <Stack.Screen name="defi/confirmation" options={{ title: 'Confirmer la photo' }} />
         <Stack.Screen name="defi/resultat" options={{ title: 'Résultat' }} />
         <Stack.Screen name="defi/photos" options={{ title: 'Photos du jour' }} />
+        <Stack.Screen name="amis/liste" options={{ title: 'Mes amis' }} />
         <Stack.Screen name="amis/recherche" options={{ title: 'Rechercher des amis' }} />
         <Stack.Screen name="joueurs/[playerId]" options={{ title: 'Profil du joueur' }} />
         <Stack.Screen name="classement/index" options={{ title: 'Classement mondial' }} />
