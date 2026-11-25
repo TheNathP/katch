@@ -7,7 +7,7 @@ export type PushRegistrationResponse = {
   registered: boolean;
 };
 
-export type PushDestination = '/defi' | '/progression/serie' | '/classement/amis';
+export type PushDestination = '/' | '/amis' | '/defi' | '/progression/serie' | '/classement/amis';
 
 export type DailyColorResponse = {
   date: string;

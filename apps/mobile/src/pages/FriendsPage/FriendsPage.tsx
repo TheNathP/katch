@@ -1,5 +1,5 @@
 import { Image } from 'expo-image';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { Alert, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
@@ -31,7 +31,8 @@ const sections = [
 ] as const;
 
 export default function FriendsPage() {
-  const { value, error, reload } = useFriendsQuery(getFriends);
+  const { notification } = useLocalSearchParams<{ notification?: string }>();
+  const { value, error, reload } = useFriendsQuery(getFriends, notification);
   const actions = useFriendshipActions(reload);
   const count = value?.players.filter(player => player.relationship === 'friend').length ?? 0;
 

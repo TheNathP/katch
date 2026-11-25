@@ -1,4 +1,4 @@
-# ADR-004 — Enqueue push notifications on the backend
+# ADR-006 — Enqueue push notifications on the backend
 
 - **Status** — Accepted
 - **Date** — 2026-11-24
@@ -21,6 +21,18 @@ Expo provides one HTTP API for APNs and FCM. A database queue lets the game logi
 - `POST /functions/v1/push-worker` requires the `x-push-worker-secret` header and processes up to 100 sends and 100 receipt checks per call. Calls with an unknown outcome are recorded so a second worker does not replay an in-flight batch. Explicit transient errors can be retried up to five send attempts, within the notification's expiry.
 - The worker checks receipts starting 15 minutes after submission and removes invalid registrations. An accepted receipt means APNs or FCM accepted the message. The worker prunes completed records after 30 days.
 
+## Daily challenge notification
+
+Creating a [daily challenge](005-daily-challenge-color.md) for the current UTC day queues a notification for every registered device in the same transaction. Reading an existing challenge does not enqueue another message. The event expires at the next UTC midnight and opens the home screen, where the player can reveal the target.
+
+Apply the daily challenge migration before the notification trigger migration. The first authenticated request that generates the day's color also queues its notification.
+
+## Friend request notification
+
+A new pending friendship queues a push for the recipient's registered devices. An ID assigned to each request keeps retries from creating duplicate deliveries and lets a fresh request after removal get its own notification. Accepting, declining, or withdrawing the request stops deliveries that are still waiting to be sent.
+
+The push expires after 24 hours and opens `/amis`, where the app refreshes the received requests. Its text can appear on a lock screen and omits the sender's identity.
+
 ## Adding a notification
 
 A backend function can enqueue a new event with a stable key and user IDs obtained from server-side game data. Use `expiresAt` when a notification becomes irrelevant at a specific time.
@@ -29,12 +41,12 @@ A backend function can enqueue a new event with a stable key and user IDs obtain
 import { enqueuePushNotification } from '../_shared/push/delivery.ts';
 
 await enqueuePushNotification({
-  eventKey: 'daily-challenge:2026-11-24',
+  eventKey: 'streak-reminder:2026-11-24',
   userIds: eligiblePlayerIds,
   notification: {
-    title: 'Nouveau défi Katch',
-    body: 'La couleur du jour est disponible.',
-    destination: '/defi',
+    title: 'Ta série Katch',
+    body: 'Joue aujourd’hui pour continuer ta série.',
+    destination: '/progression/serie',
   },
 });
 ```
@@ -46,7 +58,8 @@ Run `pnpm --filter @katch/backend test:push` from the repository root. The tests
 ## Activation
 
 - Configure a random `PUSH_WORKER_SECRET` of at least 32 characters in the Edge Function environment. Schedule `push-worker` at least once per minute with Supabase Cron and pass that secret from Vault in the `x-push-worker-secret` header. Set `EXPO_ACCESS_TOKEN` if the Expo project requires authenticated push requests.
-- The mobile integration will ask permission, register the token after sign-in, remove the registration on opt-out or sign-out, and open the internal destination when tapped. Remote delivery requires configured Expo project credentials for the target platform.
+- In a signed-in native build, the profile lets players enable or disable notifications on their device. Katch asks for OS permission when they enable them, registers the Expo token, and opens the internal destination on tap. Disabling removes the registration. Katch attempts to remove the registration before signing out.
+- Link the Expo project so its EAS project ID is available in the build, and configure APNs for iOS and FCM for Android. Install a development build to test remote delivery. The app uses the `daily-challenge` Android notification channel.
 - For development, use the local Supabase stack and `pnpm functions:serve --env-file <path-to-local-env>`. Call the worker with a POST request and an empty body or `{}`. Send only to devices enrolled for testing.
 
 With the project URL and the worker secret stored in Vault as `project_url` and `push_worker_secret`, the Cron job can use this statement with `pg_net` enabled.

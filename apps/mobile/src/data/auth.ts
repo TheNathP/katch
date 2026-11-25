@@ -1,4 +1,5 @@
 import { type AuthResult, toAuthErrorMessage } from "./adapters/auth.adapters";
+import { disablePushNotifications } from "./push-notifications";
 import { supabase } from "./supabase";
 
 export async function signInWithEmail(
@@ -26,6 +27,7 @@ export async function signUpWithEmail(
   return { status: "signed-in" };
 }
 
-export async function signOut(): Promise<void> {
+export async function signOut(userId?: string): Promise<void> {
+  if (userId) await disablePushNotifications(userId).catch(() => {});
   await supabase.auth.signOut();
 }
