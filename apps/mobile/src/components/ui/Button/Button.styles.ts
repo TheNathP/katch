@@ -26,6 +26,10 @@ export const styles = StyleSheet.create({
   },
   limeSolid: {
     minHeight: limeSolid.minHeight,
+    borderWidth: 1,
+    borderColor: limeSolid.border,
+    borderBottomWidth: 4,
+    borderBottomColor: limeSolid.base,
     backgroundColor: limeSolid.background,
     backgroundImage: limeSolid.gradient,
     boxShadow: limeSolid.shadow,
@@ -41,6 +45,7 @@ export const styles = StyleSheet.create({
   limeSolidPressed: {
     backgroundImage: limeSolid.pressedGradient,
     backgroundColor: limeSolid.pressedBackground,
+    boxShadow: limeSolid.pressedShadow,
   },
   disabled: { opacity: 0.55 },
   label: {

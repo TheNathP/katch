@@ -155,8 +155,11 @@ export const ButtonTokens = {
     foreground: OnboardingColors.ink,
     background: OnboardingColors.lime,
     gradient: 'linear-gradient(175deg, #EEFF80, #DFFF25 55%, #D2F71B)',
-    shadow: '0 4px 10px rgba(134, 165, 18, 0.23)',
+    border: '#BBD722',
+    base: '#8FAA0A',
+    shadow: 'inset 0 1px 3px rgba(255, 255, 255, 0.42), 0 5px 11px rgba(187, 215, 34, 0.28)',
     pressedBackground: '#C8EA13',
     pressedGradient: 'linear-gradient(175deg, #DBF45B, #C8EA13)',
+    pressedShadow: 'inset 0 1px 2px rgba(255, 255, 255, 0.23), 0 2px 5px rgba(187, 215, 34, 0.20)',
   },
 } as const;
