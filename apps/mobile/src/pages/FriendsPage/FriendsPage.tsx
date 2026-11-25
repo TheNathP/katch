@@ -1,7 +1,6 @@
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
-import { useState } from 'react';
-import { View } from 'react-native';
+import { Alert, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
 import Button from '@/components/ui/Button';
@@ -14,7 +13,6 @@ import { getFriends } from '@/data/friends';
 import type { SocialPlayer } from '@/data/social-api.types';
 import { useFriendsQuery } from '@/hooks/use-friends-query';
 import { useFriendshipActions } from '@/hooks/use-friendship-actions';
-import { useTheme } from '@/hooks/use-theme';
 import { socialStyles as styles } from '@/styles/social';
 import { OnboardingColors } from '@/styles/theme';
 
@@ -23,7 +21,8 @@ const duo = require('@/assets/images/pix/friends-high-five.png');
 const emptyPix = require('@/assets/images/pix/happy-rose.png');
 const chevron = require('@/assets/icons/chevron-right.svg');
 const check = require('@/assets/icons/check.svg');
-const close = require('@/assets/icons/close.svg');
+const close = require('@/assets/icons/x-mark.svg');
+const more = require('@/assets/icons/more-horizontal.svg');
 
 const sections = [
   { relationship: 'incoming', title: 'Demandes reçues' },
@@ -32,11 +31,16 @@ const sections = [
 ] as const;
 
 export default function FriendsPage() {
-  const theme = useTheme();
   const { value, error, reload } = useFriendsQuery(getFriends);
   const actions = useFriendshipActions(reload);
-  const [confirm, setConfirm] = useState<SocialPlayer>();
   const count = value?.players.filter(player => player.relationship === 'friend').length ?? 0;
+
+  function confirmRemoval(player: SocialPlayer) {
+    Alert.alert('Retirer cet ami ?', `${player.name} sera retiré de ta liste d’amis.`, [
+      { text: 'Annuler', style: 'cancel' },
+      { text: 'Retirer', style: 'destructive', onPress: () => void actions.change('remove', player.id) },
+    ]);
+  }
 
   return (
     <Screen>
@@ -99,38 +103,25 @@ export default function FriendsPage() {
                 </View>
               )}
               {players.map(player => (
-                <View key={player.id} style={styles.section}>
-                  <SocialPlayerRow
-                    player={player}
-                    onOpen={() => router.push({ pathname: '/joueurs/[playerId]', params: { playerId: player.id } })}
-                    trailing={relationship === 'incoming' ? (
-                      <View style={styles.requestActions}>
-                        <SocialAction label="Refuser" icon={close} accessibilityLabel={`Refuser la demande de ${player.name}`}
-                          disabled={actions.busy} onPress={() => void actions.change('remove', player.id)} />
-                        <SocialAction label="Accepter" icon={check} accent accessibilityLabel={`Accepter la demande de ${player.name}`}
-                          disabled={actions.busy} onPress={() => void actions.change('accept', player.id)} />
-                      </View>
-                    ) : (
-                      <SocialAction label={relationship === 'outgoing' ? 'Annuler' : 'Gérer'}
-                        accessibilityLabel={relationship === 'outgoing' ? `Annuler la demande à ${player.name}` : `Gérer ${player.name}`}
-                        disabled={actions.busy}
-                        onPress={() => relationship === 'outgoing' ? void actions.change('remove', player.id) : setConfirm(player)} />
-                    )}
-                  />
-                  {confirm?.id === player.id && (
-                    <View style={[styles.confirmation, { backgroundColor: theme.backgroundElement }]}>
-                      <ThemedText type="smallBold">Retirer {player.name} de tes amis ?</ThemedText>
-                      <View style={styles.confirmationActions}>
-                        <SocialAction label="Garder" onPress={() => setConfirm(undefined)} />
-                        <SocialAction label="Retirer" danger disabled={actions.busy}
-                          onPress={() => {
-                            setConfirm(undefined);
-                            void actions.change('remove', player.id);
-                          }} />
-                      </View>
+                <SocialPlayerRow
+                  key={player.id}
+                  player={player}
+                  onOpen={() => router.push({ pathname: '/joueurs/[playerId]', params: { playerId: player.id } })}
+                  trailing={relationship === 'incoming' ? (
+                    <View style={styles.requestActions}>
+                      <SocialAction label="Refuser" icon={close} accessibilityLabel={`Refuser la demande de ${player.name}`}
+                        disabled={actions.busy} onPress={() => void actions.change('remove', player.id)} />
+                      <SocialAction label="Accepter" icon={check} accent accessibilityLabel={`Accepter la demande de ${player.name}`}
+                        disabled={actions.busy} onPress={() => void actions.change('accept', player.id)} />
                     </View>
+                  ) : relationship === 'outgoing' ? (
+                    <SocialAction label="Annuler" accessibilityLabel={`Annuler la demande à ${player.name}`}
+                      disabled={actions.busy} onPress={() => void actions.change('remove', player.id)} />
+                  ) : (
+                    <SocialAction label="Options" icon={more} quiet accessibilityLabel={`Options pour ${player.name}`}
+                      disabled={actions.busy} onPress={() => confirmRemoval(player)} />
                   )}
-                </View>
+                />
               ))}
             </View>
           );

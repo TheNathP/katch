@@ -44,6 +44,4 @@ export const socialStyles = StyleSheet.create({
   },
   requestActions: { flexDirection: 'row', alignItems: 'center', gap: Spacing.one },
   scorePill: { borderRadius: 99, backgroundColor: OnboardingColors.lime, paddingHorizontal: 12, paddingVertical: 4 },
-  confirmation: { gap: Spacing.two, padding: Spacing.three, borderRadius: 16 },
-  confirmationActions: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two },
 });

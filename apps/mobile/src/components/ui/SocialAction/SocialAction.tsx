@@ -11,12 +11,12 @@ type Props = {
   icon?: ImageProps['source'];
   accessibilityLabel?: string;
   disabled?: boolean;
-  danger?: boolean;
+  quiet?: boolean;
   accent?: boolean;
   onPress: () => void;
 };
 
-export default function SocialAction({ label, icon, accessibilityLabel, disabled, danger, accent, onPress }: Props) {
+export default function SocialAction({ label, icon, accessibilityLabel, disabled, quiet, accent, onPress }: Props) {
   const theme = useTheme();
 
   return (
@@ -26,14 +26,14 @@ export default function SocialAction({ label, icon, accessibilityLabel, disabled
       disabled={disabled}
       onPress={onPress}
       style={({ pressed }) => [
-        styles.action, icon != null && styles.iconAction, { backgroundColor: accent ? OnboardingColors.lime : theme.backgroundSelected },
+        styles.action, icon != null && styles.iconAction, !quiet && { backgroundColor: accent ? OnboardingColors.lime : theme.backgroundSelected },
         pressed && styles.pressed, disabled && styles.disabled,
       ]}>
       {icon != null ? (
         <Image source={icon} aria-hidden style={styles.actionIcon}
           tintColor={accent ? OnboardingColors.ink : theme.text} contentFit="contain" />
       ) : (
-        <ThemedText type="smallBold" themeColor={danger ? 'danger' : 'text'} style={accent && styles.friendsBadgeText}>{label}</ThemedText>
+        <ThemedText type="smallBold" style={accent && styles.friendsBadgeText}>{label}</ThemedText>
       )}
     </Pressable>
   );
