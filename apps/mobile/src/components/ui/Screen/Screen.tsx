@@ -1,19 +1,24 @@
-import type { PropsWithChildren } from 'react';
-import { ScrollView, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import type { PropsWithChildren } from "react";
+import { ScrollView, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-import { useTheme } from '@/hooks/use-theme';
+import { useTheme } from "@/hooks/use-theme";
 
-import { styles } from './Screen.styles';
+import { styles } from "./Screen.styles";
 
 export default function Screen({ children }: PropsWithChildren) {
   const theme = useTheme();
 
   return (
     <SafeAreaView
-      edges={['left', 'right']}
-      style={[styles.screen, { backgroundColor: theme.background }]}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      edges={["left", "right"]}
+      style={[styles.screen, { backgroundColor: theme.background }]}
+    >
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        contentInsetAdjustmentBehavior="automatic"
+        keyboardShouldPersistTaps="handled"
+      >
         <View style={styles.content}>{children}</View>
       </ScrollView>
     </SafeAreaView>

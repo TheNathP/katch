@@ -10,6 +10,7 @@ export const Colors = {
     tabBarBackground: '#FFFCFF',
     tabBarBorder: '#F0E8F6',
     tabBarIcon: '#141126',
+    danger: '#D92D20',
   },
   dark: {
     text: '#ffffff',
@@ -20,6 +21,7 @@ export const Colors = {
     tabBarBackground: '#1B1625',
     tabBarBorder: '#352B41',
     tabBarIcon: '#F8F3FF',
+    danger: '#FF6B5E',
   },
 } as const;
 
