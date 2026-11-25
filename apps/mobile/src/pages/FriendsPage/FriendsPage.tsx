@@ -3,7 +3,7 @@ import Screen from '@/components/ui/Screen';
 
 export default function FriendsPage() {
   return (
-    <Screen contentInsetAdjustmentBehavior="automatic">
+    <Screen>
       <NavigationLink href="/amis/recherche" label="Rechercher des amis" />
       <NavigationLink href="/classement/amis" label="Classement entre amis" />
     </Screen>

@@ -1,13 +1,11 @@
-import { Redirect, useFocusEffect } from 'expo-router';
-import { type ComponentRef, useCallback, useEffect, useRef, useState } from 'react';
+import { useFocusEffect } from 'expo-router';
+import { type ComponentRef, useCallback, useRef, useState } from 'react';
 import { AppState, ScrollView, type View } from 'react-native';
 import { useSharedValue } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { isDailyColorRevealed, rememberDailyColorReveal } from '@/data/daily-color-reveal';
 import { getHomePage } from '@/data/get-home-page';
-import { isLocalGuestEnabled } from '@/data/local-guest-session';
-import { hasCompletedOnboarding } from '@/data/onboarding-progress';
 import { useTheme } from '@/hooks/use-theme';
 
 import HomePageDailyChallenge, { type ChallengeState } from './_page/HomePageDailyChallenge';
@@ -18,30 +16,16 @@ import { styles } from './HomePage.styles';
 
 export default function HomePage() {
   const theme = useTheme();
-  const [completedOnboarding, setCompletedOnboarding] = useState<boolean>();
   const [challenge, setChallenge] = useState<ChallengeState>({ status: 'loading' });
   const reload = useRef<(() => Promise<void>) | null>(null);
   const revealWrite = useRef<Promise<void> | null>(null);
   const swatchRef = useRef<ComponentRef<typeof View>>(null);
-  const canShowHome = isLocalGuestEnabled || completedOnboarding === true;
   const revealProgress = useSharedValue(0);
   const revealingColor = challenge.status === 'ready' && challenge.reveal === 'revealing'
     ? challenge.color
     : undefined;
 
-  useEffect(() => {
-    if (__DEV__) return;
-    let active = true;
-    void hasCompletedOnboarding().then(
-      (completed) => { if (active) setCompletedOnboarding(completed); },
-      () => { if (active) setCompletedOnboarding(true); },
-    );
-    return () => { active = false; };
-  }, []);
-
   useFocusEffect(useCallback(() => {
-    if (!canShowHome) return;
-
     const controller = new AbortController();
     let pending = false;
     let refreshTimer: ReturnType<typeof setTimeout> | undefined;
@@ -79,7 +63,7 @@ export default function HomePage() {
       clearTimeout(refreshTimer);
       subscription.remove();
     };
-  }, [canShowHome]));
+  }, []));
 
   const revealColor = async () => {
     if (challenge.status !== 'ready' || challenge.reveal !== 'hidden' || revealWrite.current) return;
@@ -111,11 +95,6 @@ export default function HomePage() {
       ? { ...current, reveal: 'revealed' }
       : current);
   }, []);
-
-  if (!isLocalGuestEnabled && (__DEV__ || completedOnboarding === false)) {
-    return <Redirect href="/bienvenue" />;
-  }
-  if (!canShowHome) return null;
 
   return (
     <SafeAreaView edges={['top']} style={[styles.screen, { backgroundColor: theme.dailyCanvas }]}>
