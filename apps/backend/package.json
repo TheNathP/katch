@@ -3,11 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "supabase start",
-    "stop": "supabase stop",
-    "status": "supabase status",
-    "db:reset": "supabase db reset",
-    "functions:serve": "supabase functions serve"
+    "db:migrations": "supabase migration list --remote",
+    "db:push": "supabase db push --remote",
+    "functions:deploy": "supabase functions deploy"
   },
   "devDependencies": {
     "supabase": "^3.3.0"
