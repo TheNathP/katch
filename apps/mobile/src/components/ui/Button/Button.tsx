@@ -1,56 +1,49 @@
-import { ActivityIndicator, Pressable } from 'react-native';
+import { Image, type ImageProps } from 'expo-image';
+import type { ComponentPropsWithRef } from 'react';
+import { Pressable, Text, type StyleProp, type ViewStyle } from 'react-native';
 
-import ThemedText from '@/components/ui/ThemedText';
-import { useTheme } from '@/hooks/use-theme';
+import { ButtonTokens } from '@/styles/theme';
 
 import { styles } from './Button.styles';
 
-type ButtonProps = {
+type ButtonProps = Omit<ComponentPropsWithRef<typeof Pressable>, 'children' | 'style'> & {
   label: string;
-  onPress: () => void;
-  variant?: 'primary' | 'secondary';
-  loading?: boolean;
-  disabled?: boolean;
+  variant?: 'primarySolid';
+  trailingIcon?: ImageProps['source'];
+  style?: StyleProp<ViewStyle>;
 };
 
 export default function Button({
   label,
-  onPress,
-  variant = 'primary',
-  loading = false,
+  variant = 'primarySolid',
+  trailingIcon,
+  accessibilityRole = 'button',
+  accessibilityState,
   disabled = false,
+  style,
+  ...pressableProps
 }: ButtonProps) {
-  const theme = useTheme();
-  const isPrimary = variant === 'primary';
-  const textColor = isPrimary ? theme.onPrimary : theme.text;
-  const isDisabled = disabled || loading;
-
   return (
     <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      accessibilityState={{ disabled: isDisabled, busy: loading }}
-      disabled={isDisabled}
-      onPress={onPress}
+      {...pressableProps}
+      accessibilityRole={accessibilityRole}
+      accessibilityState={{ ...accessibilityState, disabled }}
+      disabled={disabled}
       style={({ pressed }) => [
-        styles.button,
-        {
-          backgroundColor: isPrimary
-            ? pressed
-              ? theme.primaryPressed
-              : theme.primary
-            : pressed
-              ? theme.backgroundSelected
-              : theme.backgroundElement,
-        },
-        isDisabled && styles.disabled,
+        styles[variant],
+        style,
+        disabled ? styles.disabled : pressed && styles.pressed,
       ]}>
-      {loading ? (
-        <ActivityIndicator color={textColor} />
-      ) : (
-        <ThemedText type="smallBold" style={{ color: textColor }}>
-          {label}
-        </ThemedText>
+      <Text style={styles.label}>{label}</Text>
+      {trailingIcon != null && (
+        <Image
+          aria-hidden
+          source={trailingIcon}
+          style={styles.icon}
+          loading="eager"
+          contentFit="contain"
+          tintColor={ButtonTokens.primarySolid.foreground}
+        />
       )}
     </Pressable>
   );

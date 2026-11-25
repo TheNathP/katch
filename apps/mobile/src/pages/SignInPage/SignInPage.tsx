@@ -71,9 +71,9 @@ export default function SignInPage() {
         )}
 
         <Button
-          label="Se connecter"
+          label={pending ? 'Connexion…' : 'Se connecter'}
           onPress={handleEmailSignIn}
-          loading={pending}
+          disabled={pending}
         />
       </View>
 

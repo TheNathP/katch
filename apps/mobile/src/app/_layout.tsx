@@ -1,11 +1,13 @@
 import { DarkTheme, DefaultTheme, SplashScreen, Stack, ThemeProvider } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { useEffect, useState } from 'react';
 
+import { hasCompletedOnboarding } from '@/data/onboarding-progress';
 import { SessionProvider, useSession } from '@/data/session-provider';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
-// Keep the splash screen until the stored session has been read, so a
-// signed-in player never sees the sign-in screen flash.
+// Keep the splash screen until the stored session and the onboarding flag have
+// been read, so a signed-in player never sees the sign-in screen flash.
 SplashScreen.preventAutoHideAsync();
 
 export const unstable_settings = {
@@ -26,8 +28,9 @@ export default function RootLayout() {
 }
 
 /**
- * Every screen requires a signed-in player, except the account screens:
- * signed-out players land on the sign-in screen. Any route file NOT declared below is public by default: declare
+ * Every screen requires a signed-in player, except the onboarding and account
+ * screens: signed-out players land on the onboarding until they have completed
+ * it (always in development), then on the sign-in screen. Any route file NOT declared below is public by default: declare
  * new screens inside the signed-in group.
  *
  * This only hides screens client-side; the real access control is the JWT
@@ -35,15 +38,27 @@ export default function RootLayout() {
  */
 function RootNavigator() {
   const { user, isLoading } = useSession();
+  // In development the onboarding is always shown (see onboarding-progress).
+  const [completedOnboarding, setCompletedOnboarding] = useState<boolean | undefined>(__DEV__ ? false : undefined);
 
-  if (isLoading) return null;
+  useEffect(() => {
+    if (__DEV__) return;
+    let active = true;
+    hasCompletedOnboarding().then(
+      (completed) => { if (active) setCompletedOnboarding(completed); },
+      () => { if (active) setCompletedOnboarding(true); },
+    );
+    return () => { active = false; };
+  }, []);
+
+  if (isLoading || completedOnboarding === undefined) return null;
   SplashScreen.hide();
 
   const isSignedIn = user !== null;
 
   return (
     <Stack screenOptions={{ headerBackButtonDisplayMode: 'minimal', headerBackTitle: 'Retour' }}>
-      <Stack.Protected guard={isSignedIn} redirectTo="/compte/connexion">
+      <Stack.Protected guard={isSignedIn} redirectTo={completedOnboarding ? '/compte/connexion' : '/bienvenue'}>
         <Stack.Screen name="(tabs)" options={{ title: 'Katch', headerShown: false }} />
         <Stack.Screen name="defi/import" options={{ title: 'Importer une photo' }} />
         <Stack.Screen name="defi/zone" options={{ title: 'Sélectionner la zone' }} />
@@ -66,6 +81,7 @@ function RootNavigator() {
       </Stack.Protected>
 
       <Stack.Protected guard={!isSignedIn} redirectTo="/">
+        <Stack.Screen name="bienvenue" options={{ title: 'Découvrir Katch', headerShown: false }} />
         <Stack.Screen name="compte/connexion" options={{ title: 'Connexion' }} />
         <Stack.Screen name="compte/inscription" options={{ title: 'Inscription' }} />
       </Stack.Protected>

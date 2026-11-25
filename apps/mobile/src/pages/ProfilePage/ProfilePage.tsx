@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useState } from "react";
 
-import Button from '@/components/ui/Button';
-import NavigationLink from '@/components/ui/NavigationLink';
-import Screen from '@/components/ui/Screen';
-import ThemedText from '@/components/ui/ThemedText';
-import { signOut } from '@/data/auth';
-import { useSession } from '@/data/session-provider';
+import Button from "@/components/ui/Button";
+import NavigationLink from "@/components/ui/NavigationLink";
+import Screen from "@/components/ui/Screen";
+import ThemedText from "@/components/ui/ThemedText";
+import { signOut } from "@/data/auth";
+import { useSession } from "@/data/session-provider";
 
 export default function ProfilePage() {
   const { user } = useSession();
@@ -21,7 +21,7 @@ export default function ProfilePage() {
     <Screen>
       {user && (
         <ThemedText type="small" themeColor="textSecondary">
-          Connecté en tant que {user.email ?? 'joueur'}
+          Connecté en tant que {user.email ?? "joueur"}
         </ThemedText>
       )}
       <NavigationLink href="/profil/modifier" label="Modifier mon profil" />
@@ -29,10 +29,9 @@ export default function ProfilePage() {
       <NavigationLink href="/historique" label="Historique des défis" />
       <NavigationLink href="/collection" label="Ma collection" />
       <Button
-        label="Se déconnecter"
-        variant="secondary"
+        label={signingOut ? "Déconnexion" : "Se déconnecter"}
         onPress={handleSignOut}
-        loading={signingOut}
+        disabled={signingOut}
       />
     </Screen>
   );

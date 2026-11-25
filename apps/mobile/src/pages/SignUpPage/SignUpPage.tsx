@@ -110,9 +110,9 @@ export default function SignUpPage() {
         )}
 
         <Button
-          label="Créer mon compte"
+          label={pending ? "Création du compte" : "Créer mon compte"}
           onPress={handleEmailSignUp}
-          loading={pending}
+          disabled={pending}
         />
       </View>
 
