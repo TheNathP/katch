@@ -10,6 +10,15 @@ export const Colors = {
     tabBarBackground: '#FFFCFF',
     tabBarBorder: '#F0E8F6',
     tabBarIcon: '#141126',
+    dailyCanvas: '#FAF4FC',
+    dailyCard: '#FFFCFF',
+    dailySurface: '#F5EDFA',
+    dailyBorder: '#EEE2F5',
+    dailySwatchBorder: 'rgba(22, 18, 41, 0.12)',
+    dailyInk: '#161229',
+    dailyMuted: '#625470',
+    dailyAccent: '#6424E8',
+    dailyShadow: '0 5px 18px rgba(57, 18, 128, 0.10)',
   },
   dark: {
     text: '#ffffff',
@@ -20,6 +29,15 @@ export const Colors = {
     tabBarBackground: '#1B1625',
     tabBarBorder: '#352B41',
     tabBarIcon: '#F8F3FF',
+    dailyCanvas: '#171020',
+    dailyCard: '#231A30',
+    dailySurface: '#332445',
+    dailyBorder: '#423052',
+    dailySwatchBorder: 'rgba(251, 244, 255, 0.15)',
+    dailyInk: '#FBF4FF',
+    dailyMuted: '#D1BEDC',
+    dailyAccent: '#D2ABFF',
+    dailyShadow: '0 5px 18px rgba(10, 4, 20, 0.30)',
   },
 } as const;
 
@@ -106,6 +124,17 @@ export const OnboardingColors = {
   scoreFillShadow: 'inset 0 1px 3px rgba(255, 255, 255, 0.39), 0 2px 5px rgba(89, 34, 198, 0.34)',
 } as const;
 
+export const dailySwatchRadius = 18;
+
+export const DailyRevealColors = {
+  veil: '#522BAF',
+  gradient: 'linear-gradient(145deg, #794FE3 0%, #522BAF 53%, #352166 100%)',
+  question: '#F3EDFF',
+  questionShadow: 'rgba(31, 13, 75, 0.40)',
+  backdrop: '#100A1C',
+  rim: 'rgba(243, 237, 255, 0.45)',
+} as const;
+
 export const ButtonTokens = {
   primarySolid: {
     minHeight: 58,
@@ -118,5 +147,14 @@ export const ButtonTokens = {
     pressedGradient: 'linear-gradient(180deg, #713ADF, #5820C3)',
     pressedBackground: '#5820C3',
     pressedShadow: 'inset 0 1px 3px rgba(255, 255, 255, 0.10), 0 1px 4px rgba(67, 23, 150, 0.16)',
+  },
+  limeSolid: {
+    minHeight: 54,
+    foreground: OnboardingColors.ink,
+    background: OnboardingColors.lime,
+    gradient: 'linear-gradient(175deg, #EEFF80, #DFFF25 55%, #D2F71B)',
+    shadow: '0 4px 10px rgba(134, 165, 18, 0.23)',
+    pressedBackground: '#C8EA13',
+    pressedGradient: 'linear-gradient(175deg, #DBF45B, #C8EA13)',
   },
 } as const;
