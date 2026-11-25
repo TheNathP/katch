@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { View } from "react-native";
 
 import Button from "@/components/ui/Button";
@@ -7,20 +7,70 @@ import Screen from "@/components/ui/Screen";
 import TextField from "@/components/ui/TextField";
 import ThemedText from "@/components/ui/ThemedText";
 import type { AuthResult } from "@/data/adapters/auth.adapters";
+import type { AvatarCatalog } from "@/data/adapters/avatar-catalog.adapters";
 import { signUpWithEmail } from "@/data/auth";
+import {
+  getCachedAvatarCatalog,
+  refreshAvatarCatalog,
+} from "@/data/avatar-catalog";
 import { isValidEmail } from "@/lib/email";
+import {
+  DISPLAY_NAME_MAX_LENGTH,
+  isChoiceInCatalog,
+  randomAvatarChoice,
+  validateDisplayName,
+  type AvatarChoice,
+} from "@/lib/profile";
 
+import SignUpPageAvatarPicker from "./_page/SignUpPageAvatarPicker";
 import { styles } from "./SignUpPage.styles";
 
 const MIN_PASSWORD_LENGTH = 6;
 
 export default function SignUpPage() {
+  const [displayName, setDisplayName] = useState("");
+  const [catalog, setCatalog] = useState<AvatarCatalog | null>(null);
+  const [catalogFailed, setCatalogFailed] = useState(false);
+  const [catalogAttempt, setCatalogAttempt] = useState(0);
+  const [avatarChoice, setAvatarChoice] = useState<AvatarChoice | null>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirmation, setPasswordConfirmation] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmationSent, setConfirmationSent] = useState(false);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    let refreshed = false;
+
+    function applyCatalog(next: AvatarCatalog) {
+      setCatalog(next);
+      setCatalogFailed(false);
+      // Keep the player's pick when it still exists, otherwise draw a new one.
+      setAvatarChoice((current) =>
+        current && isChoiceInCatalog(current, next)
+          ? current
+          : randomAvatarChoice(next),
+      );
+    }
+
+    getCachedAvatarCatalog().then((cached) => {
+      if (cached && !refreshed && !controller.signal.aborted)
+        applyCatalog(cached);
+    });
+    refreshAvatarCatalog(controller.signal).then(
+      (fresh) => {
+        refreshed = true;
+        applyCatalog(fresh);
+      },
+      () => {
+        if (!controller.signal.aborted) setCatalogFailed(true);
+      },
+    );
+
+    return () => controller.abort();
+  }, [catalogAttempt]);
 
   async function run(action: () => Promise<AuthResult>) {
     setPending(true);
@@ -33,6 +83,11 @@ export default function SignUpPage() {
   }
 
   function handleEmailSignUp() {
+    const displayNameError = validateDisplayName(displayName);
+    if (displayNameError) {
+      setError(displayNameError);
+      return;
+    }
     if (!email.trim() || !password) {
       setError("Renseigne ton email et un mot de passe.");
       return;
@@ -51,7 +106,13 @@ export default function SignUpPage() {
       setError("Les mots de passe ne correspondent pas.");
       return;
     }
-    run(() => signUpWithEmail(email, password));
+    run(() =>
+      signUpWithEmail(email, password, {
+        displayName,
+        avatar: avatarChoice?.avatar,
+        avatarBackground: avatarChoice?.background,
+      }),
+    );
   }
 
   if (confirmationSent) {
@@ -69,6 +130,27 @@ export default function SignUpPage() {
   return (
     <Screen>
       <View style={styles.form}>
+        <SignUpPageAvatarPicker
+          catalog={catalog}
+          loadFailed={catalogFailed}
+          onRetry={() => {
+            setCatalogFailed(false);
+            setCatalogAttempt((attempt) => attempt + 1);
+          }}
+          value={avatarChoice}
+          onChange={setAvatarChoice}
+        />
+        <TextField
+          label="Pseudo"
+          value={displayName}
+          onChangeText={setDisplayName}
+          autoCapitalize="none"
+          autoCorrect={false}
+          autoComplete="nickname"
+          textContentType="nickname"
+          maxLength={DISPLAY_NAME_MAX_LENGTH}
+          returnKeyType="next"
+        />
         <TextField
           label="Email"
           value={email}
