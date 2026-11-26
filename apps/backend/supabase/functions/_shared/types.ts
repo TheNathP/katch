@@ -1,3 +1,21 @@
+import type { Relationship } from './social.types.ts';
+
+export type PushRegistrationRequest = {
+  token: string;
+};
+
+export type PushRegistrationResponse = {
+  registered: boolean;
+};
+
+export type PushDestination = '/' | '/amis' | '/defi' | '/progression/serie' | '/classement/amis';
+
+export type PushNotification = {
+  title: string;
+  body: string;
+  destination: PushDestination;
+};
+
 /** GET get-avatar-catalog — public, no session required (shown before sign-up). */
 export type AvatarCatalogResponse = {
   avatars: { id: string; imageUrl: string }[];
@@ -59,4 +77,31 @@ export type SubmitPhotoResponse = {
   score: number;
   submittedAt: string;
   takenAt: string | null;
+};
+
+export type LeaderboardScope = 'friends' | 'world';
+
+type LeaderboardPlayer = {
+  playerId: string;
+  displayName: string;
+  avatarId?: string;
+  avatarBackgroundId?: string;
+};
+
+type RankedLeaderboardPlayer = LeaderboardPlayer & { rank: number; score: number };
+type UnrankedLeaderboardPlayer = LeaderboardPlayer & { rank: null; score: null };
+
+export type DailyLeaderboardResponse = {
+  date: string;
+  endsAt: string;
+  serverTime: string;
+  entries: RankedLeaderboardPlayer[];
+  currentPlayer: RankedLeaderboardPlayer | UnrankedLeaderboardPlayer;
+};
+
+export type LeaderboardPlayerResponse = {
+  displayName: string;
+  score: number | null;
+  relationship: Relationship | 'self';
+  photo: { status: 'available'; url: string } | { status: 'locked' | 'missing' };
 };

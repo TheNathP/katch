@@ -1,25 +1,20 @@
-import {
-  DarkTheme,
-  DefaultTheme,
-  SplashScreen,
-  Stack,
-  ThemeProvider,
-} from "expo-router";
-import { StatusBar } from "expo-status-bar";
-import { useEffect, useState } from "react";
+import { DarkTheme, DefaultTheme, SplashScreen, Stack, ThemeProvider } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import { useEffect, useState } from 'react';
 
-import { AvatarCatalogProvider } from "@/data/avatar-catalog-provider";
-import { hasCompletedOnboarding } from "@/data/onboarding-progress";
-import { SessionProvider, useSession } from "@/data/session-provider";
-import { useColorScheme } from "@/hooks/use-color-scheme";
-import { CaptureColors } from "@/styles/theme";
+import { AvatarCatalogProvider } from '@/data/avatar-catalog-provider';
+import { hasCompletedOnboarding } from '@/data/onboarding-progress';
+import { SessionProvider, useSession } from '@/data/session-provider';
+import { useColorScheme } from '@/hooks/use-color-scheme';
+import { usePushNotifications } from '@/hooks/use-push-notifications';
+import { CaptureColors } from '@/styles/theme';
 
 // Keep the splash screen until the stored session and the onboarding flag have
 // been read, so a signed-in player never sees the sign-in screen flash.
 SplashScreen.preventAutoHideAsync();
 
 export const unstable_settings = {
-  anchor: "(tabs)",
+  anchor: '(tabs)',
 };
 
 export default function RootLayout() {
@@ -28,10 +23,8 @@ export default function RootLayout() {
   return (
     <SessionProvider>
       <AvatarCatalogProvider>
-        <ThemeProvider
-          value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
-        >
-          <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
+        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+          <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
           <RootNavigator />
         </ThemeProvider>
       </AvatarCatalogProvider>
@@ -51,24 +44,17 @@ export default function RootLayout() {
 function RootNavigator() {
   const { user, isLoading } = useSession();
   // In development the onboarding is always shown (see onboarding-progress).
-  const [completedOnboarding, setCompletedOnboarding] = useState<
-    boolean | undefined
-  >(__DEV__ ? false : undefined);
+  const [completedOnboarding, setCompletedOnboarding] = useState<boolean | undefined>(__DEV__ ? false : undefined);
+  usePushNotifications(isLoading || completedOnboarding === undefined ? undefined : user?.id);
 
   useEffect(() => {
     if (__DEV__) return;
     let active = true;
     hasCompletedOnboarding().then(
-      (completed) => {
-        if (active) setCompletedOnboarding(completed);
-      },
-      () => {
-        if (active) setCompletedOnboarding(true);
-      },
+      (completed) => { if (active) setCompletedOnboarding(completed); },
+      () => { if (active) setCompletedOnboarding(true); },
     );
-    return () => {
-      active = false;
-    };
+    return () => { active = false; };
   }, []);
 
   if (isLoading || completedOnboarding === undefined) return null;
@@ -77,92 +63,40 @@ function RootNavigator() {
   const isSignedIn = user !== null;
 
   return (
-    <Stack
-      screenOptions={{
-        headerBackButtonDisplayMode: "minimal",
-        headerBackTitle: "Retour",
-      }}
-    >
-      <Stack.Protected
-        guard={isSignedIn}
-        redirectTo={completedOnboarding ? "/compte/connexion" : "/bienvenue"}
-      >
-        <Stack.Screen
-          name="(tabs)"
-          options={{ title: "Katch", headerShown: false }}
-        />
-        <Stack.Screen
-          name="defi/import"
-          options={{ title: "Importer une photo" }}
-        />
-        <Stack.Screen
-          name="defi/zone"
-          options={{ title: "Sélectionner la zone" }}
-        />
-        <Stack.Screen
-          name="defi/confirmation"
-          options={{
-            title: "Confirmer la photo",
-            headerStyle: { backgroundColor: CaptureColors.backdrop },
-            headerTintColor: CaptureColors.foreground,
-            headerShadowVisible: false,
-          }}
-        />
-        <Stack.Screen name="defi/resultat" options={{ title: "Résultat", headerShown: false, gestureEnabled: false }} />
-        <Stack.Screen
-          name="defi/photos"
-          options={{ title: "Photos du jour" }}
-        />
-        <Stack.Screen name="amis/index" options={{ title: "Mes amis" }} />
-        <Stack.Screen
-          name="amis/recherche"
-          options={{ title: "Rechercher des amis" }}
-        />
-        <Stack.Screen
-          name="joueurs/[playerId]"
-          options={{ title: "Profil du joueur" }}
-        />
-        <Stack.Screen
-          name="recompenses/badges"
-          options={{ title: "Mes badges" }}
-        />
-        <Stack.Screen
-          name="progression/index"
-          options={{ title: "Ma progression" }}
-        />
-        <Stack.Screen
-          name="progression/serie"
-          options={{ title: "Ma série" }}
-        />
-        <Stack.Screen
-          name="profil/modifier"
-          options={{ title: "Modifier mon profil" }}
-        />
-        <Stack.Screen
-          name="historique/index"
-          options={{ title: "Historique des défis" }}
-        />
-        <Stack.Screen
-          name="historique/[date]"
-          options={{ title: "Résultat du défi" }}
-        />
-        <Stack.Screen name="galerie" options={{ title: "Ma galerie" }} />
-        <Stack.Screen name="collection" options={{ title: "Ma collection" }} />
+    <Stack screenOptions={{ headerBackButtonDisplayMode: 'minimal', headerBackTitle: 'Retour' }}>
+      <Stack.Protected guard={isSignedIn} redirectTo={completedOnboarding ? '/compte/connexion' : '/bienvenue'}>
+        <Stack.Screen name="(tabs)" options={{ title: 'Katch', headerShown: false }} />
+        <Stack.Screen name="defi/import" options={{ title: 'Importer une photo' }} />
+        <Stack.Screen name="defi/zone" options={{ title: 'Sélectionner la zone' }} />
+        <Stack.Screen name="defi/confirmation" options={{
+          title: 'Confirmer la photo',
+          headerStyle: { backgroundColor: CaptureColors.backdrop },
+          headerTintColor: CaptureColors.foreground,
+          headerShadowVisible: false,
+        }} />
+        <Stack.Screen name="defi/resultat" options={{ title: 'Résultat', headerShown: false, gestureEnabled: false }} />
+        <Stack.Screen name="defi/photos" options={{ title: 'Photos du jour' }} />
+        <Stack.Screen name="amis/index" options={{ title: 'Mes amis' }} />
+        <Stack.Screen name="amis/recherche" options={{ title: 'Rechercher des amis' }} />
+        <Stack.Screen name="joueurs/[playerId]" options={{ title: 'Profil du joueur' }} />
+        <Stack.Screen name="classement-joueur/[playerId]" options={{
+          headerShown: false, presentation: 'transparentModal', animation: 'fade',
+          contentStyle: { backgroundColor: 'transparent' },
+        }} />
+        <Stack.Screen name="recompenses/badges" options={{ title: 'Mes badges' }} />
+        <Stack.Screen name="progression/index" options={{ title: 'Ma progression' }} />
+        <Stack.Screen name="progression/serie" options={{ title: 'Ma série' }} />
+        <Stack.Screen name="profil/modifier" options={{ title: 'Modifier mon profil' }} />
+        <Stack.Screen name="historique/index" options={{ title: 'Historique des défis' }} />
+        <Stack.Screen name="historique/[date]" options={{ title: 'Résultat du défi' }} />
+        <Stack.Screen name="galerie" options={{ title: 'Ma galerie' }} />
+        <Stack.Screen name="collection" options={{ title: 'Ma collection' }} />
       </Stack.Protected>
 
       <Stack.Protected guard={!isSignedIn} redirectTo="/">
-        <Stack.Screen
-          name="bienvenue"
-          options={{ title: "Découvrir Katch", headerShown: false }}
-        />
-        <Stack.Screen
-          name="compte/connexion"
-          options={{ title: "Connexion" }}
-        />
-        <Stack.Screen
-          name="compte/inscription"
-          options={{ title: "Inscription" }}
-        />
+        <Stack.Screen name="bienvenue" options={{ title: 'Découvrir Katch', headerShown: false }} />
+        <Stack.Screen name="compte/connexion" options={{ title: 'Connexion' }} />
+        <Stack.Screen name="compte/inscription" options={{ title: 'Inscription' }} />
       </Stack.Protected>
     </Stack>
   );
