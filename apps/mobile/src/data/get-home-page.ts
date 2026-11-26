@@ -1,5 +1,6 @@
 import { adaptDailyColor } from '@/data/adapters/daily-color.adapters';
 import type { DailyColorResponse } from '@/data/api.types';
+import { saveDailyColor } from '@/data/daily-color-cache';
 import { supabase, supabaseConfig } from '@/data/supabase';
 
 export async function getHomePage(signal: AbortSignal) {
@@ -14,5 +15,8 @@ export async function getHomePage(signal: AbortSignal) {
   if (!response.ok) throw new Error('Could not load the daily color');
 
   const dailyColor: DailyColorResponse = await response.json();
-  return adaptDailyColor(dailyColor, performance.now());
+  const savedAt = Date.now();
+  const color = adaptDailyColor(dailyColor, performance.now());
+  if (!signal.aborted) await saveDailyColor({ response: dailyColor, savedAt }).catch(() => {});
+  return color;
 }
