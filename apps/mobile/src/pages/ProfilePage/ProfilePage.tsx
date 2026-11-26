@@ -1,6 +1,8 @@
-import { useFocusEffect } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
+import { Pressable } from "react-native";
 
+import Avatar from "@/components/ui/Avatar";
 import Button from "@/components/ui/Button";
 import NavigationLink from "@/components/ui/NavigationLink";
 import Screen from "@/components/ui/Screen";
@@ -9,6 +11,8 @@ import type { MyProfile } from "@/data/adapters/my-profile.adapters";
 import { signOut } from "@/data/auth";
 import { useAvatarCatalog } from "@/data/avatar-catalog-provider";
 import { getMyProfile } from "@/data/my-profile";
+
+import { styles } from "./ProfilePage.styles";
 
 export default function ProfilePage() {
   const { catalog } = useAvatarCatalog();
@@ -43,12 +47,23 @@ export default function ProfilePage() {
 
   return (
     <Screen>
-      {user && (
-        <ThemedText type="small" themeColor="textSecondary">
-          Connecté en tant que {user.email ?? "joueur"}
-        </ThemedText>
-      )}
-      <NavigationLink href="/profil/modifier" label="Modifier mon profil" />
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Modifier mon profil"
+        onPress={() => router.push("/profil/modifier")}
+        style={({ pressed }) => [styles.header, pressed && styles.pressed]}
+      >
+        <Avatar
+          imageUrl={avatar?.imageUrl}
+          backgroundHex={background?.hex}
+          size={112}
+        />
+        {profile && (
+          <ThemedText type="subtitle" style={styles.name}>
+            {profile.displayName}
+          </ThemedText>
+        )}
+      </Pressable>
       <NavigationLink href="/amis" label="Mes amis" />
       <NavigationLink href="/progression" label="Ma progression" />
       <NavigationLink href="/historique" label="Historique des défis" />
