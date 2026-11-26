@@ -12,9 +12,12 @@ import ChallengeResultPageCard from "./_page/ChallengeResultPageCard";
 import ChallengeResultPageScore from "./_page/ChallengeResultPageScore";
 import { styles } from "./ChallengeResultPage.styles";
 
+const SCORE_REVEAL_DURATION = 1300;
+
 export default function ChallengeResultPage() {
   const { attemptId } = useLocalSearchParams<{ attemptId?: string }>();
-  const attempt = typeof attemptId === "string" ? getChallengeAttempt(attemptId) : undefined;
+  const attempt =
+    typeof attemptId === "string" ? getChallengeAttempt(attemptId) : undefined;
 
   // Back to the camera tab, which is right below this screen.
   const retry = () => {
@@ -31,7 +34,11 @@ export default function ChallengeResultPage() {
     return (
       <SafeAreaView style={[styles.screen, styles.empty]}>
         <Text style={styles.emptyText}>Ce résultat n’est plus disponible.</Text>
-        <Button label="Reprendre une photo" variant="limeSolid" onPress={retry} />
+        <Button
+          label="Reprendre une photo"
+          variant="limeSolid"
+          onPress={retry}
+        />
       </SafeAreaView>
     );
   }
@@ -39,10 +46,17 @@ export default function ChallengeResultPage() {
   const feedback = scoreFeedback(attempt.score);
 
   return (
-    <SafeAreaView edges={["top", "left", "right", "bottom"]} style={styles.screen}>
+    <SafeAreaView
+      edges={["top", "left", "right", "bottom"]}
+      style={styles.screen}
+    >
       <ScrollView contentContainerStyle={styles.content}>
-        <ChallengeResultPageScore score={attempt.score} tier={feedback.tier} />
-        <ChallengeResultPageCard attempt={attempt} feedback={feedback} />
+        <ChallengeResultPageScore
+          score={attempt.score}
+          feedback={feedback}
+          revealDuration={SCORE_REVEAL_DURATION}
+        />
+        <ChallengeResultPageCard attempt={attempt} />
       </ScrollView>
 
       <View style={styles.actions}>
@@ -50,7 +64,10 @@ export default function ChallengeResultPage() {
           accessibilityRole="button"
           accessibilityHint="Ta nouvelle photo remplacera celle-ci"
           onPress={retry}
-          style={({ pressed }) => [styles.secondary, pressed && styles.secondaryPressed]}
+          style={({ pressed }) => [
+            styles.secondary,
+            pressed && styles.secondaryPressed,
+          ]}
         >
           <Image
             source={require("@/assets/icons/refresh.svg")}

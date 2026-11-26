@@ -1,6 +1,6 @@
 import { StyleSheet } from "react-native";
 
-import { CaptureColors } from "@/styles/theme";
+import { CaptureColors, Spacing } from "@/styles/theme";
 
 export const styles = StyleSheet.create({
   root: { alignItems: "center", paddingTop: 8 },
@@ -14,4 +14,16 @@ export const styles = StyleSheet.create({
     fontVariant: ["tabular-nums"],
   },
   total: { color: CaptureColors.foreground, fontSize: 44, letterSpacing: -1 },
+  feedback: {
+    alignSelf: "stretch",
+    alignItems: "center",
+    gap: 4,
+    marginTop: Spacing.two,
+    paddingVertical: Spacing.three,
+    paddingHorizontal: Spacing.three,
+    borderRadius: 20,
+    backgroundColor: CaptureColors.feedback,
+  },
+  feedbackTitle: { color: CaptureColors.accent, fontSize: 26, fontWeight: "900", fontStyle: "italic" },
+  feedbackMessage: { color: CaptureColors.foreground, fontSize: 16, textAlign: "center" },
 });
