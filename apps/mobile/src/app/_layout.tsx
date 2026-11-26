@@ -7,6 +7,7 @@ import { hasCompletedOnboarding } from '@/data/onboarding-progress';
 import { SessionProvider, useSession } from '@/data/session-provider';
 import { ThemePreferenceProvider, useThemePreference } from '@/data/theme-preference-provider';
 import { usePushNotifications } from '@/hooks/use-push-notifications';
+import { useTheme } from '@/hooks/use-theme';
 
 // Keep the splash screen until the stored session and the onboarding flag have
 // been read, so a signed-in player never sees the sign-in screen flash.
@@ -50,6 +51,7 @@ function AppLayout() {
  */
 function RootNavigator() {
   const { user, isLoading } = useSession();
+  const theme = useTheme();
   const { ready: themeReady } = useThemePreference();
   // In development the onboarding is always shown (see onboarding-progress).
   const [completedOnboarding, setCompletedOnboarding] = useState<boolean | undefined>(__DEV__ ? false : undefined);
@@ -69,6 +71,11 @@ function RootNavigator() {
   SplashScreen.hide();
 
   const isSignedIn = user !== null;
+  const archiveHeader = {
+    headerStyle: { backgroundColor: theme.dailyCanvas },
+    headerTintColor: theme.dailyInk,
+    headerShadowVisible: false,
+  };
 
   return (
     <Stack screenOptions={{ headerBackButtonDisplayMode: 'minimal', headerBackTitle: 'Retour' }}>
@@ -91,10 +98,10 @@ function RootNavigator() {
         <Stack.Screen name="progression/serie" options={{ title: 'Ma série' }} />
         <Stack.Screen name="profil/modifier" options={{ title: 'Modifier mon profil' }} />
         <Stack.Screen name="profil/parametres" options={{ title: 'Paramètres' }} />
-        <Stack.Screen name="historique/index" options={{ title: 'Historique des défis' }} />
-        <Stack.Screen name="historique/[date]" options={{ title: 'Résultat du défi' }} />
-        <Stack.Screen name="galerie" options={{ title: 'Ma galerie' }} />
-        <Stack.Screen name="collection" options={{ title: 'Ma collection' }} />
+        <Stack.Screen name="historique/index" options={{ ...archiveHeader, title: 'Historique des défis', headerTitle: '' }} />
+        <Stack.Screen name="historique/[date]" options={{ ...archiveHeader, title: 'Résultat du défi' }} />
+        <Stack.Screen name="galerie" options={{ ...archiveHeader, title: 'Ma galerie', headerTitle: '' }} />
+        <Stack.Screen name="collection" options={{ ...archiveHeader, title: 'Ma collection', headerTitle: '' }} />
       </Stack.Protected>
 
       <Stack.Protected guard={!isSignedIn} redirectTo="/">

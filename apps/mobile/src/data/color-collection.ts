@@ -1,12 +1,8 @@
-export type CollectedColor = { id: string; hex: string };
+export type CollectedColor = { date: string; hex: string; score: number };
 
 export type ColorCollection = {
   offeredCount: number;
+  validatedCount: number;
   validatedColors: readonly CollectedColor[];
-};
-
-// The profile API does not expose a player's color history yet.
-export const emptyColorCollection: ColorCollection = {
-  offeredCount: 0,
-  validatedColors: [],
+  nextCursor: string | null;
 };

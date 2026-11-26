@@ -83,3 +83,29 @@ export type LeaderboardPlayerResponse = {
   relationship: Relationship | 'self';
   photo: { status: 'available'; url: string } | { status: 'locked' | 'missing' };
 };
+
+export type ChallengeHistoryEntry = {
+  date: string;
+  score: number;
+  targetHex: string | null;
+  collected: boolean;
+  photoUrl: string | null;
+};
+
+export type ChallengeHistoryResponse = {
+  today: string;
+  firstMonth: string;
+  entries: ChallengeHistoryEntry[];
+};
+
+export type ColorCollectionResponse = {
+  offeredCount: number;
+  validatedCount: number;
+  validatedColors: { date: string; hex: string; score: number }[];
+  nextCursor: string | null;
+};
+
+export type PhotoGalleryResponse = {
+  entries: ChallengeHistoryEntry[];
+  nextCursor: string | null;
+};
