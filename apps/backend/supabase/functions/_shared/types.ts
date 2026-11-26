@@ -34,3 +34,29 @@ export type DailyColorResponse = {
   endsAt: string;
   serverTime: string;
 };
+
+/**
+ * POST submit-photo — requires a session. `multipart/form-data` body:
+ * - `photo` (required): JPEG or PNG file, at most 5 MiB and 4096 px per side.
+ * - `takenAt` (optional): ISO 8601 date the photo was taken, as reported by the device.
+ *   Stored for information only, it never affects the score.
+ *
+ * The server stores the photo, analyzes it against today's color and records the score.
+ *
+ * Errors: 400 `invalid_request` (bad form, field or date), 400 `invalid_photo`
+ * (not a JPEG/PNG, too large, unreadable), 409 `challenge_ended` (the day changed
+ * while scoring), 429 `attempt_limit_reached`.
+ */
+export type SubmitPhotoResponse = {
+  attemptId: string;
+  challengeDate: string;
+  targetHex: string;
+  /** Color of the photo area closest to the target. */
+  matchedHex: string;
+  score: number;
+  /** Best score of the day, this attempt included. */
+  bestScore: number;
+  attemptsLeft: number;
+  submittedAt: string;
+  takenAt: string | null;
+};
