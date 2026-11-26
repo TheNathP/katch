@@ -1,5 +1,16 @@
-import { type AuthResult, toAuthErrorMessage } from "./adapters/auth.adapters";
+import {
+  type AuthResult,
+  toAuthErrorMessage,
+  toSignUpErrorMessage,
+} from "./adapters/auth.adapters";
 import { supabase } from "./supabase";
+
+export type SignUpProfile = {
+  displayName: string;
+  /** Omitted when the catalog could not be loaded: the server uses defaults. */
+  avatar?: string;
+  avatarBackground?: string;
+};
 
 export async function signInWithEmail(
   email: string,
@@ -16,12 +27,22 @@ export async function signInWithEmail(
 export async function signUpWithEmail(
   email: string,
   password: string,
+  profile: SignUpProfile,
 ): Promise<AuthResult> {
+  // The profile travels as user metadata; a database trigger validates it and
+  // creates the `social_profiles` row, or rejects the whole sign-up.
   const { data, error } = await supabase.auth.signUp({
     email: email.trim(),
     password,
+    options: {
+      data: {
+        display_name: profile.displayName.trim(),
+        avatar: profile.avatar,
+        avatar_background: profile.avatarBackground,
+      },
+    },
   });
-  if (error) return { status: "error", message: toAuthErrorMessage(error) };
+  if (error) return { status: "error", message: toSignUpErrorMessage(error) };
   if (!data.session) return { status: "confirmation-required" };
   return { status: "signed-in" };
 }

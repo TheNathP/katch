@@ -38,3 +38,15 @@ export function toAuthErrorMessage(error: unknown): string {
   }
   return GENERIC_ERROR;
 }
+
+/**
+ * The profile trigger rejects a sign-up with an invalid or already taken
+ * display name; Supabase Auth then answers a generic `unexpected_failure`. The app
+ * already validates the format, so a taken display name is the likely cause.
+ */
+export function toSignUpErrorMessage(error: unknown): string {
+  if (isAuthError(error) && error.code === "unexpected_failure") {
+    return "Ce pseudo est déjà pris. Choisis-en un autre.";
+  }
+  return toAuthErrorMessage(error);
+}

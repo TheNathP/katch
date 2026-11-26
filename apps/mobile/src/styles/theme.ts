@@ -135,6 +135,14 @@ export const ProgressBarTokens = {
   },
 } as const;
 
+/** Background colors a player can put behind their avatar, keyed by the id stored server-side. */
+export const AvatarTokens = {
+  selectedBorder: '#6424E8',
+  editBadgeBackground: '#6424E8',
+  editBadgeForeground: '#FFFFFF',
+  editBadgeBorder: '#FFFFFF',
+} as const;
+
 export const dailySwatchRadius = 18;
 
 export const DailyRevealColors = {
