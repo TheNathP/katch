@@ -71,6 +71,10 @@ function RootNavigator() {
         <Stack.Screen name="amis/index" options={{ title: 'Mes amis' }} />
         <Stack.Screen name="amis/recherche" options={{ title: 'Rechercher des amis' }} />
         <Stack.Screen name="joueurs/[playerId]" options={{ title: 'Profil du joueur' }} />
+        <Stack.Screen name="classement-joueur/[playerId]" options={{
+          headerShown: false, presentation: 'transparentModal', animation: 'fade',
+          contentStyle: { backgroundColor: 'transparent' },
+        }} />
         <Stack.Screen name="recompenses/badges" options={{ title: 'Mes badges' }} />
         <Stack.Screen name="progression/index" options={{ title: 'Ma progression' }} />
         <Stack.Screen name="progression/serie" options={{ title: 'Ma série' }} />

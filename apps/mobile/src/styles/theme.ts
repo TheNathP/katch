@@ -19,6 +19,10 @@ export const Colors = {
     dailyInk: '#161229',
     dailyMuted: '#625470',
     dailyAccent: '#6424E8',
+    leaderboardFirstSurface: '#FFF3D2',
+    leaderboardFirstBorder: '#E8BC58',
+    leaderboardFirstInk: '#77500D',
+    modalBackdrop: 'rgba(22, 18, 41, 0.60)',
     dailyShadow: '0 5px 18px rgba(57, 18, 128, 0.10)',
   },
   dark: {
@@ -39,6 +43,10 @@ export const Colors = {
     dailyInk: '#FBF4FF',
     dailyMuted: '#D1BEDC',
     dailyAccent: '#D2ABFF',
+    leaderboardFirstSurface: '#3E2C16',
+    leaderboardFirstBorder: '#B98638',
+    leaderboardFirstInk: '#FFDA8D',
+    modalBackdrop: 'rgba(0, 0, 0, 0.70)',
     dailyShadow: '0 5px 18px rgba(10, 4, 20, 0.30)',
   },
 } as const;

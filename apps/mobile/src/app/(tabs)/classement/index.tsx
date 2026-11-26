@@ -1,1 +1,1 @@
-export { default } from '@/pages/GlobalLeaderboardPage';
+export { default } from '@/pages/FriendsLeaderboardPage';
