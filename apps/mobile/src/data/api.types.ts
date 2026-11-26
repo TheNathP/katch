@@ -1,4 +1,4 @@
-import type { Relationship } from './social-api.types';
+import type { Relationship } from "./social-api.types";
 
 // Mirrors the public contract in apps/backend/supabase/functions/_shared/types.ts.
 
@@ -10,7 +10,12 @@ export type PushRegistrationResponse = {
   registered: boolean;
 };
 
-export type PushDestination = '/' | '/amis' | '/defi' | '/progression/serie' | '/classement/amis';
+export type PushDestination =
+  | "/"
+  | "/amis"
+  | "/defi"
+  | "/progression/serie"
+  | "/classement/amis";
 
 /** GET get-avatar-catalog — public, no session required (shown before sign-up). */
 export type AvatarCatalogResponse = {
@@ -47,11 +52,19 @@ export type UpdateMyProfileRequest = {
   avatarBackgroundId?: string;
 };
 
+/**
+ * GET get-daily-color — requires a session: today's color and the player's photo
+ * submission of the day, if any.
+ */
 export type DailyColorResponse = {
   date: string;
   colorHex: string;
   endsAt: string;
   serverTime: string;
+  submission: {
+    score: number;
+    matchedHex: string;
+  } | null;
 };
 
 /**
@@ -80,7 +93,7 @@ export type SubmitPhotoResponse = {
   takenAt: string | null;
 };
 
-export type LeaderboardScope = 'friends' | 'world';
+export type LeaderboardScope = "friends" | "world";
 
 type LeaderboardPlayer = {
   playerId: string;
@@ -89,8 +102,14 @@ type LeaderboardPlayer = {
   avatarBackgroundId?: string;
 };
 
-type RankedLeaderboardPlayer = LeaderboardPlayer & { rank: number; score: number };
-type UnrankedLeaderboardPlayer = LeaderboardPlayer & { rank: null; score: null };
+type RankedLeaderboardPlayer = LeaderboardPlayer & {
+  rank: number;
+  score: number;
+};
+type UnrankedLeaderboardPlayer = LeaderboardPlayer & {
+  rank: null;
+  score: null;
+};
 
 export type DailyLeaderboardResponse = {
   date: string;
@@ -103,6 +122,8 @@ export type DailyLeaderboardResponse = {
 export type LeaderboardPlayerResponse = {
   displayName: string;
   score: number | null;
-  relationship: Relationship | 'self';
-  photo: { status: 'available'; url: string } | { status: 'locked' | 'missing' };
+  relationship: Relationship | "self";
+  photo:
+    | { status: "available"; url: string }
+    | { status: "locked" | "missing" };
 };

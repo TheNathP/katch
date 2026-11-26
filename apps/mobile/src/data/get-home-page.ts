@@ -1,18 +1,10 @@
-import { adaptDailyColor } from '@/data/adapters/daily-color.adapters';
-import type { DailyColorResponse } from '@/data/api.types';
-import { supabase, supabaseConfig } from '@/data/supabase';
+import { adaptDailyChallenge } from "@/data/adapters/daily-color.adapters";
+import { callEdgeFunction } from "@/data/edge-functions";
 
 export async function getHomePage(signal: AbortSignal) {
-  const { url, publishableKey } = supabaseConfig;
-  const { data: { session }, error } = await supabase.auth.getSession();
-  if (error || !session) throw new Error('No active session for the daily challenge');
-
-  const response = await fetch(`${url}/functions/v1/get-daily-color`, {
-    headers: { apikey: publishableKey, Authorization: `Bearer ${session.access_token}` },
+  const response = await callEdgeFunction("get-daily-color", {
+    method: "GET",
     signal,
   });
-  if (!response.ok) throw new Error('Could not load the daily color');
-
-  const dailyColor: DailyColorResponse = await response.json();
-  return adaptDailyColor(dailyColor, performance.now());
+  return adaptDailyChallenge(response, performance.now());
 }
