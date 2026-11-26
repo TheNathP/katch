@@ -1,10 +1,10 @@
-import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import type { ComponentRef, Ref } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import type { SharedValue } from 'react-native-reanimated';
 
 import Button from '@/components/ui/Button';
+import Icon from '@/components/ui/Icon';
 import type { DailyColor } from '@/data/adapters/daily-color.adapters';
 import { useTheme } from '@/hooks/use-theme';
 import HomePageChallengeCountdown from '@/pages/HomePage/_page/HomePageChallengeCountdown';
@@ -12,7 +12,6 @@ import HomePageChallengeVeil from '@/pages/HomePage/_page/HomePageChallengeVeil'
 
 import { styles } from './HomePageDailyChallenge.styles';
 
-const calendar = require('@/assets/icons/calendar.svg');
 const camera = require('@/assets/icons/camera.svg');
 const sparkle = require('@/assets/icons/sparkle.svg');
 
@@ -42,7 +41,7 @@ export default function HomePageDailyChallenge({ state, onRetry, onReveal, revea
       boxShadow: theme.dailyShadow,
     }]}>
       <View style={styles.eyebrow}>
-        <Image aria-hidden source={calendar} tintColor={theme.dailyAccent} style={styles.icon} />
+        <Icon name="calendar" size={17} color={theme.dailyAccent} />
         <Text accessibilityRole="header" style={[styles.eyebrowText, { color: theme.dailyAccent }]}>
           Défi du jour
         </Text>

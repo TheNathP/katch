@@ -19,6 +19,10 @@ export const Colors = {
     dailyInk: '#161229',
     dailyMuted: '#625470',
     dailyAccent: '#6424E8',
+    leaderboardFirstSurface: '#FFF3D2',
+    leaderboardFirstBorder: '#E8BC58',
+    leaderboardFirstInk: '#77500D',
+    modalBackdrop: 'rgba(22, 18, 41, 0.60)',
     dailyShadow: '0 5px 18px rgba(57, 18, 128, 0.10)',
   },
   dark: {
@@ -39,6 +43,10 @@ export const Colors = {
     dailyInk: '#FBF4FF',
     dailyMuted: '#D1BEDC',
     dailyAccent: '#D2ABFF',
+    leaderboardFirstSurface: '#3E2C16',
+    leaderboardFirstBorder: '#B98638',
+    leaderboardFirstInk: '#FFDA8D',
+    modalBackdrop: 'rgba(0, 0, 0, 0.70)',
     dailyShadow: '0 5px 18px rgba(10, 4, 20, 0.30)',
   },
 } as const;
@@ -119,11 +127,20 @@ export const OnboardingColors = {
   rankingHighlight: 'linear-gradient(105deg, #4B17B9, #742FF9)',
   cardShadow: '0 8px 20px rgba(57, 18, 128, 0.12)',
   feedbackRejected: '#932745',
-  rejectedScoreGradient: 'linear-gradient(180deg, #EB7897, #C84369 60%, #AB2F54)',
-  rejectedScoreShadow: 'inset 0 1px 3px rgba(255, 255, 255, 0.35), 0 2px 5px rgba(176, 46, 84, 0.21)',
-  scoreTrackShadow: 'inset 0 1px 4px rgba(62, 28, 121, 0.16)',
-  scoreFillGradient: 'linear-gradient(180deg, #A374FF, #7839F4 52%, #5420C9)',
-  scoreFillShadow: 'inset 0 1px 3px rgba(255, 255, 255, 0.39), 0 2px 5px rgba(89, 34, 198, 0.34)',
+} as const;
+
+export const ProgressBarTokens = {
+  trackShadow: 'inset 0 1px 4px rgba(62, 28, 121, 0.16)',
+  primary: {
+    backgroundColor: OnboardingColors.purple,
+    backgroundImage: 'linear-gradient(180deg, #A374FF, #7839F4 52%, #5420C9)',
+    boxShadow: 'inset 0 1px 3px rgba(255, 255, 255, 0.39), 0 2px 5px rgba(89, 34, 198, 0.34)',
+  },
+  rejected: {
+    backgroundColor: OnboardingColors.feedbackRejected,
+    backgroundImage: 'linear-gradient(180deg, #EB7897, #C84369 60%, #AB2F54)',
+    boxShadow: 'inset 0 1px 3px rgba(255, 255, 255, 0.35), 0 2px 5px rgba(176, 46, 84, 0.21)',
+  },
 } as const;
 
 /** Background colors a player can put behind their avatar, keyed by the id stored server-side. */

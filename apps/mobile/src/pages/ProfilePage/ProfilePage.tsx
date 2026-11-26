@@ -6,6 +6,7 @@ import { Pressable, useWindowDimensions, View } from "react-native";
 import Avatar from "@/components/ui/Avatar";
 import ColorCollection from "@/components/ui/ColorCollection";
 import NavigationLink from "@/components/ui/NavigationLink";
+import ProgressBar from "@/components/ui/ProgressBar";
 import Screen from "@/components/ui/Screen";
 import ThemedText from "@/components/ui/ThemedText";
 import type { MyProfile } from "@/data/adapters/my-profile.adapters";
@@ -13,6 +14,7 @@ import { useAvatarCatalog } from "@/data/avatar-catalog-provider";
 import { emptyColorCollection } from "@/data/color-collection";
 import { getMyProfile } from "@/data/my-profile";
 import { useTheme } from "@/hooks/use-theme";
+import { xpPerLevel } from "@/lib/progression";
 import { Colors, OnboardingColors } from "@/styles/theme";
 
 import { styles } from "./ProfilePage.styles";
@@ -143,7 +145,9 @@ export default function ProfilePage() {
         <View accessible accessibilityLabel={`Niveau ${startingStats.level}, ${startingStats.xp} XP`} style={styles.experience}>
           <ThemedText aria-hidden type="smallBold" style={{ color: theme.dailyMuted }}>Niveau {startingStats.level}</ThemedText>
           <View aria-hidden style={styles.xpRow}>
-            <View style={[styles.xpTrack, { backgroundColor: theme.dailySurface, borderColor: theme.dailyBorder }]} />
+            <View style={styles.xpTrack}>
+              <ProgressBar value={startingStats.xp} max={xpPerLevel} size="small" />
+            </View>
             <ThemedText type="smallBold" style={{ color: theme.dailyMuted }}>{startingStats.xp} XP</ThemedText>
           </View>
         </View>

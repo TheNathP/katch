@@ -22,7 +22,7 @@ export const styles = StyleSheet.create({
   retry: { minHeight: 44, justifyContent: "center" },
   experience: { width: "75%", maxWidth: 340, alignItems: "center", gap: Spacing.two },
   xpRow: { width: "100%", flexDirection: "row", alignItems: "center", gap: Spacing.one },
-  xpTrack: { flex: 1, height: 11, borderWidth: 1, borderRadius: 6, boxShadow: OnboardingColors.scoreTrackShadow },
+  xpTrack: { flex: 1 },
   metrics: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.two, marginBottom: Spacing.two },
   metric: { flex: 1, minWidth: 0, borderRadius: 20, alignItems: "center", padding: Spacing.two, gap: 2 },
   metricFull: { flexBasis: "100%" },

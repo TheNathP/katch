@@ -5,6 +5,7 @@ import {
 } from "./adapters/auth.adapters";
 import type { DeleteMyAccountRequest } from "./api.types";
 import { callEdgeFunction } from "./edge-functions";
+import { disablePushNotifications } from "./push-notifications";
 import { supabase } from "./supabase";
 
 export type SignUpProfile = {
@@ -49,7 +50,8 @@ export async function signUpWithEmail(
   return { status: "signed-in" };
 }
 
-export async function signOut(): Promise<void> {
+export async function signOut(userId?: string): Promise<void> {
+  if (userId) await disablePushNotifications(userId).catch(() => {});
   const { error } = await supabase.auth.signOut();
   if (error) throw error;
 }

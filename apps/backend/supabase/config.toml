@@ -122,12 +122,10 @@ enabled = true
 # The maximum file size allowed (e.g. "5MB", "500KB").
 file_size_limit = "50MiB"
 
-# Uncomment to configure local storage buckets
-# [storage.buckets.images]
-# public = false
-# file_size_limit = "50MiB"
-# allowed_mime_types = ["image/png", "image/jpeg"]
-# objects_path = "./images"
+[storage.buckets.challenge-photos]
+public = false
+allowed_mime_types = ["image/jpeg", "image/png", "image/webp"]
+objects_path = "./fixtures/challenge-photos"
 
 # Allow connections via S3 compatible clients
 [storage.s3_protocol]
@@ -399,6 +397,9 @@ deno_version = 2
 
 # [edge_runtime.secrets]
 # secret_key = "env(SECRET_VALUE)"
+
+[functions.push-worker]
+verify_jwt = false
 
 [analytics]
 enabled = true

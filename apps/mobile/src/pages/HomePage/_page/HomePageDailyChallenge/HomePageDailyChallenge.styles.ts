@@ -13,7 +13,6 @@ export const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   eyebrow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  icon: { width: 17, height: 17 },
   eyebrowText: { fontSize: 14, fontWeight: '800' },
   colorArea: { marginTop: Spacing.one, gap: Spacing.two },
   colorPlaceholder: {
