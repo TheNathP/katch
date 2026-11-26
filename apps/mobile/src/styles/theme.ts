@@ -171,3 +171,18 @@ export const ButtonTokens = {
     pressedShadow: 'inset 0 1px 2px rgba(255, 255, 255, 0.23), 0 2px 5px rgba(187, 215, 34, 0.20)',
   },
 } as const;
+
+/** The capture flow is always dark, whatever the system theme, so the camera preview stays the focus. */
+export const CaptureColors = {
+  backdrop: '#120D1C',
+  panel: '#1B1526',
+  control: 'rgba(18, 13, 28, 0.55)',
+  controlPressed: 'rgba(18, 13, 28, 0.80)',
+  controlBorder: 'rgba(255, 255, 255, 0.14)',
+  foreground: '#FFFFFF',
+  muted: '#B9AECB',
+  guide: '#FFFFFF',
+  accent: '#DFFF25',
+  accentInk: '#161229',
+  danger: '#FF6B5E',
+} as const;
