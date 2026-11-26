@@ -65,10 +65,10 @@ export default function LeaderboardPlayerPage() {
             </Text>
             {player && (
               <Text
-                accessibilityLabel={player.scoreLabel ? `Score ${player.scoreLabel}` : 'Sans score'}
+                accessibilityLabel={`Score ${player.scoreLabel}`}
                 style={[styles.score, { backgroundColor: theme.dailySurface, color: theme.dailyAccent }]}
               >
-                {player.scoreLabel ?? 'Sans score'}
+                {player.scoreLabel}
               </Text>
             )}
           </View>

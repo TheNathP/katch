@@ -7,7 +7,7 @@ export type LeaderboardEntry = {
   avatarId?: string;
   avatarBackgroundId?: string;
   rank: number | null;
-  scoreLabel: string | null;
+  scoreLabel: string;
   isCurrentPlayer: boolean;
 };
 

@@ -24,7 +24,7 @@ export default function LeaderboardPageRow({ entry, catalog, onPress }: Props) {
   const crown = rank === null ? undefined : crowns[rank - 1];
   const avatar = catalog?.avatars.find(({ id }) => id === avatarId);
   const avatarBackground = catalog?.backgrounds.find(({ id }) => id === avatarBackgroundId);
-  const placement = rank === null ? 'Sans score' : `Rang ${rank}`;
+  const placement = rank === null ? 'Sans rang' : `Rang ${rank}`;
   const scoreColor = first ? theme.leaderboardFirstInk : theme.dailyAccent;
   const backgroundColor = first ? theme.leaderboardFirstSurface : isCurrentPlayer ? theme.dailySurface : theme.dailyCard;
   const borderColor = first ? theme.leaderboardFirstBorder : isCurrentPlayer ? theme.dailyAccent : theme.dailyBorder;
@@ -55,8 +55,8 @@ export default function LeaderboardPageRow({ entry, catalog, onPress }: Props) {
         fallbackSource={fallbackAvatar}
       />
       <Text numberOfLines={1} ellipsizeMode="tail" style={[styles.name, { color: theme.dailyInk }]}>{name}</Text>
-      <Text style={[styles.score, { color: scoreLabel ? scoreColor : theme.dailyMuted }]}>
-        {scoreLabel ?? 'Sans score'}
+      <Text style={[styles.score, { color: rank === null ? theme.dailyMuted : scoreColor }]}>
+        {scoreLabel}
       </Text>
     </Pressable>
   );

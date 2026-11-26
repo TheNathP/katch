@@ -70,7 +70,6 @@ export default function LeaderboardPage({ scope }: { scope: LeaderboardScope }) 
   }, [scope]));
 
   const ownEntry = board?.ownEntry;
-  const showListHeader = Boolean(ownEntry || error);
   const openPlayer = (playerId: string) => {
     router.push({ pathname: '/classement-joueur/[playerId]', params: { playerId } });
   };
@@ -88,19 +87,17 @@ export default function LeaderboardPage({ scope }: { scope: LeaderboardScope }) 
         ItemSeparatorComponent={RowSeparator}
         onRefresh={() => reload.current?.(true)}
         refreshing={refreshing}
-        ListHeaderComponentStyle={styles.headerSpacing}
-        ListHeaderComponent={showListHeader ? (
-          <View style={styles.listHeader}>
-            {ownEntry && <LeaderboardPageRow entry={ownEntry} catalog={catalog} onPress={() => openPlayer(ownEntry.id)} />}
-            {error && (
-              <View style={[styles.message, { backgroundColor: theme.dailyCard, borderColor: theme.dailyBorder }]}>
-                <Text accessibilityLiveRegion="polite" style={[styles.messageText, { color: theme.dailyInk }]}>
-                  Impossible de charger le classement.
-                </Text>
-                <Button label="Réessayer" onPress={() => reload.current?.()} />
-              </View>
-            )}
+        ListHeaderComponent={error ? (
+          <View style={[styles.message, { backgroundColor: theme.dailyCard, borderColor: theme.dailyBorder }]}>
+            <Text accessibilityLiveRegion="polite" style={[styles.messageText, { color: theme.dailyInk }]}>
+              Impossible de charger le classement.
+            </Text>
+            <Button label="Réessayer" onPress={() => reload.current?.()} />
           </View>
+        ) : undefined}
+        ListFooterComponentStyle={styles.footerSpacing}
+        ListFooterComponent={ownEntry ? (
+          <LeaderboardPageRow entry={ownEntry} catalog={catalog} onPress={() => openPlayer(ownEntry.id)} />
         ) : undefined}
         ListEmptyComponent={loading && !board ? (
           <SocialSkeleton label="Chargement du classement" />
