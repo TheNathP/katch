@@ -34,3 +34,6 @@ export type DailyColorResponse = {
   endsAt: string;
   serverTime: string;
 };
+
+/** POST delete-my-account — permanently deletes the caller’s own account. */
+export type DeleteMyAccountRequest = { confirmation: "SUPPRIMER" };
