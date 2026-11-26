@@ -3,6 +3,8 @@ import {
   toAuthErrorMessage,
   toSignUpErrorMessage,
 } from "./adapters/auth.adapters";
+import type { DeleteMyAccountRequest } from "./api.types";
+import { callEdgeFunction } from "./edge-functions";
 import { disablePushNotifications } from "./push-notifications";
 import { supabase } from "./supabase";
 
@@ -50,5 +52,13 @@ export async function signUpWithEmail(
 
 export async function signOut(userId?: string): Promise<void> {
   if (userId) await disablePushNotifications(userId).catch(() => {});
-  await supabase.auth.signOut();
+  const { error } = await supabase.auth.signOut();
+  if (error) throw error;
+}
+
+export async function deleteMyAccount(confirmation: DeleteMyAccountRequest["confirmation"]): Promise<void> {
+  const body: DeleteMyAccountRequest = { confirmation };
+  await callEdgeFunction("delete-my-account", { method: "POST", body });
+  const { error } = await supabase.auth.signOut({ scope: "local" });
+  if (error) throw error;
 }

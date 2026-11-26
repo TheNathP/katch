@@ -432,3 +432,7 @@ enabled = true
 # Public catalog shown on the sign-up screen, before the player has a session.
 [functions.get-avatar-catalog]
 verify_jwt = false
+
+# The function resolves the signed-in player from the bearer token itself.
+[functions.delete-my-account]
+verify_jwt = false

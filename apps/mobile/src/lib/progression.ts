@@ -1,6 +1,6 @@
 const xpPerValidation = 120;
 export const demoStartingCoins = 1_000;
-const xpPerLevel = 600;
+export const xpPerLevel = 600;
 const demoLevelXp = 340;
 
 export const shopItems = [
