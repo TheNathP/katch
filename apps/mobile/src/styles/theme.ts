@@ -185,4 +185,5 @@ export const CaptureColors = {
   accent: '#DFFF25',
   accentInk: '#161229',
   danger: '#FF6B5E',
+  feedback: '#2E2150',
 } as const;

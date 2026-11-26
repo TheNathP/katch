@@ -108,7 +108,7 @@ function RootNavigator() {
             headerShadowVisible: false,
           }}
         />
-        <Stack.Screen name="defi/resultat" options={{ title: "Résultat" }} />
+        <Stack.Screen name="defi/resultat" options={{ title: "Résultat", headerShown: false, gestureEnabled: false }} />
         <Stack.Screen
           name="defi/photos"
           options={{ title: "Photos du jour" }}

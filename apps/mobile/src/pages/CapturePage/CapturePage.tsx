@@ -21,6 +21,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Alert, AppState, Linking, Platform, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { photoDateFromExif } from "@/lib/photo-date";
+
 import CapturePageControls from "./_page/CapturePageControls";
 import CapturePagePermission from "./_page/CapturePagePermission";
 import CapturePageTopBar from "./_page/CapturePageTopBar";
@@ -80,9 +82,12 @@ export default function CapturePage() {
     else router.navigate("/");
   };
 
-  const openPhoto = (uri: string) => {
+  const openPhoto = (uri: string, takenAt: string | null) => {
     setError(undefined);
-    router.push({ pathname: "/defi/confirmation", params: { uri } });
+    router.push({
+      pathname: "/defi/confirmation",
+      params: takenAt ? { uri, takenAt } : { uri },
+    });
   };
 
   const activateCamera = async () => {
@@ -110,10 +115,11 @@ export default function CapturePage() {
     setBusy(true);
     setError(undefined);
     try {
+      const takenAt = new Date().toISOString();
       const photo = await activeCamera.takePictureAsync({
         quality: PHOTO_QUALITY,
       });
-      if (camera.current === activeCamera) openPhoto(photo.uri);
+      if (camera.current === activeCamera) openPhoto(photo.uri, takenAt);
     } catch {
       if (camera.current === activeCamera)
         setError("La photo n’a pas été prise. Réessaie.");
@@ -151,9 +157,10 @@ export default function CapturePage() {
       const result = await launchImageLibraryAsync({
         mediaTypes: "images",
         quality: PHOTO_QUALITY,
+        exif: true,
       });
       const asset = result.canceled ? undefined : result.assets[0];
-      if (asset) openPhoto(asset.uri);
+      if (asset) openPhoto(asset.uri, photoDateFromExif(asset.exif));
     } catch {
       setError("Impossible d’ouvrir ta galerie. Réessaie.");
     } finally {

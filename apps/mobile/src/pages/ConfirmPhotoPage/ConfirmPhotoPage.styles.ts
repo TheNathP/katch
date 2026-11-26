@@ -22,6 +22,13 @@ export const styles = StyleSheet.create({
     borderColor: CaptureColors.controlBorder,
   },
   photo: { ...StyleSheet.absoluteFill },
+  analyzing: {
+    ...StyleSheet.absoluteFill,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: CaptureColors.control,
+  },
+  error: { color: CaptureColors.danger, fontSize: 15, fontWeight: '600', textAlign: 'center', marginBottom: Spacing.three },
   actions: { flexDirection: "row", gap: 12, paddingBottom: Spacing.three },
   secondary: {
     flex: 1,
