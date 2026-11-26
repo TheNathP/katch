@@ -7,9 +7,8 @@
     "android": "pnpm --filter @katch/mobile android",
     "lint": "pnpm -r lint",
     "typecheck": "pnpm -r typecheck",
-    "db:start": "pnpm --filter @katch/backend start",
-    "db:stop": "pnpm --filter @katch/backend stop",
-    "db:reset": "pnpm --filter @katch/backend db:reset",
-    "functions:serve": "pnpm --filter @katch/backend functions:serve"
+    "db:migrations": "pnpm --filter @katch/backend db:migrations",
+    "db:push": "pnpm --filter @katch/backend db:push",
+    "functions:deploy": "pnpm --filter @katch/backend functions:deploy"
   }
 }

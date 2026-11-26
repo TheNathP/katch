@@ -3,11 +3,9 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "supabase start",
-    "stop": "supabase stop",
-    "status": "supabase status",
-    "db:reset": "supabase db reset",
-    "functions:serve": "supabase functions serve",
+    "db:migrations": "supabase migration list --remote",
+    "db:push": "supabase db push --remote",
+    "functions:deploy": "supabase functions deploy",
     "test:daily-color": "pnpm dlx deno@2.9.6 test --no-config --no-lock --node-modules-dir=none --allow-env --allow-read supabase/tests/daily-color_test.ts"
   },
   "devDependencies": {

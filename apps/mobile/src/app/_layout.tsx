@@ -2,6 +2,7 @@ import { DarkTheme, DefaultTheme, SplashScreen, Stack, ThemeProvider } from 'exp
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 
+import { AvatarCatalogProvider } from '@/data/avatar-catalog-provider';
 import { hasCompletedOnboarding } from '@/data/onboarding-progress';
 import { SessionProvider, useSession } from '@/data/session-provider';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -19,10 +20,12 @@ export default function RootLayout() {
 
   return (
     <SessionProvider>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
-        <RootNavigator />
-      </ThemeProvider>
+      <AvatarCatalogProvider>
+        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+          <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+          <RootNavigator />
+        </ThemeProvider>
+      </AvatarCatalogProvider>
     </SessionProvider>
   );
 }

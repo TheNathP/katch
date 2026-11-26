@@ -126,6 +126,14 @@ export const OnboardingColors = {
   scoreFillShadow: 'inset 0 1px 3px rgba(255, 255, 255, 0.39), 0 2px 5px rgba(89, 34, 198, 0.34)',
 } as const;
 
+/** Background colors a player can put behind their avatar, keyed by the id stored server-side. */
+export const AvatarTokens = {
+  selectedBorder: '#6424E8',
+  editBadgeBackground: '#6424E8',
+  editBadgeForeground: '#FFFFFF',
+  editBadgeBorder: '#FFFFFF',
+} as const;
+
 export const dailySwatchRadius = 18;
 
 export const DailyRevealColors = {

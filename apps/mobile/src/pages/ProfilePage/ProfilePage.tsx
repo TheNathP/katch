@@ -1,21 +1,45 @@
-import { useState } from "react";
+import { useFocusEffect } from "expo-router";
+import { useCallback, useState } from "react";
 
 import Button from "@/components/ui/Button";
 import NavigationLink from "@/components/ui/NavigationLink";
 import Screen from "@/components/ui/Screen";
 import ThemedText from "@/components/ui/ThemedText";
+import type { MyProfile } from "@/data/adapters/my-profile.adapters";
 import { signOut } from "@/data/auth";
-import { useSession } from "@/data/session-provider";
+import { useAvatarCatalog } from "@/data/avatar-catalog-provider";
+import { getMyProfile } from "@/data/my-profile";
 
 export default function ProfilePage() {
-  const { user } = useSession();
+  const { catalog } = useAvatarCatalog();
+  const [profile, setProfile] = useState<MyProfile | null>(null);
   const [signingOut, setSigningOut] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      const controller = new AbortController();
+      getMyProfile(controller.signal).then(
+        (loaded) => {
+          if (!controller.signal.aborted) setProfile(loaded);
+        },
+        () => {},
+      );
+      return () => controller.abort();
+    }, []),
+  );
 
   async function handleSignOut() {
     setSigningOut(true);
     await signOut();
     setSigningOut(false);
   }
+
+  const avatar = catalog?.avatars.find(
+    (item) => item.id === profile?.avatar.avatar,
+  );
+  const background = catalog?.backgrounds.find(
+    (item) => item.id === profile?.avatar.background,
+  );
 
   return (
     <Screen>
