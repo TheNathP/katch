@@ -2,6 +2,8 @@ import { Image, type ImageProps } from 'expo-image';
 import type { ComponentPropsWithRef } from 'react';
 import { Pressable, Text, type StyleProp, type ViewStyle } from 'react-native';
 
+import Icon, { type IconName } from '@/components/ui/Icon';
+import { useTheme } from '@/hooks/use-theme';
 import { ButtonTokens } from '@/styles/theme';
 
 import { styles } from './Button.styles';
@@ -9,7 +11,10 @@ import { styles } from './Button.styles';
 type ButtonProps = Omit<ComponentPropsWithRef<typeof Pressable>, 'children' | 'style'> & {
   label: string;
   variant?: keyof typeof ButtonTokens;
+  size?: 'regular' | 'compact';
   leadingIcon?: ImageProps['source'];
+  leadingIconName?: IconName;
+  leadingIconSize?: number;
   trailingIcon?: ImageProps['source'];
   style?: StyleProp<ViewStyle>;
 };
@@ -17,7 +22,10 @@ type ButtonProps = Omit<ComponentPropsWithRef<typeof Pressable>, 'children' | 's
 export default function Button({
   label,
   variant = 'primarySolid',
+  size = 'regular',
   leadingIcon,
+  leadingIconName,
+  leadingIconSize,
   trailingIcon,
   accessibilityRole = 'button',
   accessibilityState,
@@ -25,7 +33,11 @@ export default function Button({
   style,
   ...pressableProps
 }: ButtonProps) {
-  const foreground = ButtonTokens[variant].foreground;
+  const theme = useTheme();
+  const customIconDimensions = leadingIconSize == null ? undefined : { width: leadingIconSize, height: leadingIconSize };
+  const compact = size === 'compact';
+  const muted = compact && disabled;
+  const foreground = muted ? theme.text : ButtonTokens[variant].foreground;
 
   return (
     <Pressable
@@ -35,15 +47,25 @@ export default function Button({
       disabled={disabled}
       style={({ pressed }) => [
         styles.root,
-        styles[variant],
+        !muted && styles[variant],
         style,
-        disabled && styles.disabled,
+        compact && styles.compact,
+        muted && [styles.compactDisabled, { backgroundColor: theme.dailySurface, borderColor: theme.dailyBorder }],
+        disabled && !muted && styles.disabled,
         !disabled && pressed && [styles.pressed, styles[`${variant}Pressed`]],
       ]}>
-      {leadingIcon != null && (
-        <Image aria-hidden source={leadingIcon} style={styles.icon} contentFit="contain" tintColor={foreground} />
+      {leadingIconName ? (
+        <Icon name={leadingIconName} size={leadingIconSize ?? (compact ? 20 : 18)} color={foreground} />
+      ) : leadingIcon != null && (
+        <Image
+          aria-hidden
+          source={leadingIcon}
+          style={[styles.icon, customIconDimensions]}
+          contentFit="contain"
+          tintColor={foreground}
+        />
       )}
-      <Text style={[styles.label, { color: foreground }]}>{label}</Text>
+      <Text style={[styles.label, compact && styles.compactLabel, { color: foreground }]}>{label}</Text>
       {trailingIcon != null && (
         <Image
           aria-hidden

@@ -93,7 +93,10 @@ export type SubmitPhotoResponse = {
   takenAt: string | null;
 };
 
-export type LeaderboardScope = "friends" | "world";
+/** POST delete-my-account — permanently deletes the caller’s own account. */
+export type DeleteMyAccountRequest = { confirmation: "SUPPRIMER" };
+
+export type LeaderboardScope = 'friends' | 'world';
 
 type LeaderboardPlayer = {
   playerId: string;

@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { AvatarCatalogProvider } from '@/data/avatar-catalog-provider';
 import { hasCompletedOnboarding } from '@/data/onboarding-progress';
 import { SessionProvider, useSession } from '@/data/session-provider';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { ThemePreferenceProvider, useThemePreference } from '@/data/theme-preference-provider';
 import { usePushNotifications } from '@/hooks/use-push-notifications';
 import { CaptureColors } from '@/styles/theme';
 
@@ -18,7 +18,15 @@ export const unstable_settings = {
 };
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
+  return (
+    <ThemePreferenceProvider>
+      <AppLayout />
+    </ThemePreferenceProvider>
+  );
+}
+
+function AppLayout() {
+  const { scheme: colorScheme } = useThemePreference();
 
   return (
     <SessionProvider>
@@ -43,9 +51,10 @@ export default function RootLayout() {
  */
 function RootNavigator() {
   const { user, isLoading } = useSession();
+  const { ready: themeReady } = useThemePreference();
   // In development the onboarding is always shown (see onboarding-progress).
   const [completedOnboarding, setCompletedOnboarding] = useState<boolean | undefined>(__DEV__ ? false : undefined);
-  usePushNotifications(isLoading || completedOnboarding === undefined ? undefined : user?.id);
+  usePushNotifications(isLoading || !themeReady || completedOnboarding === undefined ? undefined : user?.id);
 
   useEffect(() => {
     if (__DEV__) return;
@@ -57,7 +66,7 @@ function RootNavigator() {
     return () => { active = false; };
   }, []);
 
-  if (isLoading || completedOnboarding === undefined) return null;
+  if (isLoading || !themeReady || completedOnboarding === undefined) return null;
   SplashScreen.hide();
 
   const isSignedIn = user !== null;
@@ -87,6 +96,7 @@ function RootNavigator() {
         <Stack.Screen name="progression/index" options={{ title: 'Ma progression' }} />
         <Stack.Screen name="progression/serie" options={{ title: 'Ma série' }} />
         <Stack.Screen name="profil/modifier" options={{ title: 'Modifier mon profil' }} />
+        <Stack.Screen name="profil/parametres" options={{ title: 'Paramètres' }} />
         <Stack.Screen name="historique/index" options={{ title: 'Historique des défis' }} />
         <Stack.Screen name="historique/[date]" options={{ title: 'Résultat du défi' }} />
         <Stack.Screen name="galerie" options={{ title: 'Ma galerie' }} />

@@ -35,10 +35,12 @@ export default function Avatar({
         },
       ]}
     >
-      {source && (
+      {source != null && (
         <Image
           aria-hidden
           source={source}
+          placeholder={imageUrl ? fallbackSource : undefined}
+          placeholderContentFit="contain"
           style={styles.image}
           contentFit="contain"
           cachePolicy="memory-disk"

@@ -1,6 +1,6 @@
-import { Image, type ImageProps } from 'expo-image';
 import { Pressable } from 'react-native';
 
+import Icon, { type IconName } from '@/components/ui/Icon';
 import ThemedText from '@/components/ui/ThemedText';
 import { useTheme } from '@/hooks/use-theme';
 import { socialStyles as styles } from '@/styles/social';
@@ -8,7 +8,7 @@ import { OnboardingColors } from '@/styles/theme';
 
 type Props = {
   label: string;
-  icon?: ImageProps['source'];
+  icon?: IconName;
   accessibilityLabel?: string;
   disabled?: boolean;
   quiet?: boolean;
@@ -30,8 +30,7 @@ export default function SocialAction({ label, icon, accessibilityLabel, disabled
         pressed && styles.pressed, disabled && styles.disabled,
       ]}>
       {icon != null ? (
-        <Image source={icon} aria-hidden style={styles.actionIcon}
-          tintColor={accent ? OnboardingColors.ink : theme.text} contentFit="contain" />
+        <Icon name={icon} size={20} color={accent ? OnboardingColors.ink : theme.text} />
       ) : (
         <ThemedText type="smallBold" style={accent && styles.friendsBadgeText}>{label}</ThemedText>
       )}
