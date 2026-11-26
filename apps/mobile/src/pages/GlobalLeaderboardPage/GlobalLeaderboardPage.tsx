@@ -1,11 +1,5 @@
-import NavigationLink from '@/components/ui/NavigationLink';
-import Screen from '@/components/ui/Screen';
+import LeaderboardPage from '@/pages/LeaderboardPage';
 
 export default function GlobalLeaderboardPage() {
-  return (
-    <Screen>
-      <NavigationLink href="/classement/amis" label="Entre amis" replace />
-      <NavigationLink href="/classement/hebdomadaire" label="Séries de la semaine" replace />
-    </Screen>
-  );
+  return <LeaderboardPage scope="world" />;
 }
