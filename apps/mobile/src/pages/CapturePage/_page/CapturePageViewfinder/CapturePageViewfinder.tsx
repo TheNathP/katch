@@ -1,5 +1,5 @@
 import { Image } from "expo-image";
-import type { PropsWithChildren } from "react";
+import type { PropsWithChildren, ReactNode } from "react";
 import { View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 
@@ -13,7 +13,11 @@ const RING_RADIUS = (RING_SIZE - RING_STROKE) / 2;
 const RING_LENGTH = 2 * Math.PI * RING_RADIUS;
 const RING_GAP = 22;
 
-export default function CapturePageViewfinder({ children }: PropsWithChildren) {
+type Props = PropsWithChildren<{
+  overlay?: ReactNode;
+}>;
+
+export default function CapturePageViewfinder({ children, overlay }: Props) {
   return (
     <View style={styles.viewfinder}>
       {children}
@@ -43,6 +47,7 @@ export default function CapturePageViewfinder({ children }: PropsWithChildren) {
         contentFit="contain"
         style={styles.mascot}
       />
+      {overlay}
     </View>
   );
 }

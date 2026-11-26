@@ -18,12 +18,23 @@ import {
 } from "expo-image-picker";
 import { router, useFocusEffect, useIsFocused } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Alert, AppState, Linking, Platform, View } from "react-native";
+import {
+  Alert,
+  AppState,
+  BackHandler,
+  Linking,
+  Platform,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import type { DailyColor } from "@/data/adapters/daily-color.adapters";
+import { rememberDailyColorReveal } from "@/data/daily-color-reveal";
+import { getCapturePage } from "@/data/get-capture-page";
 import { photoDateFromExif } from "@/lib/photo-date";
 
 import CapturePageControls from "./_page/CapturePageControls";
+import CapturePageDailyColor from "./_page/CapturePageDailyColor";
 import CapturePagePermission from "./_page/CapturePagePermission";
 import CapturePageTopBar from "./_page/CapturePageTopBar";
 import CapturePageViewfinder from "./_page/CapturePageViewfinder";
@@ -47,6 +58,8 @@ export default function CapturePage() {
   const [facing, setFacing] = useState<CameraType>("back");
   const [flash, setFlash] = useState<FlashMode>("off");
   const [error, setError] = useState<string>();
+  const [dailyColor, setDailyColor] = useState<DailyColor>();
+  const [colorExpanded, setColorExpanded] = useState(false);
 
   // The player may grant the permission from the system settings: re-read it when the app comes back.
   useEffect(() => {
@@ -76,6 +89,62 @@ export default function CapturePage() {
 
   // The preview is unmounted when the tab loses focus: it has to report ready again once remounted.
   useFocusEffect(useCallback(() => () => setReady(false), []));
+
+  // Today's color, shown on demand over the preview. Reloaded on focus and when the day changes.
+  useFocusEffect(
+    useCallback(() => {
+      const controller = new AbortController();
+      let refreshTimer: ReturnType<typeof setTimeout> | undefined;
+
+      const loadColor = async () => {
+        setDailyColor((current) =>
+          current && current.refreshAt > performance.now()
+            ? current
+            : undefined,
+        );
+        try {
+          const color = await getCapturePage(controller.signal);
+          if (controller.signal.aborted) return;
+          setDailyColor(color);
+          refreshTimer = setTimeout(
+            () => void loadColor(),
+            Math.max(0, color.refreshAt - performance.now()),
+          );
+        } catch {
+          if (!controller.signal.aborted) setDailyColor(undefined);
+        }
+      };
+
+      void loadColor();
+      return () => {
+        controller.abort();
+        clearTimeout(refreshTimer);
+        setColorExpanded(false);
+      };
+    }, []),
+  );
+
+  // Android back closes the full-screen color before leaving the screen.
+  useEffect(() => {
+    if (!colorExpanded) return;
+    const subscription = BackHandler.addEventListener(
+      "hardwareBackPress",
+      () => {
+        setColorExpanded(false);
+        return true;
+      },
+    );
+    return () => subscription.remove();
+  }, [colorExpanded]);
+
+  const toggleDailyColor = () => {
+    if (!dailyColor) return;
+    if (!colorExpanded) {
+      // Seen here, the color no longer needs to be unveiled on the home screen.
+      void rememberDailyColorReveal(dailyColor.date).catch(() => {});
+    }
+    setColorExpanded((current) => !current);
+  };
 
   const goBack = () => {
     if (router.canGoBack()) router.back();
@@ -174,7 +243,18 @@ export default function CapturePage() {
     <View style={styles.screen}>
       {showCamera ? (
         <>
-          <CapturePageViewfinder>
+          <CapturePageViewfinder
+            overlay={
+              dailyColor && (
+                <CapturePageDailyColor
+                  hex={dailyColor.hex}
+                  top={insets.top}
+                  expanded={colorExpanded}
+                  onToggle={toggleDailyColor}
+                />
+              )
+            }
+          >
             {cameraActive && (
               <CameraView
                 ref={camera}
