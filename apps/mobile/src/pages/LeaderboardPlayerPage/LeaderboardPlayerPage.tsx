@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Button from '@/components/ui/Button';
@@ -84,7 +84,13 @@ export default function LeaderboardPlayerPage() {
         </View>
         <ScrollView contentContainerStyle={styles.content} bounces={false}>
           {state.status === 'loading' && (
-            <ActivityIndicator accessibilityLabel="Chargement du profil" color={theme.dailyAccent} size="large" />
+            <View
+              accessible
+              accessibilityRole="progressbar"
+              accessibilityLabel="Chargement du profil"
+              accessibilityState={{ busy: true }}
+              style={[styles.photo, { backgroundColor: theme.backgroundSelected }]}
+            />
           )}
           {state.status === 'error' && (
             <>

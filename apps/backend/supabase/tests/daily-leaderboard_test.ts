@@ -3,7 +3,9 @@ import { PGlite } from 'npm:@electric-sql/pglite@0.6.0';
 import type { DailyLeaderboardResponse, LeaderboardScope } from '../functions/_shared/types.ts';
 
 const friendsMigration = new URL('../migrations/20261125133000_friends.sql', import.meta.url);
+const avatarMigration = new URL('../migrations/20261125141212_avatar_catalog.sql', import.meta.url);
 const leaderboardMigration = new URL('../migrations/20261125162249_daily_leaderboard.sql', import.meta.url);
+const leaderboardAvatarsMigration = new URL('../migrations/20261126100127_leaderboard_avatars.sql', import.meta.url);
 const player = (n: number) => `00000000-0000-0000-0000-${String(n).padStart(12, '0')}`;
 
 Deno.test('daily rankings use UTC, accepted friendships, and capture time to break ties', async () => {
@@ -15,15 +17,26 @@ Deno.test('daily rankings use UTC, accepted friendships, and capture time to bre
       create role authenticated;
       create role service_role bypassrls;
       create schema auth;
-      create table auth.users (id uuid primary key);
+      create table auth.users (id uuid primary key, raw_user_meta_data jsonb);
+      create schema storage;
+      create table storage.buckets (
+        id text primary key, name text not null, public boolean, file_size_limit bigint, allowed_mime_types text[]
+      );
       set time zone 'Pacific/Honolulu';
     `);
     await db.exec(await Deno.readTextFile(friendsMigration));
+    await db.exec(await Deno.readTextFile(avatarMigration));
     for (const id of [1, 2, 3, 4, 5, 6]) {
-      await db.query('insert into auth.users (id) values ($1)', [player(id)]);
+      await db.query(`insert into auth.users (id, raw_user_meta_data) values ($1, $2)`, [
+        player(id), JSON.stringify({ display_name: `Player-${id}` }),
+      ]);
     }
     await db.query(`insert into public.social_results values ($1, '2026-11-25', 98)`, [player(4)]);
     await db.exec(await Deno.readTextFile(leaderboardMigration));
+    await db.exec(await Deno.readTextFile(leaderboardAvatarsMigration));
+    await db.query(`
+      update public.social_profiles set avatar_id = 'excited-amber', avatar_background_id = 'lime' where player_id = $1
+    `, [player(2)]);
 
     const privileges = await db.query(`
       select
@@ -65,6 +78,8 @@ Deno.test('daily rankings use UTC, accepted friendships, and capture time to bre
       [player(1), 98.25, 2],
     ]);
     assert.deepEqual(friends.currentPlayer, friends.entries[1]);
+    assert.equal(friends.entries[0].avatarId, 'excited-amber');
+    assert.equal(friends.entries[0].avatarBackgroundId, 'lime');
 
     const world = await load('world');
     assert.deepEqual(world.entries.map(({ playerId }) => playerId), [3, 2, 1, 6, 4].map(player));
@@ -75,11 +90,14 @@ Deno.test('daily rankings use UTC, accepted friendships, and capture time to bre
     assert.equal(unranked.currentPlayer.playerId, player(5));
     assert.equal(unranked.currentPlayer.rank, null);
     assert.equal(unranked.currentPlayer.score, null);
+    assert.equal(unranked.currentPlayer.avatarId, 'happy');
+    assert.equal(unranked.currentPlayer.avatarBackgroundId, 'violet');
 
     await db.exec(`
       reset role;
-      insert into auth.users (id)
-      select ('00000000-0000-0000-0000-' || lpad(n::text, 12, '0'))::uuid
+      insert into auth.users (id, raw_user_meta_data)
+      select ('00000000-0000-0000-0000-' || lpad(n::text, 12, '0'))::uuid,
+             jsonb_build_object('display_name', 'Player-' || n)
       from generate_series(100, 149) as n;
       set role service_role;
       insert into public.social_results (player_id, challenge_date, score, captured_at)

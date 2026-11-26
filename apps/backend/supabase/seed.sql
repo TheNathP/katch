@@ -19,19 +19,19 @@ declare
 begin
   for demo_player in
     select * from (values
-      (1,  'Nathan',  98.25, 11, false),
-      (2,  'Léo',     98.25,  6, true),
-      (3,  'Chloé',   95.26,  9, true),
-      (4,  'Max',     91.50, 14, true),
-      (5,  'Camille', 89.80,  7, true),
-      (6,  'Inès',    86.35, 15, true),
-      (7,  'Jules',   78.12, 13, true),
-      (8,  'Eva',     99.24,  5, false),
-      (9,  'Nora',    99.05, 12, false),
-      (10, 'Hugo',    96.71,  8, false),
-      (11, 'Maya',    93.44, 10, false),
-      (12, 'Sami',    83.91, 17, false)
-    ) as players(number, display_name, score, capture_order, is_friend)
+      (1,  'Nathan',                          98.25, 11, false, 'happy',              'violet'),
+      (2,  'Léo',                             98.25,  6, true,  'excited-amber',      'lime'),
+      (3,  'Chloé',                           95.26,  9, true,  'happy-rose',         'fuchsia'),
+      (4,  'Max',                             91.50, 14, true,  'confident-aqua',     'sky'),
+      (5,  'CamilleSuperChasseuseDeCouleurs',  89.80,  7, true,  'star-eyes-amethyst', 'amethyst'),
+      (6,  'Inès',                            86.35, 15, true,  'running',            'blush'),
+      (7,  'Jules',                           78.12, 13, true,  'confident-coral',    'coral'),
+      (8,  'Eva',                             99.24,  5, false, 'excited',            'lime'),
+      (9,  'Nora',                            99.05, 12, false, 'star-eyes',          'amethyst'),
+      (10, 'Hugo',                            96.71,  8, false, 'confident',          'aqua'),
+      (11, 'Maya',                            93.44, 10, false, 'happy-rose',         'blush'),
+      (12, 'Sami',                            83.91, 17, false, 'sleeping',           'charcoal')
+    ) as players(number, display_name, score, capture_order, is_friend, avatar, avatar_background)
   loop
     demo_id := (account_prefix || lpad(demo_player.number::text, 12, '0'))::uuid;
     demo_email := case when demo_id = viewer_id then 'preview@example.test'
@@ -47,7 +47,10 @@ begin
       seeded_at, seeded_at, seeded_at, '{"provider":"email","providers":["email"]}', '{}', '', '', '', '', '', ''
     ) on conflict (id) do nothing;
 
-    update public.social_profiles set display_name = demo_player.display_name where player_id = demo_id;
+    update public.social_profiles
+    set display_name = demo_player.display_name, avatar_id = demo_player.avatar,
+        avatar_background_id = demo_player.avatar_background
+    where player_id = demo_id;
 
     insert into public.social_results (player_id, challenge_date, score, captured_at, photo_object_path)
     values (

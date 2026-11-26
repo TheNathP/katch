@@ -4,6 +4,8 @@ import { formatLeaderboardScore } from '@/lib/format-leaderboard-score';
 export type LeaderboardEntry = {
   id: string;
   name: string;
+  avatarId?: string;
+  avatarBackgroundId?: string;
   rank: number | null;
   scoreLabel: string | null;
   isCurrentPlayer: boolean;
@@ -19,6 +21,8 @@ export function adaptLeaderboard(response: DailyLeaderboardResponse, receivedAt:
   const adaptEntry = (player: DailyLeaderboardResponse['currentPlayer']): LeaderboardEntry => ({
     id: player.playerId,
     name: player.displayName,
+    avatarId: player.avatarId,
+    avatarBackgroundId: player.avatarBackgroundId,
     rank: player.rank,
     scoreLabel: formatLeaderboardScore(player.score),
     isCurrentPlayer: player.playerId === currentPlayer.playerId,

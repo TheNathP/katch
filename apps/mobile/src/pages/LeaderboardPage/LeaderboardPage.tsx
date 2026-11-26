@@ -1,10 +1,12 @@
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
-import { ActivityIndicator, AppState, FlatList, Text, View } from 'react-native';
+import { AppState, FlatList, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Button from '@/components/ui/Button';
+import SocialSkeleton from '@/components/ui/SocialSkeleton';
 import type { LeaderboardScope } from '@/data/api.types';
+import { useAvatarCatalog } from '@/data/avatar-catalog-provider';
 import { getLeaderboardPage } from '@/data/get-leaderboard-page';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -17,6 +19,7 @@ type LoadState = { board: Board | null; loading: boolean; error: boolean };
 
 export default function LeaderboardPage({ scope }: { scope: LeaderboardScope }) {
   const theme = useTheme();
+  const { catalog } = useAvatarCatalog();
   const [{ board, loading, error }, setState] = useState<LoadState>({ board: null, loading: true, error: false });
   const [refreshing, setRefreshing] = useState(false);
   const reload = useRef<((pulledToRefresh?: boolean) => void) | null>(null);
@@ -78,7 +81,7 @@ export default function LeaderboardPage({ scope }: { scope: LeaderboardScope }) 
       <FlatList
         data={board?.entries ?? []}
         keyExtractor={(entry) => entry.id}
-        renderItem={({ item }) => <LeaderboardPageRow entry={item} onPress={() => openPlayer(item.id)} />}
+        renderItem={({ item }) => <LeaderboardPageRow entry={item} catalog={catalog} onPress={() => openPlayer(item.id)} />}
         contentContainerStyle={styles.list}
         automaticallyAdjustContentInsets={false}
         contentInsetAdjustmentBehavior="never"
@@ -88,7 +91,7 @@ export default function LeaderboardPage({ scope }: { scope: LeaderboardScope }) 
         ListHeaderComponentStyle={styles.headerSpacing}
         ListHeaderComponent={showListHeader ? (
           <View style={styles.listHeader}>
-            {ownEntry && <LeaderboardPageRow entry={ownEntry} onPress={() => openPlayer(ownEntry.id)} />}
+            {ownEntry && <LeaderboardPageRow entry={ownEntry} catalog={catalog} onPress={() => openPlayer(ownEntry.id)} />}
             {error && (
               <View style={[styles.message, { backgroundColor: theme.dailyCard, borderColor: theme.dailyBorder }]}>
                 <Text accessibilityLiveRegion="polite" style={[styles.messageText, { color: theme.dailyInk }]}>
@@ -100,7 +103,7 @@ export default function LeaderboardPage({ scope }: { scope: LeaderboardScope }) 
           </View>
         ) : undefined}
         ListEmptyComponent={loading && !board ? (
-          <ActivityIndicator accessibilityLabel="Chargement du classement" size="large" color={theme.dailyAccent} style={styles.spinner} />
+          <SocialSkeleton label="Chargement du classement" />
         ) : board ? (
           <View style={[styles.message, { backgroundColor: theme.dailyCard, borderColor: theme.dailyBorder }]}>
             <Text style={[styles.messageText, { color: theme.dailyMuted }]}>

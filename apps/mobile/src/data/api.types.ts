@@ -49,6 +49,8 @@ export type LeaderboardScope = 'friends' | 'world';
 type LeaderboardPlayer = {
   playerId: string;
   displayName: string;
+  avatarId?: string;
+  avatarBackgroundId?: string;
 };
 
 type RankedLeaderboardPlayer = LeaderboardPlayer & { rank: number; score: number };

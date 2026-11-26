@@ -10,5 +10,4 @@ export const styles = StyleSheet.create({
   listHeader: { gap: Spacing.three },
   message: { padding: Spacing.three, borderRadius: 20, borderWidth: 1, gap: Spacing.three },
   messageText: { textAlign: 'center', fontSize: 15, fontWeight: '600' },
-  spinner: { marginTop: Spacing.four },
 });
