@@ -68,11 +68,9 @@ function RootNavigator() {
         <Stack.Screen name="defi/confirmation" options={{ title: 'Confirmer la photo' }} />
         <Stack.Screen name="defi/resultat" options={{ title: 'Résultat' }} />
         <Stack.Screen name="defi/photos" options={{ title: 'Photos du jour' }} />
+        <Stack.Screen name="amis/index" options={{ title: 'Mes amis' }} />
         <Stack.Screen name="amis/recherche" options={{ title: 'Rechercher des amis' }} />
         <Stack.Screen name="joueurs/[playerId]" options={{ title: 'Profil du joueur' }} />
-        <Stack.Screen name="classement/index" options={{ title: 'Classement mondial' }} />
-        <Stack.Screen name="classement/amis" options={{ title: 'Classement entre amis' }} />
-        <Stack.Screen name="classement/hebdomadaire" options={{ title: 'Classement des séries' }} />
         <Stack.Screen name="recompenses/badges" options={{ title: 'Mes badges' }} />
         <Stack.Screen name="progression/index" options={{ title: 'Ma progression' }} />
         <Stack.Screen name="progression/serie" options={{ title: 'Ma série' }} />

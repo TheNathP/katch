@@ -27,3 +27,10 @@ export type UpdateMyProfileRequest = {
   avatarId?: string;
   avatarBackgroundId?: string;
 };
+
+export type DailyColorResponse = {
+  date: string;
+  colorHex: string;
+  endsAt: string;
+  serverTime: string;
+};
