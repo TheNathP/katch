@@ -8,7 +8,7 @@ import TextField from '@/components/ui/TextField';
 import ThemedText from '@/components/ui/ThemedText';
 import type { AuthResult } from '@/data/adapters/auth.adapters';
 import { signInWithEmail } from '@/data/auth';
-import { getCachedDailyColor } from '@/data/daily-color-cache';
+import { getCachedDailyChallenge } from '@/data/daily-color-cache';
 import { isDailyColorRevealed } from '@/data/daily-color-reveal';
 import { isValidEmail } from '@/lib/email';
 
@@ -25,7 +25,7 @@ export default function SignInPage() {
     let active = true;
 
     async function loadRevealedColor() {
-      const color = await getCachedDailyColor();
+      const color = (await getCachedDailyChallenge())?.color;
       if (color && await isDailyColorRevealed(color.date).catch(() => false) && active) {
         setCachedHex(color.hex);
       }

@@ -77,7 +77,7 @@ Deno.test('the migration stores a single challenge per UTC date and keeps it ser
   }
 });
 
-Deno.test('the Edge Function validates the user before serving the same challenge to both players', async () => {
+Deno.test('the Edge Function shares the daily color and returns each player their own submission', async () => {
   type Handler = (request: Request) => Response | Promise<Response>;
   const handlers: Handler[] = [];
   const serve = Deno.serve;
@@ -98,12 +98,14 @@ Deno.test('the Edge Function validates the user before serving the same challeng
   const savedEnv = new Map(Object.keys(fakeEnv).map((name) => [name, Deno.env.get(name)]));
   const originalFetch = globalThis.fetch;
   let databaseCalls = 0;
+  const submissionLookups: string[] = [];
 
   try {
     for (const [name, value] of Object.entries(fakeEnv)) Deno.env.set(name, value);
     globalThis.fetch = async (input, init) => {
       const request = new Request(input, init);
-      const path = new URL(request.url).pathname;
+      const url = new URL(request.url);
+      const path = url.pathname;
       if (path === '/auth/v1/user') {
         const token = request.headers.get('Authorization');
         if (token !== 'Bearer player-one' && token !== 'Bearer player-two') {
@@ -111,8 +113,15 @@ Deno.test('the Edge Function validates the user before serving the same challeng
         }
         return Response.json({ id: token.slice(7), role: 'authenticated', aud: 'authenticated' });
       }
-      assert.equal(path, '/rest/v1/rpc/get_or_create_daily_challenge');
       assert.equal(request.headers.get('apikey'), fakeEnv.SUPABASE_SERVICE_ROLE_KEY);
+      if (path === '/rest/v1/challenge_attempts') {
+        assert.equal(url.searchParams.get('challenge_date'), 'eq.2026-11-25');
+        const player = url.searchParams.get('player_id');
+        assert.ok(player === 'eq.player-one' || player === 'eq.player-two');
+        submissionLookups.push(player);
+        return Response.json(player === 'eq.player-one' ? [{ score: 94, matched_hex: '#8940FC' }] : []);
+      }
+      assert.equal(path, '/rest/v1/rpc/get_or_create_daily_challenge');
       databaseCalls++;
       return Response.json({
         challenge_date: '2026-11-25',
@@ -133,6 +142,7 @@ Deno.test('the Edge Function validates the user before serving the same challeng
     assert.equal((await handler(request('invalid'))).status, 401);
     assert.equal((await handler(request('player-one', '?date=2099-12-31'))).status, 400);
     assert.equal(databaseCalls, 0);
+    assert.deepEqual(submissionLookups, []);
 
     for (const token of ['player-one', 'player-two']) {
       const response = await handler(request(token));
@@ -143,9 +153,11 @@ Deno.test('the Edge Function validates the user before serving the same challeng
         colorHex: '#8A3FFC',
         endsAt: '2026-11-26T00:00:00Z',
         serverTime: '2026-11-25T16:00:00Z',
+        submission: token === 'player-one' ? { score: 94, matchedHex: '#8940FC' } : null,
       });
     }
     assert.equal(databaseCalls, 2);
+    assert.deepEqual(submissionLookups, ['eq.player-one', 'eq.player-two']);
   } finally {
     globalThis.fetch = originalFetch;
     for (const [name, value] of savedEnv) {

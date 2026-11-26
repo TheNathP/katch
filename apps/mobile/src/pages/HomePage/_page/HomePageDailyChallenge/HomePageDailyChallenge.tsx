@@ -5,10 +5,11 @@ import type { SharedValue } from 'react-native-reanimated';
 
 import Button from '@/components/ui/Button';
 import Icon from '@/components/ui/Icon';
-import type { DailyColor } from '@/data/adapters/daily-color.adapters';
+import type { DailyColor, DailySubmission } from '@/data/adapters/daily-color.adapters';
 import { useTheme } from '@/hooks/use-theme';
 import HomePageChallengeCountdown from '@/pages/HomePage/_page/HomePageChallengeCountdown';
 import HomePageChallengeVeil from '@/pages/HomePage/_page/HomePageChallengeVeil';
+import HomePageDailyScore from '@/pages/HomePage/_page/HomePageDailyScore';
 
 import { styles } from './HomePageDailyChallenge.styles';
 
@@ -18,7 +19,13 @@ const sparkle = require('@/assets/icons/sparkle.svg');
 export type ChallengeState =
   | { status: 'loading' | 'error' }
   | { status: 'cached'; color: DailyColor }
-  | { status: 'ready'; color: DailyColor; reveal: 'hidden' | 'saving' | 'revealing' | 'revealed'; revealError?: boolean };
+  | {
+    status: 'ready';
+    color: DailyColor;
+    submission: DailySubmission | null;
+    reveal: 'hidden' | 'saving' | 'revealing' | 'revealed';
+    revealError?: boolean;
+  };
 
 type Props = {
   state: ChallengeState;
@@ -35,6 +42,8 @@ export default function HomePageDailyChallenge({ state, onRetry, onReveal, revea
   const color = previous ? state.color : challenge?.color;
   const revealed = previous || challenge?.reveal === 'revealed';
   const revealing = challenge?.reveal === 'revealing';
+  // A `cached` color belongs to a finished day, so its score is not shown.
+  const submission = challenge?.reveal === 'revealed' ? challenge.submission : null;
 
   return (
     <View style={[styles.card, {
@@ -99,6 +108,7 @@ export default function HomePageDailyChallenge({ state, onRetry, onReveal, revea
           </View>
         )}
       </View>
+      {submission && <HomePageDailyScore submission={submission} />}
       {challenge?.revealError && (
         <Text accessibilityLiveRegion="polite" style={[styles.stateText, { color: theme.dailyMuted }]}>
           Impossible de mémoriser le dévoilement. Réessaie.
@@ -106,9 +116,12 @@ export default function HomePageDailyChallenge({ state, onRetry, onReveal, revea
       )}
       <Button
         accessibilityRole={challenge?.reveal === 'revealed' ? 'link' : 'button'}
-        label={previous ? 'Actualiser' : revealed ? 'Capturer ma couleur' : 'Dévoiler la couleur'}
+        label={previous
+          ? 'Actualiser'
+          : !revealed ? 'Dévoiler la couleur' : submission ? 'Reprendre une photo' : 'Capturer ma couleur'}
         variant="limeSolid"
         leadingIcon={previous ? undefined : revealed ? camera : sparkle}
+        accessibilityHint={submission ? 'Ta nouvelle photo remplacera ton score du jour' : undefined}
         disabled={!previous && (!challenge || challenge.reveal === 'saving' || revealing)}
         onPress={previous ? onRetry : revealed ? () => router.navigate('/defi') : onReveal}
         style={styles.capture}

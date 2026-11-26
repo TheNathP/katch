@@ -1,4 +1,4 @@
-import type { Relationship } from './social-api.types';
+import type { Relationship } from "./social-api.types";
 
 // Mirrors the public contract in apps/backend/supabase/functions/_shared/types.ts.
 
@@ -10,7 +10,12 @@ export type PushRegistrationResponse = {
   registered: boolean;
 };
 
-export type PushDestination = '/' | '/amis' | '/defi' | '/progression/serie' | '/classement/amis';
+export type PushDestination =
+  | "/"
+  | "/amis"
+  | "/defi"
+  | "/progression/serie"
+  | "/classement/amis";
 
 /** GET get-avatar-catalog — public, no session required (shown before sign-up). */
 export type AvatarCatalogResponse = {
@@ -47,17 +52,50 @@ export type UpdateMyProfileRequest = {
   avatarBackgroundId?: string;
 };
 
+/**
+ * GET get-daily-color — requires a session: today's color and the player's photo
+ * submission of the day, if any.
+ */
 export type DailyColorResponse = {
   date: string;
   colorHex: string;
   endsAt: string;
   serverTime: string;
+  submission: {
+    score: number;
+    matchedHex: string;
+  } | null;
+};
+
+/**
+ * POST submit-photo — requires a session. `multipart/form-data` body:
+ * - `photo` (required): JPEG or PNG file, at most 5 MiB and 4096 px per side.
+ * - `takenAt` (optional): ISO 8601 date the photo was taken, as reported by the device.
+ *   Stored for information only, it never affects the score.
+ *
+ * The server stores the photo, analyzes it against today's color and records the score.
+ * Players can submit as many photos as they want: each submission replaces the previous
+ * one of the day (score and photo), so only the latest one counts.
+ *
+ * Errors: 400 `invalid_request` (bad form, field or date), 400 `invalid_photo`
+ * (not a JPEG/PNG, too large, unreadable), 409 `challenge_ended` (the day changed
+ * while scoring).
+ */
+export type SubmitPhotoResponse = {
+  attemptId: string;
+  challengeDate: string;
+  targetHex: string;
+  matchedHex: string;
+  matchedArea: { x: number; y: number; width: number; height: number };
+  score: number;
+  submittedAt: string;
+  takenAt: string | null;
 };
 
 /** POST delete-my-account — permanently deletes the caller’s own account. */
 export type DeleteMyAccountRequest = { confirmation: "SUPPRIMER" };
 
-export type LeaderboardScope = 'friends' | 'world';
+export type LeaderboardScope = "friends" | "world";
 
 type LeaderboardPlayer = {
   playerId: string;
@@ -66,8 +104,14 @@ type LeaderboardPlayer = {
   avatarBackgroundId?: string;
 };
 
-type RankedLeaderboardPlayer = LeaderboardPlayer & { rank: number; score: number };
-type UnrankedLeaderboardPlayer = LeaderboardPlayer & { rank: null; score: null };
+type RankedLeaderboardPlayer = LeaderboardPlayer & {
+  rank: number;
+  score: number;
+};
+type UnrankedLeaderboardPlayer = LeaderboardPlayer & {
+  rank: null;
+  score: null;
+};
 
 export type DailyLeaderboardResponse = {
   date: string;
@@ -80,8 +124,10 @@ export type DailyLeaderboardResponse = {
 export type LeaderboardPlayerResponse = {
   displayName: string;
   score: number | null;
-  relationship: Relationship | 'self';
-  photo: { status: 'available'; url: string } | { status: 'locked' | 'missing' };
+  relationship: Relationship | "self";
+  photo:
+    | { status: "available"; url: string }
+    | { status: "locked" | "missing" };
 };
 
 export type ChallengeHistoryEntry = {
