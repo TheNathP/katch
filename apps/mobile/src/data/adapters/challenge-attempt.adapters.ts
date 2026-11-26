@@ -7,8 +7,6 @@ export type ChallengeAttempt = {
   targetHex: string;
   matchedHex: string;
   score: number;
-  bestScore: number;
-  attemptsLeft: number;
 };
 
 const HEX = /^#[0-9A-F]{6}$/;
@@ -22,8 +20,7 @@ export function adaptChallengeAttempt(response: unknown, photoUri: string): Chal
     typeof body.attemptId !== 'string' ||
     typeof body.targetHex !== 'string' || !HEX.test(body.targetHex) ||
     typeof body.matchedHex !== 'string' || !HEX.test(body.matchedHex) ||
-    !isScore(body.score) || !isScore(body.bestScore) ||
-    typeof body.attemptsLeft !== 'number' || body.attemptsLeft < 0
+    !isScore(body.score)
   ) {
     throw new Error('Invalid photo result');
   }
@@ -33,7 +30,5 @@ export function adaptChallengeAttempt(response: unknown, photoUri: string): Chal
     targetHex: body.targetHex,
     matchedHex: body.matchedHex,
     score: body.score,
-    bestScore: body.bestScore,
-    attemptsLeft: body.attemptsLeft,
   };
 }

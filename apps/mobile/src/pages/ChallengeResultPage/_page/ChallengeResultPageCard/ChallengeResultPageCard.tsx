@@ -9,8 +9,6 @@ import { styles } from "./ChallengeResultPageCard.styles";
 type Props = { attempt: ChallengeAttempt; feedback: ScoreFeedback };
 
 export default function ChallengeResultPageCard({ attempt, feedback }: Props) {
-  const showBest = attempt.bestScore > attempt.score;
-
   return (
     <View style={styles.card}>
       <Image
@@ -51,10 +49,7 @@ export default function ChallengeResultPageCard({ attempt, feedback }: Props) {
       </View>
 
       <Text style={styles.meta}>
-        {showBest ? `Ton meilleur score du jour reste ${attempt.bestScore}/100. ` : ""}
-        {attempt.attemptsLeft > 0
-          ? `Il te reste ${attempt.attemptsLeft} essai${attempt.attemptsLeft > 1 ? "s" : ""} aujourd’hui.`
-          : "Tu as utilisé tous tes essais du jour."}
+        Seule ta dernière photo compte : tu peux en reprendre une autant de fois que tu veux aujourd’hui.
       </Text>
     </View>
   );

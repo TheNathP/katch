@@ -10,7 +10,7 @@ export type { ChallengeAttempt };
 const UPLOAD_MAX_SIDE = 1280;
 const UPLOAD_QUALITY = 0.8;
 
-export type SubmitPhotoErrorCode = 'attempt_limit_reached' | 'challenge_ended' | 'invalid_photo' | 'unknown';
+export type SubmitPhotoErrorCode = 'challenge_ended' | 'invalid_photo' | 'unknown';
 
 export class SubmitPhotoError extends Error {
   constructor(readonly code: SubmitPhotoErrorCode) {
@@ -41,6 +41,7 @@ async function preparePhoto(uri: string): Promise<string> {
 /**
  * Uploads the photo for today's challenge. The server stores it, extracts the color
  * closest to the target and returns the score: the app never computes or sends one.
+ * Each submission replaces the previous one of the day: only the latest photo counts.
  */
 export async function submitChallengePhoto(photoUri: string, takenAt: string | null): Promise<ChallengeAttempt> {
   try {
@@ -60,7 +61,7 @@ export async function submitChallengePhoto(photoUri: string, takenAt: string | n
     // The player only sees a generic message: log the real cause while developing.
     if (__DEV__) console.warn('submit-photo failed', error);
     if (error instanceof EdgeFunctionError &&
-      (error.code === 'attempt_limit_reached' || error.code === 'challenge_ended' || error.code === 'invalid_photo')) {
+      (error.code === 'challenge_ended' || error.code === 'invalid_photo')) {
       throw new SubmitPhotoError(error.code);
     }
     throw new SubmitPhotoError('unknown');

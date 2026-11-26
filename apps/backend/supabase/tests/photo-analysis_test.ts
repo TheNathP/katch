@@ -12,6 +12,7 @@ const migrations = [
   '20261125162249_daily_leaderboard.sql',
   '20261126084642_leaderboard_player_photo.sql',
   '20261126095504_challenge_attempts.sql',
+  '20261126103954_latest_photo_replaces_attempt.sql',
 ]
   .map((name) => new URL(`../migrations/${name}`, import.meta.url));
 
@@ -86,7 +87,7 @@ Deno.test('image headers give the real format and size', async () => {
   assert.equal(readImageHeader(new Uint8Array([0xff, 0xd8, 0xff])), null);
 });
 
-Deno.test('the migration records attempts, keeps the best score and enforces the daily limit', async () => {
+Deno.test('each new attempt replaces the previous one of the day, with no daily limit', async () => {
   const db = new PGlite();
   try {
     await db.exec(`
@@ -106,7 +107,7 @@ Deno.test('the migration records attempts, keeps the best score and enforces the
       select
         has_table_privilege('authenticated', 'public.challenge_attempts', 'select') as client_reads,
         has_function_privilege('authenticated',
-          'public.record_challenge_attempt(uuid, uuid, date, text, timestamptz, text, text, real, smallint, integer)',
+          'public.record_challenge_attempt(uuid, uuid, date, text, timestamptz, text, text, real, smallint)',
           'execute') as client_calls,
         (select relrowsecurity from pg_class where oid = 'public.challenge_attempts'::regclass) as rls,
         (select public from storage.buckets where id = 'challenge-photos') as public_bucket
@@ -120,30 +121,33 @@ Deno.test('the migration records attempts, keeps the best score and enforces the
       `select to_char(challenge_date, 'YYYY-MM-DD') as day, color_hex as hex from public.get_or_create_daily_challenge()`,
     );
 
-    const record = (score: number, max = 3, hex = challenge.hex, day = challenge.day) =>
-      db.query<{ best_score: number; attempts_left: number; submitted_at: Date }>(
+    const record = (score: number, hex = challenge.hex, day = challenge.day) =>
+      db.query<{ replaced_photo_path: string | null; submitted_at: Date }>(
         `select * from public.record_challenge_attempt(
-          gen_random_uuid(), $1, $2::date, $6, now() - interval '1 minute', $3, '#123456', 4.5, $4, $5
+          gen_random_uuid(), $1, $2::date, $5, now() - interval '1 minute', $3, '#123456', 4.5, $4
         )`,
-        [player, day, hex, score, max, `${player}/${day}/${score}.jpg`],
+        [player, day, hex, score, `${player}/${day}/${score}.jpg`],
       );
+    const photo = (score: number) => `${player}/${challenge.day}/${score}.jpg`;
 
-    assert.deepEqual((await record(60)).rows.map(({ best_score, attempts_left }) => ({ best_score, attempts_left })),
-      [{ best_score: 60, attempts_left: 2 }]);
-    assert.equal((await record(80)).rows[0].best_score, 80);
-    assert.equal((await record(40)).rows[0].best_score, 80);
-    await assert.rejects(record(99), /attempt_limit_reached/);
-    await assert.rejects(record(50, 10, '#000000'), /challenge_ended/);
-    await assert.rejects(record(50, 10, challenge.hex, '2020-01-01'), /challenge_ended/);
+    // Each submission reports the photo it replaced, so the Edge Function can delete it.
+    assert.equal((await record(60)).rows[0].replaced_photo_path, null);
+    assert.equal((await record(80)).rows[0].replaced_photo_path, photo(60));
+    // No daily limit, and a lower score still replaces a better one: only the latest counts.
+    for (const score of [70, 50, 30, 20, 10, 90, 85, 75, 65]) await record(score);
+    const last = await record(40);
+    assert.equal(last.rows[0].replaced_photo_path, photo(65));
+    await assert.rejects(record(50, '#000000'), /challenge_ended/);
+    await assert.rejects(record(50, challenge.hex, '2020-01-01'), /challenge_ended/);
 
-    const stored = await db.query<{ count: number; best: string; photo: string; captured: boolean }>(`
+    const stored = await db.query<{ count: number; score: string; photo: string; captured: boolean }>(`
       select (select count(*)::int from public.challenge_attempts where taken_at is not null) as count,
-             r.score::text as best, r.photo_object_path as photo,
-             r.captured_at = (select submitted_at from public.challenge_attempts where score = 80) as captured
+             r.score::text as score, r.photo_object_path as photo,
+             r.captured_at = (select submitted_at from public.challenge_attempts) as captured
       from public.social_results r where r.player_id = '${player}'
     `);
-    // The leaderboard shows the best attempt: its score, photo and server capture time.
-    assert.deepEqual(stored.rows[0], { count: 3, best: '80.00', photo: `${player}/${challenge.day}/80.jpg`, captured: true });
+    // One attempt left, and the leaderboard shows it: its score, photo and server capture time.
+    assert.deepEqual(stored.rows[0], { count: 1, score: '40.00', photo: photo(40), captured: true });
   } finally {
     await db.close();
   }

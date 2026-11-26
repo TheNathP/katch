@@ -15,7 +15,6 @@ const isLocalPhoto = (uri: unknown): uri is string =>
   typeof uri === 'string' && /^(file|content|ph):\/\//.test(uri);
 
 const errorMessages: Record<SubmitPhotoErrorCode, string> = {
-  attempt_limit_reached: 'Tu as utilisé tous tes essais du jour. Reviens demain pour une nouvelle couleur !',
   challenge_ended: 'Le défi du jour vient de se terminer. Découvre la nouvelle couleur sur l’accueil.',
   invalid_photo: 'Cette image n’a pas pu être analysée. Essaie avec une autre photo.',
   unknown: 'L’analyse a échoué. Vérifie ta connexion et réessaie.',

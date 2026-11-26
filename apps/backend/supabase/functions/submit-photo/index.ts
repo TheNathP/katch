@@ -13,7 +13,6 @@ const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
 const MAX_BODY_BYTES = MAX_PHOTO_BYTES + 16 * 1024;
 const MIN_SIDE = 16;
 const MAX_SIDE = 4096;
-const MAX_ATTEMPTS_PER_DAY = 10;
 const MAX_TAKEN_AT_AGE_MS = 5 * 365 * 24 * 60 * 60 * 1000;
 const MAX_CLOCK_SKEW_MS = 10 * 60 * 1000;
 const ISO_DATE_PATTERN =
@@ -22,8 +21,8 @@ const ISO_DATE_PATTERN =
 type DailyChallengeRow = { challenge_date: string; color_hex: string };
 type RecordedAttemptRow = {
   submitted_at: string;
-  best_score: number;
-  attempts_left: number;
+  /** Photo of the attempt this submission replaced, to delete from storage. */
+  replaced_photo_path: string | null;
 };
 
 const fail = (status: number, error: string) =>
@@ -160,7 +159,6 @@ Deno.serve(async (request) => {
         attempt_matched_hex: analysis.matchedHex,
         attempt_delta_e: Math.round(analysis.deltaE * 100) / 100,
         attempt_score: analysis.score,
-        max_attempts: MAX_ATTEMPTS_PER_DAY,
       })
       .single()
       .overrideTypes<RecordedAttemptRow, { merge: false }>();
@@ -171,11 +169,20 @@ Deno.serve(async (request) => {
         .remove([path])
         .catch(() => {});
       uploadedPath = undefined;
-      if (recordError?.message === "attempt_limit_reached")
-        return fail(429, "attempt_limit_reached");
       if (recordError?.message === "challenge_ended")
         return fail(409, "challenge_ended");
       throw new Error("Could not record attempt");
+    }
+    uploadedPath = undefined;
+
+    // Only the latest photo counts: delete the one it replaced so storage does not pile up.
+    // Best effort, the attempt is already recorded.
+    if (recorded.replaced_photo_path && recorded.replaced_photo_path !== path) {
+      const { error: removeError } = await admin.storage
+        .from(BUCKET)
+        .remove([recorded.replaced_photo_path])
+        .catch(() => ({ error: true }));
+      if (removeError) console.error("Could not delete replaced photo");
     }
 
     return Response.json(
@@ -185,8 +192,6 @@ Deno.serve(async (request) => {
         targetHex: challenge.color_hex,
         matchedHex: analysis.matchedHex,
         score: analysis.score,
-        bestScore: recorded.best_score,
-        attemptsLeft: recorded.attempts_left,
         submittedAt: new Date(recorded.submitted_at).toISOString(),
         takenAt,
       } satisfies SubmitPhotoResponse,

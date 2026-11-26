@@ -42,10 +42,12 @@ export type DailyColorResponse = {
  *   Stored for information only, it never affects the score.
  *
  * The server stores the photo, analyzes it against today's color and records the score.
+ * Players can submit as many photos as they want: each submission replaces the previous
+ * one of the day (score and photo), so only the latest one counts.
  *
  * Errors: 400 `invalid_request` (bad form, field or date), 400 `invalid_photo`
  * (not a JPEG/PNG, too large, unreadable), 409 `challenge_ended` (the day changed
- * while scoring), 429 `attempt_limit_reached`.
+ * while scoring).
  */
 export type SubmitPhotoResponse = {
   attemptId: string;
@@ -53,10 +55,8 @@ export type SubmitPhotoResponse = {
   targetHex: string;
   /** Color of the photo area closest to the target. */
   matchedHex: string;
+  /** Score of this photo, which is now the player's score of the day. */
   score: number;
-  /** Best score of the day, this attempt included. */
-  bestScore: number;
-  attemptsLeft: number;
   submittedAt: string;
   takenAt: string | null;
 };

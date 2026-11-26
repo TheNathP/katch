@@ -21,7 +21,6 @@ export const styles = StyleSheet.create({
     borderColor: CaptureColors.controlBorder,
   },
   secondaryPressed: { backgroundColor: CaptureColors.controlPressed },
-  disabled: { opacity: 0.45 },
   secondaryIcon: { width: 20, height: 20 },
   secondaryLabel: { color: CaptureColors.foreground, fontSize: 17, fontWeight: "800" },
   primary: { flex: 1.3 },

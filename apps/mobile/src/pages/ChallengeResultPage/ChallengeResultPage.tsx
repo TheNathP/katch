@@ -48,16 +48,9 @@ export default function ChallengeResultPage() {
       <View style={styles.actions}>
         <Pressable
           accessibilityRole="button"
-          accessibilityHint={
-            attempt.attemptsLeft > 0 ? `Il te reste ${attempt.attemptsLeft} essais aujourd’hui` : undefined
-          }
-          disabled={attempt.attemptsLeft === 0}
+          accessibilityHint="Ta nouvelle photo remplacera celle-ci"
           onPress={retry}
-          style={({ pressed }) => [
-            styles.secondary,
-            pressed && styles.secondaryPressed,
-            attempt.attemptsLeft === 0 && styles.disabled,
-          ]}
+          style={({ pressed }) => [styles.secondary, pressed && styles.secondaryPressed]}
         >
           <Image
             source={require("@/assets/icons/refresh.svg")}
