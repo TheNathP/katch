@@ -3,6 +3,7 @@ import { Tabs } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, useWindowDimensions, View } from 'react-native';
 
+import CoinWallet from '@/components/ui/CoinWallet';
 import FilterChips from '@/components/ui/FilterChips';
 import Icon from '@/components/ui/Icon';
 import IconLink from '@/components/ui/IconLink';
@@ -12,9 +13,9 @@ import ThemedText from '@/components/ui/ThemedText';
 import { useProgression } from '@/hooks/use-progression';
 import { useTheme } from '@/hooks/use-theme';
 import { formatNumber } from '@/lib/format-number';
-import { shopItems, type ShopItem, type ShopItemCategory } from '@/lib/progression';
+import type { ShopItem, ShopItemCategory } from '@/lib/progression';
 import { styles as common } from '@/styles/progression';
-import { OnboardingColors } from '@/styles/theme';
+import { rewardArt } from '@/styles/reward-art';
 
 import RewardsPagePurchaseDialog from './_page/RewardsPagePurchaseDialog';
 import { styles } from './RewardsPage.styles';
@@ -30,17 +31,6 @@ const categories = [
   { value: 'frames', label: 'Cadres' },
 ] as const;
 
-const art = {
-  original: { source: require('@/assets/icon-illus/shop/pix-original.svg'), tint: OnboardingColors.lavender },
-  aqua: { source: require('@/assets/icon-illus/shop/pix-aqua.svg'), tint: OnboardingColors.avatarAmethyst },
-  spark: { source: require('@/assets/icon-illus/shop/pix-spark.svg'), tint: OnboardingColors.lilac },
-  rose: { source: require('@/assets/images/pix/happy-rose.png'), tint: OnboardingColors.avatarCoral },
-  amber: { source: require('@/assets/images/pix/excited-amber.png'), tint: OnboardingColors.avatarAmber },
-  amethyst: { source: require('@/assets/images/pix/star-eyes-amethyst.png'), tint: OnboardingColors.avatarAmethyst },
-  purpleWave: { source: require('@/assets/icon-illus/shop/purple-wave.svg'), tint: OnboardingColors.lavender },
-  limeFrame: { source: require('@/assets/icon-illus/shop/lime-frame.svg'), tint: OnboardingColors.avatarAmber },
-};
-
 const purchaseTitles = {
   mascots: 'Style débloqué !',
   backgrounds: 'Fond débloqué !',
@@ -51,7 +41,7 @@ export default function RewardsPage() {
   const theme = useTheme();
   const { width, fontScale } = useWindowDimensions();
   const compactGrid = width >= 350 && fontScale <= 1.2;
-  const { summary, error, busy, load, purchase } = useProgression();
+  const { summary, error, busy, load, change, actionError, clearActionError } = useProgression();
   const [filter, setFilter] = useState<Filter>('all');
   const [dialog, setDialog] = useState<{ item: ShopItem; complete: boolean }>();
   const coins = summary?.coins;
@@ -63,18 +53,24 @@ export default function RewardsPage() {
     headerShadowVisible: false,
     headerLeft: () => null,
     headerRight: coins === undefined ? undefined : () => (
-      <View accessible accessibilityLabel={`${coins} KatchCoins`} style={styles.wallet}>
-        <View style={styles.walletIcon}>
-          <Icon name="coin" size={40} />
-        </View>
-        <ThemedText type="smallBold" aria-hidden style={styles.walletValue}>{formatNumber(coins)}</ThemedText>
-      </View>
+      <View style={styles.wallet}><CoinWallet balance={coins} /></View>
     ),
   }), [coins, theme.dailyCanvas, theme.dailyInk]);
-  const visibleItems = filter === 'all' ? shopItems : shopItems.filter(item => item.category === filter);
+  const visibleItems = summary?.items.filter(item => filter === 'all' || item.category === filter) ?? [];
+  const dialogOwned = !!dialog && !!summary?.owned.includes(dialog.item.id);
+  const dialogEquipped = !!dialog && summary?.equipped[dialog.item.category] === dialog.item.id;
+
+  function openItem(item: ShopItem) {
+    clearActionError();
+    setDialog({ item, complete: false });
+  }
 
   async function buy(item: ShopItem) {
-    if (await purchase(item)) setDialog({ item, complete: true });
+    if (await change({ action: 'purchase', itemId: item.id })) setDialog({ item, complete: true });
+  }
+
+  async function changeEquipment(item: ShopItem) {
+    if (await change({ action: dialogEquipped ? 'unequip' : 'equip', itemId: item.id })) setDialog(undefined);
   }
 
   return (
@@ -94,17 +90,18 @@ export default function RewardsPage() {
               {visibleItems.map(item => {
                 const owned = summary.owned.includes(item.id);
                 const missing = Math.max(0, item.price - summary.coins);
-                const disabled = owned || missing > 0 || busy;
-                const { source, tint } = art[item.art];
+                const equipped = summary.equipped[item.category] === item.id;
+                const disabled = (!owned && missing > 0) || busy;
+                const { source, tint } = rewardArt[item.art];
 
                 return (
                   <Pressable
                     key={item.id}
                     accessibilityRole="button"
-                    accessibilityLabel={owned ? `${item.name}, obtenu` : `Acheter ${item.name} pour ${item.price} KatchCoins`}
+                    accessibilityLabel={owned ? `${item.name}, ${equipped ? 'équipé' : 'obtenu'}` : `Acheter ${item.name} pour ${item.price} KatchCoins`}
                     accessibilityHint={!owned && missing > 0 ? `Il manque ${formatNumber(missing)} pièces` : undefined}
                     disabled={disabled}
-                    onPress={() => setDialog({ item, complete: false })}
+                    onPress={() => openItem(item)}
                     style={({ pressed }) => [
                       styles.item,
                       compactGrid ? styles.itemThird : styles.itemHalf,
@@ -117,7 +114,7 @@ export default function RewardsPage() {
                     <View aria-hidden style={styles.itemFooter}>
                       <Icon name={owned ? 'check' : 'coin'} size={owned ? 18 : 25} />
                       <ThemedText type="smallBold" style={[styles.price, { color: theme.dailyInk }]}>
-                        {owned ? 'Obtenu' : formatNumber(item.price)}
+                        {owned ? (equipped ? 'Équipé' : 'Obtenu') : formatNumber(item.price)}
                       </ThemedText>
                       {!owned && missing > 0 && <Icon name="lock" size={11} color={theme.dailyMuted} />}
                     </View>
@@ -128,6 +125,9 @@ export default function RewardsPage() {
           </View>
 
           <View style={common.section}>
+            <ThemedText type="small" themeColor="textSecondary">
+              Récupère les pièces de tes succès dans Mes badges. Ton meilleur score du jour rapporte 5 pièces de 86 à 99 %, ou 10 à 100 %.
+            </ThemedText>
             <IconLink href="/recompenses/badges" icon="trophy" label="Mes badges" />
             <IconLink href="/progression" icon="xp" label="Ma progression" />
           </View>
@@ -138,11 +138,13 @@ export default function RewardsPage() {
           name={dialog.item.name}
           title={purchaseTitles[dialog.item.category]}
           price={dialog.item.price}
-          art={art[dialog.item.art].source}
-          artBackground={art[dialog.item.art].tint}
+          art={rewardArt[dialog.item.art].source}
+          artBackground={rewardArt[dialog.item.art].tint}
           busy={busy}
-          error={error}
-          onConfirm={dialog.complete ? undefined : () => buy(dialog.item)}
+          error={actionError}
+          mode={dialog.complete ? 'complete' : dialogOwned ? 'owned' : 'purchase'}
+          equipped={dialogEquipped}
+          onConfirm={() => dialogOwned ? changeEquipment(dialog.item) : buy(dialog.item)}
           onClose={() => setDialog(undefined)}
         />
       )}
