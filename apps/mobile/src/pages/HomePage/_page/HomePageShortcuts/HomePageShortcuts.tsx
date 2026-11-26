@@ -8,7 +8,7 @@ import { styles } from './HomePageShortcuts.styles';
 
 const chevron = require('@/assets/icons/chevron-right.svg');
 const shortcuts = [
-  { href: '/recompenses', label: 'Ma série', icon: require('@/assets/icon-illus/flame.png') },
+  { href: '/progression/serie', label: 'Ma série', icon: require('@/assets/icon-illus/flame.png') },
   { href: '/classement', label: 'Classement du jour', icon: require('@/assets/icon-illus/trophy.png') },
 ] as const;
 
