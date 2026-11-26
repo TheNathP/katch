@@ -33,6 +33,14 @@
         }
       ],
       [
+        "expo-image-picker",
+        {
+          "photosPermission": "Autoriser Katch à accéder à tes photos pour importer une couleur depuis ta galerie.",
+          "cameraPermission": "Autoriser Katch à utiliser la caméra pour photographier les couleurs.",
+          "microphonePermission": false
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "backgroundColor": "#208AEF",

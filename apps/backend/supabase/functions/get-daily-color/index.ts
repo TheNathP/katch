@@ -1,6 +1,6 @@
-import { resolveUserId } from '../_shared/auth.ts';
-import { createAdminClient } from '../_shared/db.ts';
-import type { DailyColorResponse } from '../_shared/types.ts';
+import { resolveUserId } from "../_shared/auth.ts";
+import { createAdminClient } from "../_shared/db.ts";
+import type { DailyColorResponse } from "../_shared/types.ts";
 
 type DailyChallengeRow = {
   challenge_date: string;
@@ -9,29 +9,52 @@ type DailyChallengeRow = {
   server_time: string;
 };
 
-const headers = { 'Cache-Control': 'no-store' };
+type SubmissionRow = {
+  score: number;
+  matched_hex: string;
+};
+
+const headers = { "Cache-Control": "no-store" };
 
 Deno.serve(async (request) => {
-  if (request.method !== 'GET') {
-    return Response.json({ error: 'method_not_allowed' }, {
-      status: 405,
-      headers: { ...headers, Allow: 'GET' },
-    });
+  if (request.method !== "GET") {
+    return Response.json(
+      { error: "method_not_allowed" },
+      {
+        status: 405,
+        headers: { ...headers, Allow: "GET" },
+      },
+    );
   }
 
   try {
     const admin = createAdminClient();
-    if (!await resolveUserId(request, admin)) {
-      return Response.json({ error: 'unauthorized' }, { status: 401, headers });
+    const userId = await resolveUserId(request, admin);
+    if (!userId) {
+      return Response.json({ error: "unauthorized" }, { status: 401, headers });
     }
     if (new URL(request.url).search) {
-      return Response.json({ error: 'unexpected_query' }, { status: 400, headers });
+      return Response.json(
+        { error: "unexpected_query" },
+        { status: 400, headers },
+      );
     }
 
-    const { data, error } = await admin.rpc('get_or_create_daily_challenge')
+    const { data, error } = await admin
+      .rpc("get_or_create_daily_challenge")
       .single()
       .overrideTypes<DailyChallengeRow, { merge: false }>();
-    if (error || !data) throw new Error('Could not load daily challenge');
+    if (error || !data) throw new Error("Could not load daily challenge");
+
+    // At most one row: each submission replaces the previous one of the day.
+    const { data: submission, error: submissionError } = await admin
+      .from("challenge_attempts")
+      .select("score, matched_hex")
+      .eq("player_id", userId)
+      .eq("challenge_date", data.challenge_date)
+      .maybeSingle()
+      .overrideTypes<SubmissionRow, { merge: false }>();
+    if (submissionError) throw new Error("Could not load daily submission");
 
     return Response.json(
       {
@@ -39,11 +62,17 @@ Deno.serve(async (request) => {
         colorHex: data.color_hex,
         endsAt: data.ends_at,
         serverTime: data.server_time,
+        submission: submission
+          ? { score: submission.score, matchedHex: submission.matched_hex }
+          : null,
       } satisfies DailyColorResponse,
       { headers },
     );
   } catch {
-    console.error('Daily color request failed');
-    return Response.json({ error: 'daily_color_unavailable' }, { status: 500, headers });
+    console.error("Daily color request failed");
+    return Response.json(
+      { error: "daily_color_unavailable" },
+      { status: 500, headers },
+    );
   }
 });

@@ -4,8 +4,8 @@ import { AppState, ScrollView, type View } from 'react-native';
 import { useSharedValue } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import type { DailyColor } from '@/data/adapters/daily-color.adapters';
-import { getCachedDailyColor } from '@/data/daily-color-cache';
+import type { DailyChallenge } from '@/data/adapters/daily-color.adapters';
+import { getCachedDailyChallenge } from '@/data/daily-color-cache';
 import { isDailyColorRevealed, rememberDailyColorReveal } from '@/data/daily-color-reveal';
 import { getHomePage } from '@/data/get-home-page';
 import { useTheme } from '@/hooks/use-theme';
@@ -20,7 +20,7 @@ export default function HomePage() {
   const theme = useTheme();
   const [challenge, setChallenge] = useState<ChallengeState>({ status: 'loading' });
   const reload = useRef<(() => Promise<void>) | null>(null);
-  const knownColor = useRef<DailyColor | null>(null);
+  const knownChallenge = useRef<DailyChallenge | null>(null);
   const revealWrite = useRef<Promise<void> | null>(null);
   const swatchRef = useRef<ComponentRef<typeof View>>(null);
   const revealProgress = useSharedValue(0);
@@ -33,10 +33,11 @@ export default function HomePage() {
     let pending = false;
     let refreshTimer: ReturnType<typeof setTimeout> | undefined;
 
-    async function displayColor(color: DailyColor) {
+    async function displayChallenge(daily: DailyChallenge) {
       if (controller.signal.aborted) return;
       clearTimeout(refreshTimer);
-      knownColor.current = color;
+      knownChallenge.current = daily;
+      const { color, submission } = daily;
 
       if (color.refreshAt <= performance.now()) {
         setChallenge({ status: 'cached', color });
@@ -44,7 +45,7 @@ export default function HomePage() {
       }
 
       await revealWrite.current?.catch(() => {});
-      const revealed = await isDailyColorRevealed(color.date).catch(() => false);
+      const revealed = submission !== null || await isDailyColorRevealed(color.date).catch(() => false);
       if (controller.signal.aborted) return;
       const remainingMs = color.refreshAt - performance.now();
       if (remainingMs <= 0) {
@@ -53,8 +54,8 @@ export default function HomePage() {
       }
 
       setChallenge((current) => current.status === 'ready' && current.color.date === color.date
-        ? { ...current, color }
-        : { status: 'ready', color, reveal: revealed ? 'revealed' : 'hidden' });
+        ? { ...current, color, submission, reveal: submission && current.reveal === 'hidden' ? 'revealed' : current.reveal }
+        : { status: 'ready', color, submission, reveal: revealed ? 'revealed' : 'hidden' });
       refreshTimer = setTimeout(() => {
         setChallenge({ status: 'cached', color });
         void loadChallenge();
@@ -67,16 +68,15 @@ export default function HomePage() {
       setChallenge((current) => current.status === 'error' ? { status: 'loading' } : current);
 
       try {
-        const stored = await getCachedDailyColor();
-        const known = knownColor.current;
-        const cached = stored && (!known || stored.date >= known.date) ? stored : known;
-        if (cached) await displayColor(cached);
+        const stored = await getCachedDailyChallenge();
+        const known = knownChallenge.current;
+        const cached = stored && (!known || stored.color.date >= known.color.date) ? stored : known;
+        if (cached) await displayChallenge(cached);
         if (controller.signal.aborted) return;
 
-        const color = await getHomePage(controller.signal);
-        await displayColor(color);
+        await displayChallenge(await getHomePage(controller.signal));
       } catch {
-        if (!controller.signal.aborted && !knownColor.current) setChallenge({ status: 'error' });
+        if (!controller.signal.aborted && !knownChallenge.current) setChallenge({ status: 'error' });
       } finally {
         pending = false;
       }

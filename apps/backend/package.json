@@ -7,6 +7,7 @@
     "db:push": "supabase db push --remote",
     "functions:deploy": "supabase functions deploy",
     "test:daily-color": "pnpm dlx deno@2.9.6 test --no-config --no-lock --node-modules-dir=none --allow-env --allow-read supabase/tests/daily-color_test.ts",
+    "test:photo-analysis": "pnpm dlx deno@2.9.6 test --no-config --no-lock --node-modules-dir=none --allow-env --allow-read --allow-net=deno.land supabase/tests/photo-analysis_test.ts",
     "test:push": "pnpm dlx deno@2.9.6 test --no-config --no-lock --node-modules-dir=none --allow-env --allow-read supabase/tests/"
   },
   "devDependencies": {

@@ -12,6 +12,7 @@ export class EdgeFunctionError extends Error {
 
 type EdgeFunctionRequest = {
   method: "GET" | "POST" | "PATCH";
+  /** Sent as JSON, except a `FormData` which is sent as `multipart/form-data`. */
   body?: unknown;
   signal?: AbortSignal;
 };
@@ -36,9 +37,10 @@ export async function callEdgeFunction(
     headers: {
       apikey: key,
       Authorization: `Bearer ${data.session.access_token}`,
-      ...(body === undefined ? {} : { "Content-Type": "application/json" }),
+      // FormData sets its own multipart Content-Type with the boundary.
+      ...(body === undefined || body instanceof FormData ? {} : { "Content-Type": "application/json" }),
     },
-    body: body === undefined ? undefined : JSON.stringify(body),
+    body: body === undefined || body instanceof FormData ? body : JSON.stringify(body),
     signal,
   });
 

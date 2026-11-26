@@ -7,6 +7,7 @@ import { hasCompletedOnboarding } from '@/data/onboarding-progress';
 import { SessionProvider, useSession } from '@/data/session-provider';
 import { ThemePreferenceProvider, useThemePreference } from '@/data/theme-preference-provider';
 import { usePushNotifications } from '@/hooks/use-push-notifications';
+import { CaptureColors } from '@/styles/theme';
 
 // Keep the splash screen until the stored session and the onboarding flag have
 // been read, so a signed-in player never sees the sign-in screen flash.
@@ -76,8 +77,13 @@ function RootNavigator() {
         <Stack.Screen name="(tabs)" options={{ title: 'Katch', headerShown: false }} />
         <Stack.Screen name="defi/import" options={{ title: 'Importer une photo' }} />
         <Stack.Screen name="defi/zone" options={{ title: 'Sélectionner la zone' }} />
-        <Stack.Screen name="defi/confirmation" options={{ title: 'Confirmer la photo' }} />
-        <Stack.Screen name="defi/resultat" options={{ title: 'Résultat' }} />
+        <Stack.Screen name="defi/confirmation" options={{
+          title: 'Confirmer la photo',
+          headerStyle: { backgroundColor: CaptureColors.backdrop },
+          headerTintColor: CaptureColors.foreground,
+          headerShadowVisible: false,
+        }} />
+        <Stack.Screen name="defi/resultat" options={{ title: 'Résultat', headerShown: false, gestureEnabled: false }} />
         <Stack.Screen name="defi/photos" options={{ title: 'Photos du jour' }} />
         <Stack.Screen name="amis/index" options={{ title: 'Mes amis' }} />
         <Stack.Screen name="amis/recherche" options={{ title: 'Rechercher des amis' }} />
