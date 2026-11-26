@@ -29,6 +29,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { DailyColor } from "@/data/adapters/daily-color.adapters";
+import { rememberChallengePhotoDraft } from "@/data/challenge-photo-draft";
 import { rememberDailyColorReveal } from "@/data/daily-color-reveal";
 import { getCapturePage } from "@/data/get-capture-page";
 import { photoDateFromExif } from "@/lib/photo-date";
@@ -47,7 +48,7 @@ export default function CapturePage() {
   const isFocused = useIsFocused();
   const [permission, requestPermission, getPermission] = useCameraPermissions();
   const camera = useRef<CameraView>(null);
-  const captureInProgress = useRef(false);
+  const photoInProgress = useRef(false);
   const autoRequested = useRef(false);
   const [appActive, setAppActive] = useState(
     AppState.currentState === "active",
@@ -153,9 +154,10 @@ export default function CapturePage() {
 
   const openPhoto = (uri: string, takenAt: string | null) => {
     setError(undefined);
+    const photoId = rememberChallengePhotoDraft(uri, takenAt);
     router.push({
       pathname: "/defi/confirmation",
-      params: takenAt ? { uri, takenAt } : { uri },
+      params: { photoId },
     });
   };
 
@@ -172,8 +174,8 @@ export default function CapturePage() {
 
   const capture = async () => {
     const activeCamera = camera.current;
-    if (!ready || !activeCamera || captureInProgress.current) return;
-    captureInProgress.current = true;
+    if (!ready || !activeCamera || photoInProgress.current) return;
+    photoInProgress.current = true;
     if (Platform.OS === "android") {
       void performAndroidHapticsAsync(AndroidHaptics.Virtual_Key).catch(
         () => {},
@@ -193,14 +195,15 @@ export default function CapturePage() {
       if (camera.current === activeCamera)
         setError("La photo n’a pas été prise. Réessaie.");
     } finally {
-      captureInProgress.current = false;
+      photoInProgress.current = false;
       setBusy(false);
     }
   };
 
   // Its permission is only requested when the player opens it.
   const pickFromLibrary = async () => {
-    if (busy) return;
+    if (photoInProgress.current) return;
+    photoInProgress.current = true;
     setBusy(true);
     setError(undefined);
     try {
@@ -233,6 +236,7 @@ export default function CapturePage() {
     } catch {
       setError("Impossible d’ouvrir ta galerie. Réessaie.");
     } finally {
+      photoInProgress.current = false;
       setBusy(false);
     }
   };

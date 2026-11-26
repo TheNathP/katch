@@ -2,6 +2,13 @@
   "name": "@katch/mobile",
   "version": "1.0.0",
   "main": "expo-router/entry",
+  "expo": {
+    "autolinking": {
+      "android": {
+        "buildFromSource": ["expo-camera"]
+      }
+    }
+  },
   "dependencies": {
     "@expo/ui": "~58.0.29",
     "@react-native-async-storage/async-storage": "2.2.0",

@@ -10,7 +10,7 @@ export type { ChallengeAttempt };
 const UPLOAD_MAX_SIDE = 1280;
 const UPLOAD_QUALITY = 0.8;
 
-export type SubmitPhotoErrorCode = 'challenge_ended' | 'invalid_photo' | 'unknown';
+export type SubmitPhotoErrorCode = 'challenge_ended' | 'invalid_photo' | 'photo_unreadable' | 'unknown';
 
 export class SubmitPhotoError extends Error {
   constructor(readonly code: SubmitPhotoErrorCode) {
@@ -44,8 +44,12 @@ async function preparePhoto(uri: string): Promise<string> {
  * Each submission replaces the previous one of the day: only the latest photo counts.
  */
 export async function submitChallengePhoto(photoUri: string, takenAt: string | null): Promise<ChallengeAttempt> {
+  const uploadUri = await preparePhoto(photoUri).catch((error: unknown) => {
+    if (__DEV__) console.warn('Could not prepare challenge photo', error);
+    throw new SubmitPhotoError('photo_unreadable');
+  });
+
   try {
-    const uploadUri = await preparePhoto(photoUri);
     const form = new FormData();
     // The global fetch is expo/fetch: it uploads Blob-like files, not React Native's { uri } descriptors.
     form.append('photo', new File(uploadUri));

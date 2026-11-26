@@ -1,0 +1,43 @@
+diff --git a/android/src/main/java/expo/modules/camera/ExpoCameraView.kt b/android/src/main/java/expo/modules/camera/ExpoCameraView.kt
+index a676d64e853b96fc838ea27165cf265929df91a1..b1705d6dad2b0757fcc3f9481c8366f2038717de 100644
+--- a/android/src/main/java/expo/modules/camera/ExpoCameraView.kt
++++ b/android/src/main/java/expo/modules/camera/ExpoCameraView.kt
+@@ -48,6 +48,7 @@ import androidx.camera.video.VideoRecordEvent
+ import androidx.camera.view.PreviewView
+ import androidx.core.app.ActivityCompat
+ import androidx.core.content.ContextCompat
++import androidx.lifecycle.Observer
+ import expo.modules.camera.analyzers.BarcodeAnalyzer
+ import expo.modules.camera.analyzers.toByteArray
+ import expo.modules.camera.common.BarcodeScannedEvent
+@@ -136,6 +137,13 @@ class ExpoCameraView(
+ 
+   private var previewView = PreviewView(context).apply {
+     elevation = 0f
++    implementationMode = PreviewView.ImplementationMode.COMPATIBLE
++  }
++  private val previewStreamObserver = Observer<PreviewView.StreamState> { state ->
++    if (state == PreviewView.StreamState.STREAMING) {
++      // CameraX can start a remounted preview before its transform has been applied.
++      previewView.scaleType = previewView.scaleType
++    }
+   }
+   private val scope = CoroutineScope(
+     Dispatchers.Main + SupervisorJob() + CoroutineExceptionHandler { _, throwable ->
+@@ -863,6 +871,16 @@ class ExpoCameraView(
+ 
+   override fun getPreviewSizeAsArray() = intArrayOf(previewView.width, previewView.height)
+ 
++  override fun onAttachedToWindow() {
++    super.onAttachedToWindow()
++    previewView.previewStreamState.observeForever(previewStreamObserver)
++  }
++
++  override fun onDetachedFromWindow() {
++    previewView.previewStreamState.removeObserver(previewStreamObserver)
++    super.onDetachedFromWindow()
++  }
++
+   init {
+     orientationEventListener.enable()
+     previewView.setOnHierarchyChangeListener(object : OnHierarchyChangeListener {
