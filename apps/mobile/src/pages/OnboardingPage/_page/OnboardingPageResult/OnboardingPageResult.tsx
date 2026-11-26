@@ -14,6 +14,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 
+import ProgressBar from '@/components/ui/ProgressBar';
+
 import OnboardingPageArt from '../OnboardingPageArt';
 
 import { styles } from './OnboardingPageResult.styles';
@@ -64,7 +66,6 @@ export default function OnboardingPageResult({ artHeight, photoUri, score, valid
     },
   );
 
-  const meter = useAnimatedStyle(() => ({ width: `${progress.get()}%` }));
   const scoreMotion = useAnimatedStyle(() => ({ transform: [{ scale: emphasis.get() }] }));
 
   return (
@@ -91,9 +92,14 @@ export default function OnboardingPageResult({ artHeight, photoUri, score, valid
             style={styles.thumbnail}
           />
         </View>
-        <View aria-hidden style={styles.track}>
-          <Animated.View style={[styles.fill, !validated && styles.rejectedFill, meter]} />
-        </View>
+        <ProgressBar
+          value={score}
+          max={100}
+          animatedValue={progress}
+          size="large"
+          tone={validated ? 'primary' : 'rejected'}
+          surface="light"
+        />
       </View>
     </View>
   );

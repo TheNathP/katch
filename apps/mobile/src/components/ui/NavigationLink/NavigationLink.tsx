@@ -1,6 +1,6 @@
 import { Link, type LinkProps } from 'expo-router';
 import { useState, type ReactNode } from 'react';
-import { Pressable, StyleSheet } from 'react-native';
+import { Pressable, StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
 
 import Button from '@/components/ui/Button';
 import ThemedText from '@/components/ui/ThemedText';
@@ -15,9 +15,11 @@ type NavigationLinkProps = Pick<LinkProps, 'dismissTo' | 'href' | 'replace'> & {
   variant?: 'primarySolid' | 'plain';
   /** Custom content of the `plain` variant, shown instead of the label. */
   children?: ReactNode;
+  /** Overrides the layout of a custom plain link. */
+  style?: StyleProp<ViewStyle>;
 };
 
-export default function NavigationLink({ dismissTo, href, label, replace, variant, children }: NavigationLinkProps) {
+export default function NavigationLink({ dismissTo, href, label, replace, variant, children, style }: NavigationLinkProps) {
   const theme = useTheme();
   const [plainPressed, setPlainPressed] = useState(false);
 
@@ -31,7 +33,7 @@ export default function NavigationLink({ dismissTo, href, label, replace, varian
           accessibilityLabel={children ? label : undefined}
           onPressIn={() => setPlainPressed(true)}
           onPressOut={() => setPlainPressed(false)}
-          style={StyleSheet.flatten([styles.plain, plainPressed && styles.plainPressed])}>
+          style={StyleSheet.flatten([styles.plain, style, plainPressed && styles.plainPressed])}>
           {children ?? <ThemedText>{label}</ThemedText>}
         </Pressable>
       </Link>

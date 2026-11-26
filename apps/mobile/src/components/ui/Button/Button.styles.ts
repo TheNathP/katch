@@ -34,6 +34,9 @@ export const styles = StyleSheet.create({
     backgroundImage: limeSolid.gradient,
     boxShadow: limeSolid.shadow,
   },
+  compact: { minHeight: 44, borderRadius: 12, gap: 5, paddingHorizontal: Spacing.two, paddingVertical: 4 },
+  compactDisabled: { borderWidth: 1 },
+  compactLabel: { fontSize: 14 },
   pressed: {
     transform: [{ translateY: 1 }],
   },
