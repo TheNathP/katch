@@ -85,9 +85,8 @@ export type SubmitPhotoResponse = {
   attemptId: string;
   challengeDate: string;
   targetHex: string;
-  /** Color of the photo area closest to the target. */
   matchedHex: string;
-  /** Score of this photo, which is now the player's score of the day. */
+  matchedArea: { x: number; y: number; width: number; height: number };
   score: number;
   submittedAt: string;
   takenAt: string | null;
@@ -96,7 +95,7 @@ export type SubmitPhotoResponse = {
 /** POST delete-my-account — permanently deletes the caller’s own account. */
 export type DeleteMyAccountRequest = { confirmation: "SUPPRIMER" };
 
-export type LeaderboardScope = 'friends' | 'world';
+export type LeaderboardScope = "friends" | "world";
 
 type LeaderboardPlayer = {
   playerId: string;

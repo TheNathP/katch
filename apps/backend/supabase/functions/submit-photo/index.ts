@@ -191,6 +191,7 @@ Deno.serve(async (request) => {
         challengeDate: challenge.challenge_date,
         targetHex: challenge.color_hex,
         matchedHex: analysis.matchedHex,
+        matchedArea: analysis.matchedArea,
         score: analysis.score,
         submittedAt: new Date(recorded.submitted_at).toISOString(),
         takenAt,
