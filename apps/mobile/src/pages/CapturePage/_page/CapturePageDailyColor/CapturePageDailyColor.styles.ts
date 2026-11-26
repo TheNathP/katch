@@ -1,6 +1,6 @@
 import { StyleSheet } from "react-native";
 
-import { CaptureColors, Fonts, Spacing } from "@/styles/theme";
+import { Fonts, Spacing } from "@/styles/theme";
 
 export const PILL_HEIGHT = 48;
 export const PILL_MAX_WIDTH = 176;
@@ -28,10 +28,8 @@ export const styles = StyleSheet.create({
     height: 22,
     borderRadius: 11,
     borderWidth: 2,
-    borderColor: CaptureColors.foreground,
   },
   pillLabel: {
-    color: CaptureColors.foreground,
     fontSize: 15,
     fontWeight: "800",
     flexShrink: 1,

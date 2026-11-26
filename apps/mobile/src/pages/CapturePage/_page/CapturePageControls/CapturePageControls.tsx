@@ -1,8 +1,8 @@
 import { Image } from "expo-image";
 import { SymbolView } from "expo-symbols";
-import { ActivityIndicator, Pressable, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 
-import { CaptureColors } from "@/styles/theme";
+import { useTheme } from "@/hooks/use-theme";
 
 import { styles } from "./CapturePageControls.styles";
 
@@ -25,10 +25,11 @@ export default function CapturePageControls({
   onOpenLibrary,
   onFlip,
 }: Props) {
+  const theme = useTheme();
   return (
     <View style={[styles.panel, { paddingBottom: bottom + 28 }]}>
       {error && (
-        <Text accessibilityLiveRegion="polite" style={styles.error}>
+        <Text accessibilityLiveRegion="polite" style={[styles.error, { color: theme.danger }]}>
           {error}
         </Text>
       )}
@@ -47,7 +48,7 @@ export default function CapturePageControls({
         >
           <SymbolView
             name={{ ios: "photo", android: "image", web: "image" }}
-            tintColor={CaptureColors.foreground}
+            tintColor={theme.dailyInk}
             size={30}
           />
         </Pressable>
@@ -60,12 +61,11 @@ export default function CapturePageControls({
           onPress={onCapture}
           style={({ pressed }) => [
             styles.shutter,
+            { borderColor: theme.dailyInk },
             (!canCapture || pressed) && styles.shutterDimmed,
           ]}
         >
-          <View style={styles.shutterCenter}>
-            {busy && <ActivityIndicator color={CaptureColors.accentInk} />}
-          </View>
+          <View style={styles.shutterCenter} />
         </Pressable>
 
         <Pressable
@@ -83,7 +83,7 @@ export default function CapturePageControls({
           <Image
             source={require("@/assets/icons/refresh.svg")}
             contentFit="contain"
-            tintColor={CaptureColors.foreground}
+            tintColor={theme.dailyInk}
             style={styles.flipIcon}
           />
         </Pressable>

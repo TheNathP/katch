@@ -88,8 +88,19 @@ export function downscale(
 }
 
 /** Linear score: 100 for an exact match, 0 from `ZERO_SCORE_DELTA_E` onwards. */
+function rawScoreFromDeltaE(deltaE: number): number {
+  return 100 * Math.max(0, 1 - deltaE / ZERO_SCORE_DELTA_E);
+}
+
 export function scoreFromDeltaE(deltaE: number): number {
-  return Math.round(100 * Math.max(0, 1 - deltaE / ZERO_SCORE_DELTA_E));
+  return Math.round(rawScoreFromDeltaE(deltaE));
+}
+
+/** Keep the first decimal for display, with a tolerance for binary floating point. */
+export function scorePercentFromDeltaE(deltaE: number): number {
+  // Stored attempts already use hundredths of Delta E; match their display on the result page.
+  const recordedDeltaE = Math.round(deltaE * 100) / 100;
+  return Math.trunc(rawScoreFromDeltaE(recordedDeltaE) * 10 + 1e-9) / 10;
 }
 
 /** Goes through every block of the downscaled photo and keeps the closest one to the target. */

@@ -6,7 +6,7 @@ import Svg, { Path } from 'react-native-svg';
 
 import { ComicFeedbackColors } from '@/styles/theme';
 
-import { styles } from './OnboardingPageFeedback.styles';
+import { styles } from './CaptureFeedback.styles';
 
 // The package's legacy class declaration is incompatible with the app's React JSX types.
 const NativeMask = MaskedView as unknown as ComponentType<ViewProps & { maskElement: ReactElement }>;
@@ -28,7 +28,7 @@ function waveEdge(height: number, diagonal: number, offset: number) {
     S${point(53, 0.85)} ${point(37, 1)}`;
 }
 
-export default function OnboardingPageFeedbackWave({ children, progress, validated }: Props) {
+export default function CaptureFeedbackWave({ children, progress, validated }: Props) {
   const { width, height } = useWindowDimensions();
   const palette = validated ? ComicFeedbackColors.validated : ComicFeedbackColors.rejected;
   const diagonal = Math.min(width * 0.82, height * 0.5);

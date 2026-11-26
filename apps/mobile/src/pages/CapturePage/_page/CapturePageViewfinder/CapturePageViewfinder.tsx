@@ -1,8 +1,9 @@
 import { Image } from "expo-image";
-import type { PropsWithChildren, ReactNode } from "react";
-import { View } from "react-native";
+import { type PropsWithChildren, type ReactNode, useEffect, useState } from "react";
+import { Text, View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 
+import { useTheme } from "@/hooks/use-theme";
 import { CaptureColors } from "@/styles/theme";
 
 import { styles } from "./CapturePageViewfinder.styles";
@@ -15,11 +16,23 @@ const RING_GAP = 22;
 
 type Props = PropsWithChildren<{
   overlay?: ReactNode;
+  preparing?: boolean;
 }>;
 
-export default function CapturePageViewfinder({ children, overlay }: Props) {
+export default function CapturePageViewfinder({ children, overlay, preparing }: Props) {
+  const theme = useTheme();
+  const [showStatus, setShowStatus] = useState(false);
+
+  useEffect(() => {
+    if (!preparing) return;
+    const timeout = setTimeout(() => setShowStatus(true), 220);
+    return () => {
+      clearTimeout(timeout);
+      setShowStatus(false);
+    };
+  }, [preparing]);
   return (
-    <View style={styles.viewfinder}>
+    <View style={[styles.viewfinder, { backgroundColor: theme.dailySurface }]}>
       {children}
       <View aria-hidden pointerEvents="none" style={styles.overlay}>
         <View style={styles.frame}>
@@ -47,6 +60,12 @@ export default function CapturePageViewfinder({ children, overlay }: Props) {
         contentFit="contain"
         style={styles.mascot}
       />
+      {preparing && showStatus && (
+        <View pointerEvents="none" style={styles.speech}>
+          <View aria-hidden style={[styles.speechTail, { backgroundColor: theme.dailyCard }]} />
+          <Text accessibilityLiveRegion="polite" style={[styles.speechText, { backgroundColor: theme.dailyCard, color: theme.dailyInk }]}>Je prépare ta photo…</Text>
+        </View>
+      )}
       {overlay}
     </View>
   );

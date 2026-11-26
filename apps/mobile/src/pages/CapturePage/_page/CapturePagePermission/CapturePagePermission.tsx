@@ -3,7 +3,7 @@ import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import type { EdgeInsets } from "react-native-safe-area-context";
 
 import Button from "@/components/ui/Button";
-import { CaptureColors } from "@/styles/theme";
+import { useTheme } from "@/hooks/use-theme";
 
 import { styles } from "./CapturePagePermission.styles";
 
@@ -44,10 +44,12 @@ export default function CapturePagePermission({
   onActivate,
   onOpenLibrary,
 }: Props) {
+  const theme = useTheme();
   return (
     <View
       style={[
         styles.screen,
+        { backgroundColor: theme.dailyCanvas },
         { paddingTop: insets.top + 8, paddingBottom: insets.bottom + 24 },
       ]}
     >
@@ -56,19 +58,19 @@ export default function CapturePagePermission({
         accessibilityLabel="Retour"
         hitSlop={8}
         onPress={onBack}
-        style={({ pressed }) => [styles.back, pressed && styles.pressed]}
+        style={({ pressed }) => [styles.back, { backgroundColor: pressed ? theme.dailySurface : theme.dailyCard, borderColor: theme.dailyBorder }]}
       >
         <Image
           source={require("@/assets/icons/arrow-left.svg")}
           contentFit="contain"
-          tintColor={CaptureColors.foreground}
+          tintColor={theme.dailyInk}
           style={styles.backIcon}
         />
       </Pressable>
 
       {state === "loading" ? (
         <View style={styles.content}>
-          <ActivityIndicator color={CaptureColors.foreground} />
+          <ActivityIndicator color={theme.dailyInk} />
         </View>
       ) : (
         <View style={styles.content}>
@@ -78,10 +80,10 @@ export default function CapturePagePermission({
             contentFit="contain"
             style={styles.mascot}
           />
-          <Text accessibilityRole="header" style={styles.title}>
+          <Text accessibilityRole="header" style={[styles.title, { color: theme.dailyInk }]}>
             {messages[state].title}
           </Text>
-          <Text style={styles.body}>{messages[state].body}</Text>
+          <Text style={[styles.body, { color: theme.dailyMuted }]}>{messages[state].body}</Text>
           {state !== "unavailable" && (
             <Button
               label={
@@ -101,7 +103,7 @@ export default function CapturePagePermission({
             />
           )}
           {error && (
-            <Text accessibilityLiveRegion="polite" style={styles.error}>
+            <Text accessibilityLiveRegion="polite" style={[styles.error, { color: theme.danger }]}>
               {error}
             </Text>
           )}

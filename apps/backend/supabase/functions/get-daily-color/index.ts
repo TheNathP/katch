@@ -1,4 +1,5 @@
 import { resolveUserId } from "../_shared/auth.ts";
+import { scorePercentFromDeltaE } from "../_shared/color/analysis.ts";
 import { createAdminClient } from "../_shared/db.ts";
 import type { DailyColorResponse } from "../_shared/types.ts";
 
@@ -12,6 +13,7 @@ type DailyChallengeRow = {
 type SubmissionRow = {
   score: number;
   matched_hex: string;
+  delta_e: number;
 };
 
 const headers = { "Cache-Control": "no-store" };
@@ -49,7 +51,7 @@ Deno.serve(async (request) => {
     // At most one row: each submission replaces the previous one of the day.
     const { data: submission, error: submissionError } = await admin
       .from("challenge_attempts")
-      .select("score, matched_hex")
+      .select("score, matched_hex, delta_e")
       .eq("player_id", userId)
       .eq("challenge_date", data.challenge_date)
       .maybeSingle()
@@ -63,7 +65,11 @@ Deno.serve(async (request) => {
         endsAt: data.ends_at,
         serverTime: data.server_time,
         submission: submission
-          ? { score: submission.score, matchedHex: submission.matched_hex }
+          ? {
+            score: submission.score,
+            scorePercent: scorePercentFromDeltaE(submission.delta_e),
+            matchedHex: submission.matched_hex,
+          }
           : null,
       } satisfies DailyColorResponse,
       { headers },

@@ -11,6 +11,7 @@ import Animated, {
 } from "react-native-reanimated";
 
 import { prefersDarkText } from "@/lib/color-contrast";
+import { useTheme } from "@/hooks/use-theme";
 import { CaptureColors } from "@/styles/theme";
 
 import {
@@ -24,17 +25,16 @@ const DURATION = 340;
 
 type Props = {
   hex: string;
-  top: number;
   expanded: boolean;
   onToggle: () => void;
 };
 
 export default function CapturePageDailyColor({
   hex,
-  top,
   expanded,
   onToggle,
 }: Props) {
+  const theme = useTheme();
   const reduceMotion = useReducedMotion();
   const [area, setArea] = useState<LayoutRectangle>();
   const progress = useSharedValue(expanded ? 1 : 0);
@@ -51,7 +51,6 @@ export default function CapturePageDailyColor({
   const width = area?.width ?? 0;
   const height = area?.height ?? 0;
   const pillWidth = Math.min(PILL_MAX_WIDTH, width - 2 * PILL_SIDE_SPACE);
-  const pillTop = top + 8;
   const ink = prefersDarkText(hex)
     ? CaptureColors.accentInk
     : CaptureColors.foreground;
@@ -59,7 +58,7 @@ export default function CapturePageDailyColor({
   const panelStyle = useAnimatedStyle(() => {
     const p = progress.get();
     return {
-      top: interpolate(p, [0, 1], [pillTop, 0]),
+      top: interpolate(p, [0, 1], [8, 0]),
       left: interpolate(p, [0, 1], [(width - pillWidth) / 2, 0]),
       width: interpolate(p, [0, 1], [pillWidth, width]),
       height: interpolate(p, [0, 1], [PILL_HEIGHT, height]),
@@ -67,12 +66,12 @@ export default function CapturePageDailyColor({
       backgroundColor: interpolateColor(
         p,
         [0, 0.4, 1],
-        [CaptureColors.control, hex, hex],
+        [theme.dailyCard, hex, hex],
       ),
       borderColor: interpolateColor(
         p,
         [0, 0.4, 1],
-        [CaptureColors.controlBorder, hex, hex],
+        [theme.dailyBorder, hex, hex],
       ),
     };
   });
@@ -107,8 +106,8 @@ export default function CapturePageDailyColor({
               pointerEvents="none"
               style={[styles.pill, pillStyle]}
             >
-              <View style={[styles.dot, { backgroundColor: hex }]} />
-              <Text numberOfLines={1} style={styles.pillLabel}>
+              <View style={[styles.dot, { backgroundColor: hex, borderColor: theme.dailySwatchBorder }]} />
+              <Text numberOfLines={1} style={[styles.pillLabel, { color: theme.dailyInk }]}>
                 Couleur du jour
               </Text>
             </Animated.View>
