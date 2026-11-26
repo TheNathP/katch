@@ -19,7 +19,7 @@ export default function PastChallengePage() {
   const { date: param } = useLocalSearchParams<{ date?: string }>();
   const date = isChallengeDate(param) ? param : undefined;
   const load = useCallback((signal: AbortSignal) => date ? getPastChallenge(signal, date) : Promise.resolve(null), [date]);
-  const { data, error, retry } = useArchiveQuery('date:' + date, load);
+  const { data, error, loading, retry } = useArchiveQuery('date:' + date, load, { reloadWhenActive: true });
 
   return (
     <Screen backgroundColor={theme.dailyCanvas}>
@@ -41,7 +41,15 @@ export default function PastChallengePage() {
                 )}
               </View>
             </View>
-            <ChallengePhoto uri={data.photoUrl} hex={data.targetHex} full label={'Photo du défi du ' + formatChallengeDay(data.date)} style={styles.photo} />
+            <ChallengePhoto
+              photo={data.photo}
+              hex={data.targetHex}
+              full
+              label={'Photo du défi du ' + formatChallengeDay(data.date)}
+              style={styles.photo}
+              onRetry={retry}
+              reloading={loading}
+            />
             {data.collected && (
               <NavigationLink href="/collection" label="Voir la couleur dans ma collection" variant="plain" style={styles.collection}>
                 <ThemedText type="smallBold" style={styles.collectionText}>Couleur collectionnée · Voir ma collection</ThemedText>

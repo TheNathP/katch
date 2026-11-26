@@ -1,8 +1,9 @@
 import type { ChallengeHistoryEntry, ChallengeHistoryResponse, ColorCollectionResponse, PhotoGalleryResponse } from '@/data/api.types';
 import type { ColorCollection } from '@/data/color-collection';
 import { isChallengeDate, isChallengeMonth } from '@/lib/challenge-calendar';
+import { readChallengePhotoSource, type ChallengePhotoSource } from '@/lib/challenge-photo';
 
-export type ChallengeResult = ChallengeHistoryEntry;
+export type ChallengeResult = Omit<ChallengeHistoryEntry, 'photoUrl'> & { photo: ChallengePhotoSource | null };
 export type ChallengeHistory = { today: string; firstMonth: string; entries: ChallengeResult[] };
 export type PhotoGallery = { entries: ChallengeResult[]; nextCursor: string | null };
 
@@ -24,7 +25,7 @@ function adaptEntries(entries: ChallengeHistoryEntry[]): ChallengeResult[] {
       score: entry.score,
       targetHex: entry.targetHex,
       collected: entry.collected,
-      photoUrl: typeof entry.photoUrl === 'string' && /^https?:\/\//.test(entry.photoUrl) ? entry.photoUrl : null,
+      photo: readChallengePhotoSource(entry.photoUrl),
     };
   });
 }

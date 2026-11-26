@@ -1,20 +1,26 @@
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
+import { AppState } from 'react-native';
 
 import { useSession } from '@/data/session-provider';
 
-type Snapshot<T> = { key: string; data?: T; error: boolean };
+type Snapshot<T> = { key: string; data?: T; error: boolean; loading: boolean };
+const maxRememberedQueries = 3;
 
 export function useArchiveQuery<T>(
   scope: string,
   load: (signal: AbortSignal) => Promise<T>,
-  { enabled = true, reuseForMs = 0 }: { enabled?: boolean; reuseForMs?: number } = {},
+  { enabled = true, reuseForMs = 0, reloadWhenActive = false }: {
+    enabled?: boolean;
+    reuseForMs?: number;
+    reloadWhenActive?: boolean;
+  } = {},
 ) {
   const { user } = useSession();
   const userId = user?.id;
   const key = userId + '/' + scope;
   const request = useRef<AbortController | null>(null);
-  const fresh = useRef<{ key: string; loadedAt: number } | null>(null);
+  const remembered = useRef(new Map<string, { data: T; loadedAt: number }>());
   const [snapshot, setSnapshot] = useState<Snapshot<T>>();
 
   const retry = useCallback(() => {
@@ -22,27 +28,53 @@ export function useArchiveQuery<T>(
     if (!enabled || !userId) return;
     const controller = new AbortController();
     request.current = controller;
-    setSnapshot(current => ({ key, data: current?.key === key ? current.data : undefined, error: false }));
-    void load(controller.signal).then(
+    const previous = remembered.current.get(key)?.data;
+    setSnapshot({ key, data: previous, error: false, loading: true });
+    return load(controller.signal).then(
       data => {
         if (!controller.signal.aborted) {
-          fresh.current = { key, loadedAt: performance.now() };
-          setSnapshot({ key, data, error: false });
+          const cache = remembered.current;
+          cache.delete(key);
+          cache.set(key, { data, loadedAt: Date.now() });
+          if (cache.size > maxRememberedQueries) {
+            const oldest = cache.keys().next().value;
+            if (oldest !== undefined) cache.delete(oldest);
+          }
+          setSnapshot({ key, data, error: false, loading: false });
         }
       },
       () => {
         if (!controller.signal.aborted) {
-          setSnapshot(current => ({ key, data: current?.key === key ? current.data : undefined, error: true }));
+          setSnapshot({ key, data: previous, error: true, loading: false });
         }
       },
     );
   }, [enabled, key, load, userId]);
 
+  const refreshIfStale = useCallback(() => {
+    if (!enabled || !userId) return;
+    const cached = remembered.current.get(key);
+    const age = cached ? Date.now() - cached.loadedAt : Infinity;
+    if (!cached || age < 0 || age >= reuseForMs) {
+      void retry();
+      return;
+    }
+    setSnapshot(current => current?.key === key ? current : { key, data: cached.data, loading: false, error: false });
+  }, [enabled, key, retry, reuseForMs, userId]);
+
   useFocusEffect(useCallback(() => {
     if (!enabled) return;
-    if (fresh.current?.key !== key || performance.now() - fresh.current.loadedAt >= reuseForMs) retry();
-    return () => request.current?.abort();
-  }, [enabled, key, retry, reuseForMs]));
+    refreshIfStale();
+    const subscription = reloadWhenActive ? AppState.addEventListener('change', state => {
+      if (state === 'active') refreshIfStale();
+    }) : undefined;
+    return () => {
+      subscription?.remove();
+      request.current?.abort();
+      setSnapshot(current => current?.key === key && current.loading ? { ...current, loading: false } : current);
+    };
+  }, [enabled, key, refreshIfStale, reloadWhenActive]));
 
-  return { data: snapshot?.key === key ? snapshot.data : undefined, error: snapshot?.key === key && snapshot.error, retry };
+  const current = snapshot?.key === key ? snapshot : undefined;
+  return { data: current?.data, error: !!current?.error, loading: !!current?.loading, retry, refreshIfStale };
 }

@@ -22,7 +22,7 @@ export default function ChallengeHistoryCard({ entry }: { entry: ChallengeResult
         { backgroundColor: theme.dailyCard, borderColor: theme.dailyBorder },
       ]}>
       <View aria-hidden style={[styles.colorBand, { backgroundColor: entry.targetHex ?? theme.dailySurface }]} />
-      <ChallengePhoto uri={entry.photoUrl} hex={entry.targetHex} style={styles.photo} />
+      <ChallengePhoto photo={entry.photo} hex={entry.targetHex} style={styles.photo} />
       <View aria-hidden style={styles.caption}>
         <ThemedText type="smallBold" themeColor="dailyInk" style={styles.date}>{formatCompactChallengeDay(entry.date)}</ThemedText>
         <ThemedText style={[

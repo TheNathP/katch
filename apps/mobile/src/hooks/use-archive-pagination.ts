@@ -10,7 +10,7 @@ export function useArchivePagination<T extends { nextCursor: string | null }>(
   enabled = true,
 ) {
   // Preserve the loaded pages when returning from a result, within the signed photo URL lifetime.
-  const first = useArchiveQuery(key, load, { enabled, reuseForMs: 5 * 60_000 });
+  const first = useArchiveQuery(key, load, { enabled, reuseForMs: 5 * 60_000, reloadWhenActive: true });
   const [extra, setExtra] = useState<{ base: T; data: T }>();
   const [adding, setAdding] = useState(false);
   const [moreFailed, setMoreFailed] = useState(false);

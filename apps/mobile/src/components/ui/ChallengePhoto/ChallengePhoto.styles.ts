@@ -8,4 +8,5 @@ export const styles = StyleSheet.create({
   fallback: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: Spacing.two },
   icon: { width: 25, height: 25 },
   color: { ...StyleSheet.absoluteFill, opacity: 0.16 },
+  retry: { minHeight: 44, justifyContent: 'center', paddingHorizontal: Spacing.two },
 });

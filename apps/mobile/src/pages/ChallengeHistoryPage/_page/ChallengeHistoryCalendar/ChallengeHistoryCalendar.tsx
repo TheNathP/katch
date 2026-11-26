@@ -5,6 +5,7 @@ import ThemedText from '@/components/ui/ThemedText';
 import type { ChallengeResult } from '@/data/adapters/challenge-history.adapters';
 import { useTheme } from '@/hooks/use-theme';
 import { calendarWeeks, formatChallengeDay, formatChallengeScore } from '@/lib/challenge-calendar';
+import { challengePhotoImageSource } from '@/lib/challenge-photo';
 import { ComicFeedbackColors, OnboardingColors } from '@/styles/theme';
 
 import { styles } from './ChallengeHistoryCalendar.styles';
@@ -45,6 +46,7 @@ export default function ChallengeHistoryCalendar({ month, today, entries, onOpen
               );
             }
 
+            const thumbnail = entry.photo && challengePhotoImageSource(entry.photo, 'calendar');
             return (
               <Pressable
                 key={day}
@@ -52,13 +54,16 @@ export default function ChallengeHistoryCalendar({ month, today, entries, onOpen
                 accessibilityLabel={formatChallengeDay(day) + ', ' + formatChallengeScore(entry.score) + ', voir le résultat'}
                 onPress={() => onOpenResult(day)}
                 style={({ pressed }) => [cellStyle, pressed && styles.pressed]}>
-                {entry.photoUrl && (
+                {thumbnail && (
                   <Image
                     aria-hidden
-                    source={entry.photoUrl}
-                    recyclingKey={entry.photoUrl}
+                    source={thumbnail}
+                    recyclingKey={thumbnail.cacheKey}
                     cachePolicy="memory"
                     contentFit="cover"
+                    allowDownscaling
+                    enforceEarlyResizing
+                    priority="low"
                     style={styles.thumbnail}
                   />
                 )}

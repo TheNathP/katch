@@ -4,7 +4,7 @@ import { OnboardingColors, Spacing } from '@/styles/theme';
 
 export const styles = StyleSheet.create({
   card: {
-    flexBasis: '47%', flexGrow: 1, maxWidth: '49%', borderRadius: 18, borderWidth: 1,
+    flexBasis: '48%', flexGrow: 1, maxWidth: '49%', borderRadius: 18, borderWidth: 1,
     paddingHorizontal: Spacing.two, paddingVertical: Spacing.two, gap: Spacing.one,
     alignItems: 'stretch', alignSelf: 'stretch',
   },
