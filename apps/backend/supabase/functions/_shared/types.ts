@@ -1,5 +1,21 @@
 import type { Relationship } from './social.types.ts';
 
+export type PushRegistrationRequest = {
+  token: string;
+};
+
+export type PushRegistrationResponse = {
+  registered: boolean;
+};
+
+export type PushDestination = '/' | '/amis' | '/defi' | '/progression/serie' | '/classement/amis';
+
+export type PushNotification = {
+  title: string;
+  body: string;
+  destination: PushDestination;
+};
+
 /** GET get-avatar-catalog — public, no session required (shown before sign-up). */
 export type AvatarCatalogResponse = {
   avatars: { id: string; imageUrl: string }[];

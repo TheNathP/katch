@@ -6,6 +6,7 @@ import { AvatarCatalogProvider } from '@/data/avatar-catalog-provider';
 import { hasCompletedOnboarding } from '@/data/onboarding-progress';
 import { SessionProvider, useSession } from '@/data/session-provider';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { usePushNotifications } from '@/hooks/use-push-notifications';
 
 // Keep the splash screen until the stored session and the onboarding flag have
 // been read, so a signed-in player never sees the sign-in screen flash.
@@ -43,6 +44,7 @@ function RootNavigator() {
   const { user, isLoading } = useSession();
   // In development the onboarding is always shown (see onboarding-progress).
   const [completedOnboarding, setCompletedOnboarding] = useState<boolean | undefined>(__DEV__ ? false : undefined);
+  usePushNotifications(isLoading || completedOnboarding === undefined ? undefined : user?.id);
 
   useEffect(() => {
     if (__DEV__) return;

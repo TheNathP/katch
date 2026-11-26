@@ -41,7 +41,13 @@
         }
       ],
       "expo-secure-store",
-      "expo-sqlite"
+      "expo-sqlite",
+      [
+        "expo-notifications",
+        {
+          "defaultChannel": "daily-challenge"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
