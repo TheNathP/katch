@@ -17,6 +17,7 @@ const sparkle = require('@/assets/icons/sparkle.svg');
 
 export type ChallengeState =
   | { status: 'loading' | 'error' }
+  | { status: 'cached'; color: DailyColor }
   | { status: 'ready'; color: DailyColor; reveal: 'hidden' | 'saving' | 'revealing' | 'revealed'; revealError?: boolean };
 
 type Props = {
@@ -30,8 +31,9 @@ type Props = {
 export default function HomePageDailyChallenge({ state, onRetry, onReveal, revealProgress, swatchRef }: Props) {
   const theme = useTheme();
   const challenge = state.status === 'ready' ? state : undefined;
-  const color = challenge?.color;
-  const revealed = challenge?.reveal === 'revealed';
+  const previous = state.status === 'cached';
+  const color = previous ? state.color : challenge?.color;
+  const revealed = previous || challenge?.reveal === 'revealed';
   const revealing = challenge?.reveal === 'revealing';
 
   return (
@@ -43,7 +45,7 @@ export default function HomePageDailyChallenge({ state, onRetry, onReveal, revea
       <View style={styles.eyebrow}>
         <Icon name="calendar" size={17} color={theme.dailyAccent} />
         <Text accessibilityRole="header" style={[styles.eyebrowText, { color: theme.dailyAccent }]}>
-          Défi du jour
+          {previous ? 'Dernière couleur enregistrée' : 'Défi du jour'}
         </Text>
       </View>
       <View style={[
@@ -76,7 +78,7 @@ export default function HomePageDailyChallenge({ state, onRetry, onReveal, revea
                   {color.hex}
                 </Text>
               )}
-              <HomePageChallengeCountdown refreshAt={color.refreshAt} />
+              {!previous && <HomePageChallengeCountdown refreshAt={color.refreshAt} />}
             </View>
           </>
         ) : state.status === 'loading' ? (
@@ -103,12 +105,12 @@ export default function HomePageDailyChallenge({ state, onRetry, onReveal, revea
         </Text>
       )}
       <Button
-        accessibilityRole={revealed ? 'link' : 'button'}
-        label={revealed ? 'Capturer ma couleur' : 'Dévoiler la couleur'}
+        accessibilityRole={challenge?.reveal === 'revealed' ? 'link' : 'button'}
+        label={previous ? 'Actualiser' : revealed ? 'Capturer ma couleur' : 'Dévoiler la couleur'}
         variant="limeSolid"
-        leadingIcon={revealed ? camera : sparkle}
-        disabled={!challenge || challenge.reveal === 'saving' || revealing}
-        onPress={revealed ? () => router.navigate('/defi') : onReveal}
+        leadingIcon={previous ? undefined : revealed ? camera : sparkle}
+        disabled={!previous && (!challenge || challenge.reveal === 'saving' || revealing)}
+        onPress={previous ? onRetry : revealed ? () => router.navigate('/defi') : onReveal}
         style={styles.capture}
       />
     </View>

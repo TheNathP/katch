@@ -6,4 +6,11 @@ export const styles = StyleSheet.create({
   form: {
     gap: Spacing.three,
   },
+  savedColor: {
+    gap: Spacing.two,
+  },
+  swatch: {
+    height: 48,
+    borderRadius: Spacing.two,
+  },
 });
