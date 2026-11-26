@@ -1,69 +1,148 @@
-import { useCallback, useState } from 'react';
-import { router } from 'expo-router';
-import { TextInput, View } from 'react-native';
+import { router } from "expo-router";
+import { useEffect, useState } from "react";
+import { View } from "react-native";
 
-import Button from '@/components/ui/Button';
-import Screen from '@/components/ui/Screen';
-import SocialAction from '@/components/ui/SocialAction';
-import SocialSkeleton from '@/components/ui/SocialSkeleton';
-import ThemedText from '@/components/ui/ThemedText';
-import { getFriendProfile, renamePlayer } from '@/data/friends';
-import { useSession } from '@/data/session-provider';
-import { useFriendsQuery } from '@/hooks/use-friends-query';
-import { useTheme } from '@/hooks/use-theme';
-import { socialStyles as styles } from '@/styles/social';
+import AvatarPicker from "@/components/ui/AvatarPicker";
+import Button from "@/components/ui/Button";
+import Screen from "@/components/ui/Screen";
+import TextField from "@/components/ui/TextField";
+import ThemedText from "@/components/ui/ThemedText";
+import {
+  toMyProfileErrorMessage,
+  type MyProfile,
+  type MyProfileChanges,
+} from "@/data/adapters/my-profile.adapters";
+import { useAvatarCatalog } from "@/data/avatar-catalog-provider";
+import { getMyProfile, updateMyProfile } from "@/data/my-profile";
+import {
+  DISPLAY_NAME_MAX_LENGTH,
+  validateDisplayName,
+  type AvatarChoice,
+} from "@/lib/profile";
+
+import { styles } from "./EditProfilePage.styles";
 
 export default function EditProfilePage() {
-  const theme = useTheme();
-  const { user } = useSession();
-  const userId = user?.id;
-  const load = useCallback(() => userId ? getFriendProfile(userId) : Promise.reject(new Error('Reconnecte-toi pour modifier ton profil.')), [userId]);
-  const { value, error, reload } = useFriendsQuery(load);
-  const [draft, setDraft] = useState<string>();
+  const avatarCatalog = useAvatarCatalog();
+  const [profile, setProfile] = useState<MyProfile | null>(null);
+  const [loadFailed, setLoadFailed] = useState(false);
+  const [loadAttempt, setLoadAttempt] = useState(0);
+  // null = untouched, the saved value is shown.
+  const [draftName, setDraftName] = useState<string | null>(null);
+  const [draftAvatar, setDraftAvatar] = useState<AvatarChoice | null>(null);
   const [saving, setSaving] = useState(false);
-  const [saveError, setSaveError] = useState<string>();
+  const [error, setError] = useState<string | null>(null);
 
-  async function save() {
-    if (!value || saving) return;
-    const name = (draft ?? value.name).trim();
-    if (name.length < 2) {
-      setSaveError('Ton pseudo doit contenir au moins deux caractères.');
-      return;
+  useEffect(() => {
+    const controller = new AbortController();
+    getMyProfile(controller.signal).then(
+      (loaded) => {
+        if (!controller.signal.aborted) setProfile(loaded);
+      },
+      () => {
+        if (!controller.signal.aborted) setLoadFailed(true);
+      },
+    );
+    return () => controller.abort();
+  }, [loadAttempt]);
+
+  if (!profile) {
+    return (
+      <Screen>
+        {loadFailed ? (
+          <View style={styles.form}>
+            <ThemedText themeColor="danger" accessibilityRole="alert">
+              Impossible de charger ton profil.
+            </ThemedText>
+            <Button
+              label="Réessayer"
+              onPress={() => {
+                setLoadFailed(false);
+                setLoadAttempt((attempt) => attempt + 1);
+              }}
+            />
+          </View>
+        ) : (
+          <ThemedText themeColor="textSecondary">Chargement du profil…</ThemedText>
+        )}
+      </Screen>
+    );
+  }
+
+  const displayName = draftName ?? profile.displayName;
+  const avatar = draftAvatar ?? profile.avatar;
+
+  const changes: MyProfileChanges = {};
+  if (displayName.trim() !== profile.displayName) changes.displayName = displayName;
+  if (
+    avatar.avatar !== profile.avatar.avatar ||
+    avatar.background !== profile.avatar.background
+  ) {
+    changes.avatar = avatar;
+  }
+  const hasChanges = Object.keys(changes).length > 0;
+
+  async function handleSave() {
+    if (changes.displayName !== undefined) {
+      const displayNameError = validateDisplayName(changes.displayName);
+      if (displayNameError) {
+        setError(displayNameError);
+        return;
+      }
     }
     setSaving(true);
-    setSaveError(undefined);
+    setError(null);
     try {
-      await renamePlayer(name);
+      await updateMyProfile(changes);
       router.back();
-    } catch (failure) {
-      setSaveError(failure instanceof Error ? failure.message : 'Impossible de modifier ton pseudo.');
-    } finally {
+    } catch (saveError) {
+      setError(toMyProfileErrorMessage(saveError));
       setSaving(false);
     }
   }
 
   return (
     <Screen>
-      {!value && !error && <SocialSkeleton label="Chargement du pseudo" variant="form" />}
-      {error && (
-        <View style={styles.section}>
-          <ThemedText themeColor="danger">{error}</ThemedText>
-          <SocialAction label="Réessayer" onPress={reload} />
-        </View>
-      )}
-      {value && (
-        <View style={styles.section}>
-          <ThemedText type="smallBold">Pseudo public</ThemedText>
-          <ThemedText type="small" themeColor="textSecondary">Les autres joueurs peuvent te retrouver avec ce pseudo.</ThemedText>
-          <TextInput accessibilityLabel="Pseudo public" value={draft ?? value.name}
-            onChangeText={text => { setDraft(text); setSaveError(undefined); }}
-            maxLength={32} autoCorrect={false} editable={!saving}
-            style={[styles.input, { backgroundColor: theme.backgroundElement, borderColor: theme.tabBarBorder, color: theme.text }]}
-          />
-          {saveError && <ThemedText accessibilityLiveRegion="polite" themeColor="danger">{saveError}</ThemedText>}
-          <Button label={saving ? 'Enregistrement…' : 'Enregistrer'} disabled={saving} onPress={() => void save()} />
-        </View>
-      )}
+      <View style={styles.form}>
+        <AvatarPicker
+          catalog={avatarCatalog.catalog}
+          loadFailed={avatarCatalog.loadFailed}
+          onRetry={avatarCatalog.retry}
+          value={avatar}
+          onChange={setDraftAvatar}
+        />
+        <TextField
+          label="Pseudo"
+          value={displayName}
+          onChangeText={(text) => {
+            setDraftName(text);
+            setError(null);
+          }}
+          autoCapitalize="none"
+          autoCorrect={false}
+          autoComplete="nickname"
+          textContentType="nickname"
+          maxLength={DISPLAY_NAME_MAX_LENGTH}
+          editable={!saving}
+          returnKeyType="done"
+          onSubmitEditing={hasChanges ? handleSave : undefined}
+        />
+        <ThemedText type="small" themeColor="textSecondary">
+          Les autres joueurs te retrouvent avec ce pseudo.
+        </ThemedText>
+
+        {error && (
+          <ThemedText type="small" themeColor="danger" accessibilityRole="alert">
+            {error}
+          </ThemedText>
+        )}
+
+        <Button
+          label={saving ? "Enregistrement…" : "Enregistrer"}
+          onPress={handleSave}
+          disabled={saving || !hasChanges}
+        />
+      </View>
     </Screen>
   );
 }

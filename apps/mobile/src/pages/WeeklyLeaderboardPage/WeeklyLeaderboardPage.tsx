@@ -4,8 +4,8 @@ import Screen from '@/components/ui/Screen';
 export default function WeeklyLeaderboardPage() {
   return (
     <Screen>
-      <NavigationLink href="/classement" label="Mondial" replace />
-      <NavigationLink href="/classement/amis" label="Entre amis" replace />
+      <NavigationLink href="/classement" label="Entre amis" replace />
+      <NavigationLink href="/classement/mondial" label="Mondial" replace />
     </Screen>
   );
 }

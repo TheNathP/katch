@@ -10,4 +10,13 @@ export const styles = StyleSheet.create({
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.two,
   },
+  plain: {
+    alignSelf: 'center',
+    alignItems: 'center',
+    gap: Spacing.two,
+    paddingVertical: Spacing.three,
+  },
+  plainPressed: {
+    opacity: 0.7,
+  },
 });
