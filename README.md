@@ -1,6 +1,35 @@
-# Katch
+<p align="center">
+  <img src="apps/mobile/assets/icon-illus/shop/pix-original.svg" alt="Pix, la mascotte de Katch" width="118">
+</p>
 
-Katch est un jeu mobile sur iOS et Android. Chaque jour, tous les joueurs reçoivent la même couleur. Ils prennent ou importent une photo pour s’en rapprocher, puis comparent leurs résultats au classement. L’app utilise React Native, Expo et TypeScript. Supabase gère les comptes, les données, le stockage des photos et le calcul du score.
+<h1 align="center">Katch</h1>
+
+<p align="center"><strong>La chasse aux couleurs du quotidien</strong></p>
+
+<p align="center">
+  Chaque jour, retrouve une couleur autour de toi, prends-la en photo et compare ton score à celui de tes amis.
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/plateforme-iOS-3D4957?style=flat&amp;labelColor=24292F&amp;logo=apple&amp;logoColor=FFFFFF" alt="Plateforme iOS">
+  <img src="https://img.shields.io/badge/plateforme-Android-27834E?style=flat&amp;labelColor=24292F&amp;logo=android&amp;logoColor=A4C639" alt="Plateforme Android">
+  <img src="https://img.shields.io/badge/React%20Native-0.88-116979?style=flat&amp;labelColor=24292F&amp;logo=react&amp;logoColor=61DAFB" alt="React Native 0.88">
+  <img src="https://img.shields.io/badge/Expo-SDK%2058-6431C0?style=flat&amp;labelColor=24292F&amp;logo=expo&amp;logoColor=FFFFFF" alt="Expo SDK 58">
+  <img src="https://img.shields.io/badge/TypeScript-6-3178C6?style=flat&amp;labelColor=24292F&amp;logo=typescript&amp;logoColor=FFFFFF" alt="TypeScript 6">
+  <img src="https://img.shields.io/badge/Supabase-backend-22734D?style=flat&amp;labelColor=24292F&amp;logo=supabase&amp;logoColor=3ECF8E" alt="Backend Supabase">
+</p>
+
+<p align="center">
+  <a href="#fonctionnalités">Fonctionnalités</a> ·
+  <a href="#installer-et-lancer-lapp">Installation</a> ·
+  <a href="#démonstration-fonctionnelle">Démonstration</a> ·
+  <a href="#limites-connues">Limites</a> ·
+  <a href="#décisions-darchitecture">ADR</a>
+</p>
+
+![Pix en smoking violet et micro à la main présente le tutoriel de Katch et le score d’une photo de fleur](docs/assets/katch-mockups.jpg)
+
+*Maquette de présentation du tutoriel et du résultat d’un défi photo.*
 
 ## Direction artistique
 
