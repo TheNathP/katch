@@ -7,8 +7,8 @@ import {
 import { isDevice } from "expo-device";
 import {
   AndroidHaptics,
-  ImpactFeedbackStyle,
   impactAsync,
+  ImpactFeedbackStyle,
   performAndroidHapticsAsync,
 } from "expo-haptics";
 import {
@@ -26,6 +26,15 @@ import {
   Platform,
   View,
 } from "react-native";
+import Animated, {
+  cancelAnimation,
+  Easing,
+  interpolate,
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { DailyColor } from "@/data/adapters/daily-color.adapters";
@@ -42,6 +51,8 @@ import CapturePageViewfinder from "./_page/CapturePageViewfinder";
 import { styles } from "./CapturePage.styles";
 
 const PHOTO_QUALITY = 0.8;
+const ENTRANCE_DURATION = 460;
+const PREVIEW_FADE_DURATION = 240;
 
 export default function CapturePage() {
   const insets = useSafeAreaInsets();
@@ -61,6 +72,9 @@ export default function CapturePage() {
   const [error, setError] = useState<string>();
   const [dailyColor, setDailyColor] = useState<DailyColor>();
   const [colorExpanded, setColorExpanded] = useState(false);
+  const reduceMotion = useReducedMotion();
+  const entrance = useSharedValue(0);
+  const previewShown = useSharedValue(0);
 
   // The player may grant the permission from the system settings: re-read it when the app comes back.
   useEffect(() => {
@@ -90,6 +104,62 @@ export default function CapturePage() {
 
   // The preview is unmounted when the tab loses focus: it has to report ready again once remounted.
   useFocusEffect(useCallback(() => () => setReady(false), []));
+
+  useFocusEffect(
+    useCallback(() => {
+      entrance.set(
+        withTiming(1, {
+          duration: reduceMotion ? 180 : ENTRANCE_DURATION,
+          easing: Easing.out(Easing.cubic),
+        }),
+      );
+      // Reset while hidden, so the next opening starts from the beginning.
+      return () => {
+        cancelAnimation(entrance);
+        entrance.set(0);
+      };
+    }, [entrance, reduceMotion]),
+  );
+
+  useEffect(() => {
+    previewShown.set(
+      ready ? withTiming(1, { duration: PREVIEW_FADE_DURATION }) : 0,
+    );
+  }, [ready, previewShown]);
+
+  const viewfinderStyle = useAnimatedStyle(() => {
+    const progress = entrance.get();
+    return {
+      opacity: interpolate(progress, [0, 0.6], [0, 1], "clamp"),
+      transform: reduceMotion
+        ? []
+        : [
+            { translateY: interpolate(progress, [0, 1], [32, 0]) },
+            { scale: interpolate(progress, [0, 1], [0.9, 1]) },
+          ],
+    };
+  });
+  const topBarStyle = useAnimatedStyle(() => {
+    const progress = entrance.get();
+    return {
+      opacity: interpolate(progress, [0.35, 1], [0, 1], "clamp"),
+      transform: reduceMotion
+        ? []
+        : [{ translateY: interpolate(progress, [0, 1], [-16, 0]) }],
+    };
+  });
+  const controlsStyle = useAnimatedStyle(() => {
+    const progress = entrance.get();
+    return {
+      opacity: interpolate(progress, [0.15, 0.8], [0, 1], "clamp"),
+      transform: reduceMotion
+        ? []
+        : [{ translateY: interpolate(progress, [0, 1], [72, 0]) }],
+    };
+  });
+  const previewCoverStyle = useAnimatedStyle(() => ({
+    opacity: 1 - previewShown.get(),
+  }));
 
   // Today's color, shown on demand over the preview. Reloaded on focus and when the day changes.
   useFocusEffect(
@@ -247,70 +317,87 @@ export default function CapturePage() {
     <View style={styles.screen}>
       {showCamera ? (
         <>
-          <CapturePageViewfinder
-            overlay={
-              dailyColor && (
-                <CapturePageDailyColor
-                  hex={dailyColor.hex}
-                  top={insets.top}
-                  expanded={colorExpanded}
-                  onToggle={toggleDailyColor}
+          <Animated.View style={[styles.layer, viewfinderStyle]}>
+            <CapturePageViewfinder
+              overlay={
+                dailyColor && (
+                  <CapturePageDailyColor
+                    hex={dailyColor.hex}
+                    top={insets.top}
+                    expanded={colorExpanded}
+                    onToggle={toggleDailyColor}
+                  />
+                )
+              }
+            >
+              {cameraActive && (
+                <CameraView
+                  ref={camera}
+                  facing={facing}
+                  flash={flash}
+                  mode="picture"
+                  onCameraReady={() => setReady(true)}
+                  onMountError={() => {
+                    setReady(false);
+                    setUnavailable(true);
+                  }}
+                  style={styles.camera}
                 />
-              )
-            }
-          >
-            {cameraActive && (
-              <CameraView
-                ref={camera}
-                facing={facing}
-                flash={flash}
-                mode="picture"
-                onCameraReady={() => setReady(true)}
-                onMountError={() => {
-                  setReady(false);
-                  setUnavailable(true);
-                }}
-                style={styles.camera}
+              )}
+              <Animated.View
+                pointerEvents="none"
+                style={[styles.previewCover, previewCoverStyle]}
               />
-            )}
-          </CapturePageViewfinder>
-          <CapturePageTopBar
-            top={insets.top}
-            flash={flash}
-            onBack={goBack}
-            onToggleFlash={() =>
-              setFlash((current) => (current === "off" ? "on" : "off"))
-            }
-          />
-          <CapturePageControls
-            bottom={insets.bottom}
-            canCapture={cameraActive && ready && !busy}
-            busy={busy}
-            error={error}
-            onCapture={() => void capture()}
-            onOpenLibrary={() => void pickFromLibrary()}
-            onFlip={() =>
-              setFacing((current) => (current === "back" ? "front" : "back"))
-            }
-          />
+            </CapturePageViewfinder>
+          </Animated.View>
+          <Animated.View
+            pointerEvents="box-none"
+            style={[styles.topBar, topBarStyle]}
+          >
+            <CapturePageTopBar
+              top={insets.top}
+              flash={flash}
+              onBack={goBack}
+              onToggleFlash={() =>
+                setFlash((current) => (current === "off" ? "on" : "off"))
+              }
+            />
+          </Animated.View>
+          <Animated.View style={controlsStyle}>
+            <CapturePageControls
+              bottom={insets.bottom}
+              canCapture={cameraActive && ready && !busy}
+              busy={busy}
+              error={error}
+              onCapture={() => void capture()}
+              onOpenLibrary={() => void pickFromLibrary()}
+              onFlip={() =>
+                setFacing((current) => (current === "back" ? "front" : "back"))
+              }
+            />
+          </Animated.View>
         </>
       ) : (
-        <CapturePagePermission
-          insets={insets}
-          state={
-            unavailable
-              ? "unavailable"
-              : !permission
-                ? "loading"
-                : permission.canAskAgain
-                  ? "ask"
-                  : "settings"
-          }
-          error={error}
-          onBack={goBack}
-          onActivate={() => void activateCamera()}
-          onOpenLibrary={unavailable ? () => void pickFromLibrary() : undefined}
-        />
+        <Animated.View style={[styles.layer, viewfinderStyle]}>
+          <CapturePagePermission
+            insets={insets}
+            state={
+              unavailable
+                ? "unavailable"
+                : !permission
+                  ? "loading"
+                  : permission.canAskAgain
+                    ? "ask"
+                    : "settings"
+            }
+            error={error}
+            onBack={goBack}
+            onActivate={() => void activateCamera()}
+            onOpenLibrary={
+              unavailable ? () => void pickFromLibrary() : undefined
+            }
+          />
+        </Animated.View>
       )}
     </View>
   );
