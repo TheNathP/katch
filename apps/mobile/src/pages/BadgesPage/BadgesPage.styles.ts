@@ -12,6 +12,8 @@ export const styles = StyleSheet.create({
   copy: { flex: 1, padding: 10, gap: Spacing.one },
   title: { textAlign: 'center', fontSize: 14, lineHeight: 19, fontWeight: '900' },
   description: { textAlign: 'center', fontSize: 12, lineHeight: 16 },
+  claim: { minHeight: 44, paddingHorizontal: 6 },
+  coins: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4 },
   state: { textAlign: 'center', fontSize: 12, lineHeight: 16 },
   progress: { marginTop: 'auto', paddingTop: Spacing.one, gap: Spacing.one, minHeight: 34, justifyContent: 'flex-end' },
   empty: { textAlign: 'center', paddingVertical: Spacing.three },

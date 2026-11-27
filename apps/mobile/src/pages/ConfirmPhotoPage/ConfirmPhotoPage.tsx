@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Button from '@/components/ui/Button';
 import { submitChallengePhoto, SubmitPhotoError, type SubmitPhotoErrorCode } from '@/data/challenge-attempt';
 import { discardChallengePhotoDraft, getChallengePhotoDraft } from '@/data/challenge-photo-draft';
+import { useSession } from '@/data/session-provider';
 import { CaptureColors } from '@/styles/theme';
 
 import { styles } from './ConfirmPhotoPage.styles';
@@ -19,6 +20,7 @@ const errorMessages: Record<SubmitPhotoErrorCode, string> = {
 };
 
 export default function ConfirmPhotoPage() {
+  const { user } = useSession();
   const { photoId } = useLocalSearchParams<{ photoId?: string }>();
   const photo = typeof photoId === 'string' ? getChallengePhotoDraft(photoId) : undefined;
   const [submitting, setSubmitting] = useState(false);
@@ -34,12 +36,12 @@ export default function ConfirmPhotoPage() {
   };
 
   const submit = async () => {
-    if (!photo || previewFailed || submission.current) return;
+    if (!user || !photo || previewFailed || submission.current) return;
     submission.current = true;
     setSubmitting(true);
     setError(undefined);
     try {
-      const attempt = await submitChallengePhoto(photo.uri, photo.takenAt);
+      const attempt = await submitChallengePhoto(photo.uri, photo.takenAt, user.id);
       discardChallengePhotoDraft(photo.id);
       router.replace({ pathname: '/defi/resultat', params: { attemptId: attempt.id } });
     } catch (cause) {

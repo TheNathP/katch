@@ -5,11 +5,16 @@ import { useSharedValue } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import type { DailyChallenge } from '@/data/adapters/daily-color.adapters';
+import { takePhotoCoins } from '@/data/challenge-attempt';
 import { getCachedDailyChallenge } from '@/data/daily-color-cache';
 import { isDailyColorRevealed, rememberDailyColorReveal } from '@/data/daily-color-reveal';
 import { getHomePage } from '@/data/get-home-page';
+import { rewardsStore } from '@/data/rewards-store';
+import { useSession } from '@/data/session-provider';
+import { useProgression } from '@/hooks/use-progression';
 import { useTheme } from '@/hooks/use-theme';
 
+import HomePageCoinReward from './_page/HomePageCoinReward';
 import HomePageDailyChallenge, { type ChallengeState } from './_page/HomePageDailyChallenge';
 import HomePageHero from './_page/HomePageHero';
 import HomePageRevealEffect from './_page/HomePageRevealEffect';
@@ -18,6 +23,19 @@ import { styles } from './HomePage.styles';
 
 export default function HomePage() {
   const theme = useTheme();
+  const accountId = useSession().user?.id;
+  const { summary } = useProgression();
+  const [photoReward, setPhotoReward] = useState<{ amount: number; previousBalance?: number }>();
+  const dismissPhotoCoins = useCallback(() => setPhotoReward(undefined), []);
+
+  useFocusEffect(useCallback(() => {
+    if (!accountId) return;
+    const amount = takePhotoCoins(accountId);
+    if (amount > 0) {
+      setPhotoReward({ amount, previousBalance: rewardsStore(accountId).snapshot().data?.coins });
+    }
+    return dismissPhotoCoins;
+  }, [accountId, dismissPhotoCoins]));
   const [challenge, setChallenge] = useState<ChallengeState>({ status: 'loading' });
   const reload = useRef<(() => Promise<void>) | null>(null);
   const knownChallenge = useRef<DailyChallenge | null>(null);
@@ -142,6 +160,13 @@ export default function HomePage() {
           <HomePageShortcuts />
         </SafeAreaView>
       </ScrollView>
+      <HomePageCoinReward
+        key={photoReward ? 'deposit' : 'wallet'}
+        amount={photoReward?.amount ?? 0}
+        balance={summary?.coins}
+        previousBalance={photoReward?.previousBalance}
+        onFinish={dismissPhotoCoins}
+      />
       {revealingColor && (
         <HomePageRevealEffect
           date={revealingColor.date}

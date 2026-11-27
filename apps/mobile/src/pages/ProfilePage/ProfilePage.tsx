@@ -15,6 +15,7 @@ import { emptyColorCollection } from "@/data/color-collection";
 import { getMyProfile } from "@/data/my-profile";
 import { useTheme } from "@/hooks/use-theme";
 import { xpPerLevel } from "@/lib/progression";
+import { rewardAvatarAppearance } from "@/styles/reward-art";
 import { Colors, OnboardingColors } from "@/styles/theme";
 
 import { styles } from "./ProfilePage.styles";
@@ -106,6 +107,7 @@ export default function ProfilePage() {
             />
           ) : (
             <Avatar
+              {...rewardAvatarAppearance(profile?.equippedRewards)}
               imageUrl={avatar?.imageUrl}
               fallbackSource={pix}
               backgroundHex={background?.hex ?? OnboardingColors.violetEdge}

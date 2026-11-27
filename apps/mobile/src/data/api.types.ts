@@ -35,6 +35,7 @@ export type MyProfileResponse = {
   avatarId: string;
   /** Id from the avatar catalog (`backgrounds[].id`). */
   avatarBackgroundId: string;
+  equippedRewards?: EquippedRewards;
 };
 
 /**
@@ -88,6 +89,7 @@ export type SubmitPhotoResponse = {
   matchedHex: string;
   matchedArea: { x: number; y: number; width: number; height: number };
   score: number;
+  photoCoinsEarned?: number;
   submittedAt: string;
   takenAt: string | null;
 };
@@ -129,3 +131,24 @@ export type LeaderboardPlayerResponse = {
     | { status: "available"; url: string }
     | { status: "locked" | "missing" };
 };
+
+export type EquippedRewards = {
+  mascots: string | null;
+  backgrounds: string | null;
+  frames: string | null;
+};
+
+export type RewardsResponse = {
+  coins: number;
+  owned: string[];
+  items: { id: string; price: number }[];
+  badges: { id: string; progress: number; goal: number; coins: number; eligible: boolean; claimed: boolean }[];
+  validatedDays: string[];
+  xp: number;
+  xpPerLevel: number;
+  equipped: EquippedRewards;
+};
+
+export type ChangeRewardRequest =
+  | { action: 'purchase' | 'equip' | 'unequip'; itemId: string }
+  | { action: 'claim'; badgeId: string };

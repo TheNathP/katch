@@ -9,6 +9,7 @@ export type ChallengeAttempt = {
   matchedHex: string;
   matchedArea: PhotoArea | null;
   score: number;
+  photoCoinsEarned: number;
 };
 
 export type PhotoArea = { x: number; y: number; width: number; height: number };
@@ -71,5 +72,6 @@ export function adaptChallengeAttempt(
     matchedHex: body.matchedHex,
     matchedArea: adaptArea(body.matchedArea),
     score: body.score,
+    photoCoinsEarned: body.photoCoinsEarned === 5 || body.photoCoinsEarned === 10 ? body.photoCoinsEarned : 0,
   };
 }
