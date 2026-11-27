@@ -169,6 +169,7 @@ export default function HomePage() {
       {revealingColor && (
         <HomePageRevealEffect
           date={revealingColor.date}
+          color={revealingColor.hex}
           progress={revealProgress}
           swatchRef={swatchRef}
           onComplete={finishReveal}

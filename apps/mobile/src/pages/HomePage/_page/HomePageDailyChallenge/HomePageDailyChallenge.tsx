@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { router, useIsFocused } from 'expo-router';
 import type { ComponentRef, Ref } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import type { SharedValue } from 'react-native-reanimated';
@@ -38,6 +38,7 @@ type Props = {
 
 export default function HomePageDailyChallenge({ state, onRetry, onReveal, revealProgress, swatchRef }: Props) {
   const theme = useTheme();
+  const isFocused = useIsFocused();
   const challenge = state.status === 'ready' ? state : undefined;
   const previous = state.status === 'cached';
   const color = previous ? state.color : challenge?.color;
@@ -72,8 +73,8 @@ export default function HomePageDailyChallenge({ state, onRetry, onReveal, revea
                 <HomePageChallengeVeil
                   key={color.date}
                   color={color.hex}
-                  idle={challenge?.reveal === 'hidden'}
-                  revealing={revealing}
+                  idle={isFocused && challenge?.reveal === 'hidden'}
+                  revealing={false}
                   progress={revealProgress}
                 />
               )}

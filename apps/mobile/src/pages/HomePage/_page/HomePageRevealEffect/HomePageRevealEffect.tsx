@@ -1,5 +1,6 @@
+import { useFocusEffect } from 'expo-router';
 import { type ComponentRef, type RefObject, useCallback, useEffect, useRef, useState } from 'react';
-import { Modal, View } from 'react-native';
+import { BackHandler, View } from 'react-native';
 import Animated, {
   cancelAnimation,
   Easing,
@@ -11,28 +12,22 @@ import Animated, {
   useReducedMotion,
   withTiming,
 } from 'react-native-reanimated';
-import Svg, { Path, Rect } from 'react-native-svg';
 import { scheduleOnRN } from 'react-native-worklets';
 
-import { DailyRevealColors, dailySwatchRadius } from '@/styles/theme';
+import { useScreenOverlay } from '@/components/shared/ScreenOverlay';
 
+import HomePageChallengeVeil from '../HomePageChallengeVeil';
 import { styles } from './HomePageRevealEffect.styles';
 
 type Props = {
   date: string;
+  color: string;
   progress: SharedValue<number>;
   swatchRef: RefObject<ComponentRef<typeof View> | null>;
   onComplete: (date: string) => void;
 };
 
-type Spotlight = {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  viewportWidth: number;
-  viewportHeight: number;
-};
+type Placement = { left: number; top: number; width: number; height: number };
 
 const motion = {
   duration: 2_200,
@@ -40,39 +35,38 @@ const motion = {
   reduceMotion: ReduceMotion.System,
 };
 
-function spotlightPath({ x, y, width, height, viewportWidth, viewportHeight }: Spotlight) {
-  const right = x + width;
-  const bottom = y + height;
-  const radius = dailySwatchRadius;
-  const corner = `A ${radius} ${radius} 0 0 1`;
+function RevealLayer({ date, color, progress, swatchRef, onComplete }: Props) {
+  const layerRef = useRef<ComponentRef<typeof View>>(null);
+  const [placement, setPlacement] = useState<Placement>();
+  const placed = placement !== undefined;
 
-  return [
-    `M 0 0 H ${viewportWidth} V ${viewportHeight} H 0 Z`,
-    `M ${x + radius} ${y} H ${right - radius} ${corner} ${right} ${y + radius}`,
-    `V ${bottom - radius} ${corner} ${right - radius} ${bottom}`,
-    `H ${x + radius} ${corner} ${x} ${bottom - radius}`,
-    `V ${y + radius} ${corner} ${x + radius} ${y} Z`,
-  ].join(' ');
-}
+  const measureSwatch = useCallback(() => {
+    const layer = layerRef.current;
+    const swatch = swatchRef.current;
+    if (!layer || !swatch) return;
 
-export default function HomePageRevealEffect({ date, progress, swatchRef, onComplete }: Props) {
-  const overlayRef = useRef<ComponentRef<typeof View>>(null);
-  const [spotlight, setSpotlight] = useState<Spotlight>();
-  const reduceMotion = useReducedMotion();
-
-  const measureSpotlight = useCallback(() => {
-    overlayRef.current?.measureInWindow((originX, originY, viewportWidth, viewportHeight) => {
-      swatchRef.current?.measureInWindow((x, y, width, height) => {
-        if (width <= 0 || height <= 0 || viewportWidth <= 0 || viewportHeight <= 0) return;
-        setSpotlight({ x: x - originX, y: y - originY, width, height, viewportWidth, viewportHeight });
+    // The overlay and the swatch share the same native window and its insets.
+    layer.measureInWindow((originX, originY) => {
+      swatch.measureInWindow((x, y, width, height) => {
+        if (width > 0 && height > 0) {
+          setPlacement({ left: x - originX, top: y - originY, width, height });
+        }
       });
     });
   }, [swatchRef]);
 
   useEffect(() => {
-    if (reduceMotion) {
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
       onComplete(date);
-      return;
+      return true;
+    });
+    return () => subscription.remove();
+  }, [date, onComplete]);
+
+  useEffect(() => {
+    if (!placed) {
+      const timeout = setTimeout(() => onComplete(date), motion.duration);
+      return () => clearTimeout(timeout);
     }
 
     progress.set(0);
@@ -84,41 +78,40 @@ export default function HomePageRevealEffect({ date, progress, swatchRef, onComp
       cancelAnimation(progress);
       progress.set(0);
     };
-  }, [date, onComplete, progress, reduceMotion]);
+  }, [date, onComplete, placed, progress]);
 
   const dim = useAnimatedStyle(() => ({
     opacity: interpolate(progress.get(), [0.015, 0.14, 0.79, 0.98], [0, 0.84, 0.84, 0], Extrapolation.CLAMP),
   }));
 
-  if (reduceMotion) return null;
-
   return (
-    <Modal
-      transparent
-      statusBarTranslucent
-      navigationBarTranslucent
-      onShow={measureSpotlight}
-      onRequestClose={() => onComplete(date)}
-    >
-      <View ref={overlayRef} collapsable={false} onLayout={measureSpotlight} style={styles.overlay}>
-        {spotlight && (
-          <Animated.View aria-hidden pointerEvents="none" style={[styles.scrim, dim]}>
-            <Svg width={spotlight.viewportWidth} height={spotlight.viewportHeight}>
-              <Path d={spotlightPath(spotlight)} fill={DailyRevealColors.backdrop} fillRule="evenodd" />
-              <Rect
-                x={spotlight.x}
-                y={spotlight.y}
-                width={spotlight.width}
-                height={spotlight.height}
-                rx={dailySwatchRadius}
-                stroke={DailyRevealColors.rim}
-                strokeWidth={1}
-                fill="none"
-              />
-            </Svg>
-          </Animated.View>
-        )}
-      </View>
-    </Modal>
+    <View ref={layerRef} collapsable={false} onLayout={measureSwatch} style={styles.overlay} aria-hidden>
+      {placement && (
+        <>
+          <Animated.View style={[styles.scrim, dim]} />
+          <View style={[styles.foreground, placement]}>
+            <HomePageChallengeVeil color={color} idle={false} revealing progress={progress} />
+          </View>
+        </>
+      )}
+    </View>
   );
+}
+
+export default function HomePageRevealEffect({ date, color, progress, swatchRef, onComplete }: Props) {
+  const showOverlay = useScreenOverlay();
+  const reduceMotion = useReducedMotion();
+
+  useFocusEffect(useCallback(() => {
+    if (reduceMotion) {
+      onComplete(date);
+      return;
+    }
+
+    return showOverlay(
+      <RevealLayer date={date} color={color} progress={progress} swatchRef={swatchRef} onComplete={onComplete} />,
+    );
+  }, [color, date, onComplete, progress, reduceMotion, showOverlay, swatchRef]));
+
+  return null;
 }
