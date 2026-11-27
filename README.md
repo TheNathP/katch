@@ -136,6 +136,15 @@ pnpm --filter @katch/backend test:photo-analysis
 - [`apps/backend/supabase`](apps/backend/supabase) contient les migrations SQL et les Edge Functions.
 - [`docs/adr`](docs/adr) documente les décisions d’architecture.
 
+### Réutiliser les composants mobiles
+
+Les composants communs vivent dans `apps/mobile/src/components/ui`. Les composants propres à un écran vivent dans son dossier `_page`. L’écran garde la navigation, les données et les actions métier.
+
+- `Screen` fournit le fond et les marges de zone sûre. Utilise `scroll={false}` si l’écran contient déjà une `FlatList`.
+- `Button` propose les variantes `primarySolid`, `limeSolid`, `outline` et `ghost`. Sur `ghost`, `tone="danger"` signale une action destructive et `tone="muted"` convient à une action secondaire. `busy` désactive l’action et indique son état aux lecteurs d’écran.
+- `Dialog` se configure avec `placement` et `onClose`. `SegmentedTabs` reçoit `options`, `value` et `onChange` pour les changements de vue.
+- `Skeleton` annonce le chargement d’une section. Les `SkeletonBlock` reprennent les dimensions du contenu attendu.
+
 ## Décisions d’architecture
 
 | ADR | Décision |

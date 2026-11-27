@@ -4,7 +4,7 @@ import type { NotificationPermissionsStatus } from 'expo-notifications';
 import { Platform } from 'react-native';
 
 import type { PushRegistrationRequest, PushRegistrationResponse } from './api.types';
-import { supabase, supabaseConfig } from './supabase';
+import { callEdgeFunction } from './edge-functions';
 
 const projectId: unknown = Constants.easConfig?.projectId ?? Constants.expoConfig?.extra?.eas?.projectId;
 const channelId = 'daily-challenge';
@@ -42,20 +42,9 @@ function updateRegistration(update: () => Promise<void>) {
 }
 
 async function sendRegistration(userId: string, token: string, method: 'POST' | 'DELETE') {
-  const { data: { session }, error } = await supabase.auth.getSession();
-  if (error || session?.user.id !== userId) throw new Error('No active session for push registration');
-
-  const response = await fetch(`${supabaseConfig.url}/functions/v1/push-registration`, {
-    method,
-    headers: {
-      apikey: supabaseConfig.publishableKey,
-      Authorization: `Bearer ${session.access_token}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ token } satisfies PushRegistrationRequest),
-  });
-  if (!response.ok) throw new Error('Could not update push registration');
-  const result: PushRegistrationResponse = await response.json();
+  const result = await callEdgeFunction('push-registration', {
+    method, body: { token } satisfies PushRegistrationRequest, expectedUserId: userId,
+  }) as PushRegistrationResponse;
   if (result.registered !== (method === 'POST')) throw new Error('Unexpected push registration response');
 }
 

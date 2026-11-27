@@ -5,6 +5,7 @@ import {
   useState,
   type PropsWithChildren,
 } from "react";
+import { AppState } from "react-native";
 
 import { toAuthUser, type AuthUser } from "./adapters/auth.adapters";
 import { supabase } from "./supabase";
@@ -29,7 +30,18 @@ export function SessionProvider({ children }: PropsWithChildren) {
     const { data } = supabase.auth.onAuthStateChange((_event, session) => {
       setState({ user: toAuthUser(session), isLoading: false });
     });
-    return () => data.subscription.unsubscribe();
+    function syncAutoRefresh(appState: typeof AppState.currentState) {
+      if (appState === "active") void supabase.auth.startAutoRefresh();
+      else void supabase.auth.stopAutoRefresh();
+    }
+
+    syncAutoRefresh(AppState.currentState);
+    const listener = AppState.addEventListener("change", syncAutoRefresh);
+    return () => {
+      listener.remove();
+      data.subscription.unsubscribe();
+      void supabase.auth.stopAutoRefresh();
+    };
   }, []);
 
   return <SessionContext value={state}>{children}</SessionContext>;

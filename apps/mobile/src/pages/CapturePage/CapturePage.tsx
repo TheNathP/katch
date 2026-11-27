@@ -26,15 +26,7 @@ import {
   Platform,
   View,
 } from "react-native";
-import Animated, {
-  cancelAnimation,
-  Easing,
-  interpolate,
-  useAnimatedStyle,
-  useReducedMotion,
-  useSharedValue,
-  withTiming,
-} from "react-native-reanimated";
+import Animated from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import type { DailyColor } from "@/data/adapters/daily-color.adapters";
@@ -44,6 +36,7 @@ import { getCachedDailyChallenge } from "@/data/daily-color-cache";
 import { useSession } from "@/data/session-provider";
 import { getCapturePage } from "@/data/get-capture-page";
 import { useTheme } from "@/hooks/use-theme";
+import { discardTemporaryPhoto } from "@/lib/discard-temporary-photo";
 import { photoDateFromExif } from "@/lib/photo-date";
 
 import CapturePageControls from "./_page/CapturePageControls";
@@ -52,10 +45,9 @@ import CapturePagePermission from "./_page/CapturePagePermission";
 import CapturePageTopBar from "./_page/CapturePageTopBar";
 import CapturePageViewfinder from "./_page/CapturePageViewfinder";
 import { styles } from "./CapturePage.styles";
+import { useCaptureMotion } from "./use-capture-motion";
 
 const PHOTO_QUALITY = 0.8;
-const ENTRANCE_DURATION = 460;
-const PREVIEW_FADE_DURATION = 240;
 
 export default function CapturePage() {
   const theme = useTheme();
@@ -78,9 +70,7 @@ export default function CapturePage() {
   const [error, setError] = useState<string>();
   const [dailyColor, setDailyColor] = useState<DailyColor>();
   const [colorExpanded, setColorExpanded] = useState(false);
-  const reduceMotion = useReducedMotion();
-  const entrance = useSharedValue(0);
-  const previewShown = useSharedValue(0);
+  const { viewfinderStyle, topBarStyle, controlsStyle, previewCoverStyle } = useCaptureMotion(ready);
 
   // The player may grant the permission from the system settings: re-read it when the app comes back.
   useEffect(() => {
@@ -111,66 +101,10 @@ export default function CapturePage() {
   // The preview is unmounted when the tab loses focus: it has to report ready again once remounted.
   useFocusEffect(useCallback(() => () => setReady(false), []));
 
-  useFocusEffect(
-    useCallback(() => {
-      entrance.set(
-        withTiming(1, {
-          duration: reduceMotion ? 180 : ENTRANCE_DURATION,
-          easing: Easing.out(Easing.cubic),
-        }),
-      );
-      // Reset while hidden, so the next opening starts from the beginning.
-      return () => {
-        cancelAnimation(entrance);
-        entrance.set(0);
-      };
-    }, [entrance, reduceMotion]),
-  );
-
-  useEffect(() => {
-    previewShown.set(
-      ready ? withTiming(1, { duration: PREVIEW_FADE_DURATION }) : 0,
-    );
-  }, [ready, previewShown]);
-
-  const viewfinderStyle = useAnimatedStyle(() => {
-    const progress = entrance.get();
-    return {
-      opacity: interpolate(progress, [0, 0.6], [0, 1], "clamp"),
-      transform: reduceMotion
-        ? []
-        : [
-            { translateY: interpolate(progress, [0, 1], [32, 0]) },
-            { scale: interpolate(progress, [0, 1], [0.9, 1]) },
-          ],
-    };
-  });
-  const topBarStyle = useAnimatedStyle(() => {
-    const progress = entrance.get();
-    return {
-      opacity: interpolate(progress, [0.35, 1], [0, 1], "clamp"),
-      transform: reduceMotion
-        ? []
-        : [{ translateY: interpolate(progress, [0, 1], [-16, 0]) }],
-    };
-  });
-  const controlsStyle = useAnimatedStyle(() => {
-    const progress = entrance.get();
-    return {
-      opacity: interpolate(progress, [0.15, 0.8], [0, 1], "clamp"),
-      transform: reduceMotion
-        ? []
-        : [{ translateY: interpolate(progress, [0, 1], [72, 0]) }],
-    };
-  });
-  const previewCoverStyle = useAnimatedStyle(() => ({
-    opacity: 1 - previewShown.get(),
-  }));
-
   // Today's color, shown on demand over the preview. Reloaded on focus and when the day changes.
   useFocusEffect(
     useCallback(() => {
-      if (!accountId) return;
+      if (!accountId || !appActive) return;
       const controller = new AbortController();
       let refreshTimer: ReturnType<typeof setTimeout> | undefined;
 
@@ -187,11 +121,13 @@ export default function CapturePage() {
 
           const color = await getCapturePage(accountId);
           if (controller.signal.aborted) return;
+          const remaining = color.refreshAt - performance.now();
+          if (remaining <= 0) {
+            setDailyColor(undefined);
+            return;
+          }
           setDailyColor(color);
-          refreshTimer = setTimeout(
-            () => void loadColor(),
-            Math.max(0, color.refreshAt - performance.now()),
-          );
+          refreshTimer = setTimeout(() => void loadColor(), remaining + 50);
         } catch {
           if (!controller.signal.aborted) {
             setDailyColor(current => current && current.refreshAt > performance.now() ? current : undefined);
@@ -203,10 +139,11 @@ export default function CapturePage() {
       return () => {
         controller.abort();
         clearTimeout(refreshTimer);
-        setColorExpanded(false);
       };
-    }, [accountId]),
+    }, [accountId, appActive]),
   );
+
+  useFocusEffect(useCallback(() => () => setColorExpanded(false), []));
 
   // Android back closes the full-screen color before leaving the screen.
   useEffect(() => {
@@ -235,9 +172,9 @@ export default function CapturePage() {
     else router.navigate("/");
   };
 
-  const openPhoto = (uri: string, takenAt: string | null) => {
+  const openPhoto = (uri: string, takenAt: string | null, fromCamera = false) => {
     setError(undefined);
-    const photoId = rememberChallengePhotoDraft(uri, takenAt);
+    const photoId = rememberChallengePhotoDraft(uri, takenAt, fromCamera);
     router.push({
       pathname: "/defi/confirmation",
       params: { photoId },
@@ -273,7 +210,8 @@ export default function CapturePage() {
       const photo = await activeCamera.takePictureAsync({
         quality: PHOTO_QUALITY,
       });
-      if (camera.current === activeCamera) openPhoto(photo.uri, takenAt);
+      if (camera.current === activeCamera) openPhoto(photo.uri, takenAt, true);
+      else discardTemporaryPhoto(photo.uri);
     } catch {
       if (camera.current === activeCamera)
         setError("La photo n’a pas été prise. Réessaie.");

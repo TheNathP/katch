@@ -48,11 +48,13 @@ export function useArchiveQuery<T>(
           setSnapshot({ key, data: previous, error: true, loading: false });
         }
       },
-    );
+    ).finally(() => {
+      if (request.current === controller) request.current = null;
+    });
   }, [enabled, key, load, userId]);
 
   const refreshIfStale = useCallback(() => {
-    if (!enabled || !userId) return;
+    if (!enabled || !userId || request.current) return;
     const cached = remembered.current.get(key);
     const age = cached ? Date.now() - cached.loadedAt : Infinity;
     if (!cached || age < 0 || age >= reuseForMs) {
@@ -71,6 +73,7 @@ export function useArchiveQuery<T>(
     return () => {
       subscription?.remove();
       request.current?.abort();
+      request.current = null;
       setSnapshot(current => current?.key === key && current.loading ? { ...current, loading: false } : current);
     };
   }, [enabled, key, refreshIfStale, reloadWhenActive]));

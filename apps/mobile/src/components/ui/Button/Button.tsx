@@ -8,20 +8,26 @@ import { ButtonTokens } from '@/styles/theme';
 
 import { styles } from './Button.styles';
 
+type ButtonVariant =
+  | { variant: 'ghost'; tone?: 'neutral' | 'muted' | 'danger' }
+  | { variant?: keyof typeof ButtonTokens | 'outline'; tone?: never };
+
 type ButtonProps = Omit<ComponentPropsWithRef<typeof Pressable>, 'children' | 'style'> & {
   label: string;
-  variant?: keyof typeof ButtonTokens;
+  busy?: boolean;
   size?: 'regular' | 'compact';
   leadingIcon?: ImageProps['source'];
   leadingIconName?: IconName;
   leadingIconSize?: number;
   trailingIcon?: ImageProps['source'];
   style?: StyleProp<ViewStyle>;
-};
+} & ButtonVariant;
 
 export default function Button({
   label,
   variant = 'primarySolid',
+  tone = 'neutral',
+  busy = false,
   size = 'regular',
   leadingIcon,
   leadingIconName,
@@ -36,23 +42,32 @@ export default function Button({
   const theme = useTheme();
   const customIconDimensions = leadingIconSize == null ? undefined : { width: leadingIconSize, height: leadingIconSize };
   const compact = size === 'compact';
-  const muted = compact && disabled;
-  const foreground = muted ? theme.text : ButtonTokens[variant].foreground;
+  const unavailable = disabled || busy;
+  const ghost = variant === 'ghost';
+  const outlined = variant === 'outline';
+  const filled = variant === 'primarySolid' || variant === 'limeSolid';
+  const muted = compact && unavailable && !ghost;
+  const ghostColor = tone === 'danger' ? theme.danger : tone === 'muted' ? theme.textSecondary : theme.dailyInk;
+  const foreground = ghost ? ghostColor : muted ? theme.text : outlined ? theme.dailyInk : ButtonTokens[variant].foreground;
 
   return (
     <Pressable
       {...pressableProps}
       accessibilityRole={accessibilityRole}
-      accessibilityState={{ ...accessibilityState, disabled }}
-      disabled={disabled}
+      accessibilityState={{ ...accessibilityState, busy: busy || accessibilityState?.busy, disabled: unavailable }}
+      disabled={unavailable}
       style={({ pressed }) => [
         styles.root,
         !muted && styles[variant],
+        outlined && !muted && {
+          borderColor: theme.dailyBorder,
+          backgroundColor: pressed && !unavailable ? theme.dailySurface : theme.dailyCard,
+        },
         style,
         compact && styles.compact,
         muted && [styles.compactDisabled, { backgroundColor: theme.dailySurface, borderColor: theme.dailyBorder }],
-        disabled && !muted && styles.disabled,
-        !disabled && pressed && [styles.pressed, styles[`${variant}Pressed`]],
+        unavailable && !muted && styles.disabled,
+        pressed && !unavailable && (filled ? [styles.pressed, styles[`${variant}Pressed`]] : ghost && styles.ghostPressed),
       ]}>
       {leadingIconName ? (
         <Icon name={leadingIconName} size={leadingIconSize ?? (compact ? 20 : 18)} color={foreground} />
@@ -65,7 +80,7 @@ export default function Button({
           tintColor={foreground}
         />
       )}
-      <Text style={[styles.label, compact && styles.compactLabel, { color: foreground }]}>{label}</Text>
+      <Text style={[styles.label, compact && styles.compactLabel, ghost && styles.ghostLabel, { color: foreground }]}>{label}</Text>
       {trailingIcon != null && (
         <Image
           aria-hidden

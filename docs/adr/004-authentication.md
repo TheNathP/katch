@@ -7,7 +7,7 @@
 
 Players authenticate with **Supabase Auth** using **email + password** (`signUp` / `signInWithPassword`).
 
-The Supabase session is stored **encrypted** on the device: a random AES-256 key per item lives in `expo-secure-store` (iOS Keychain / Android Keystore), and the session, encrypted with AES-GCM (`expo-crypto`), lives in the `expo-sqlite` key-value store.
+The Supabase session is stored **encrypted** on the device: a random AES-256 key per item is reused across session refreshes and lives in `expo-secure-store` (iOS Keychain / Android Keystore), and the session, encrypted with AES-GCM (`expo-crypto`), lives in the `expo-sqlite` key-value store.
 
 ## Background
 

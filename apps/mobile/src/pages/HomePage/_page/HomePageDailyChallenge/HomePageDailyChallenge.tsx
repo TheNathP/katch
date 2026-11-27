@@ -1,9 +1,10 @@
 import { router } from 'expo-router';
 import type { ComponentRef, Ref } from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import type { SharedValue } from 'react-native-reanimated';
 
 import Button from '@/components/ui/Button';
+import Skeleton, { SkeletonBlock } from '@/components/ui/Skeleton';
 import Icon from '@/components/ui/Icon';
 import type { DailyColor, DailySubmission } from '@/data/adapters/daily-color.adapters';
 import { useTheme } from '@/hooks/use-theme';
@@ -59,7 +60,7 @@ export default function HomePageDailyChallenge({ state, onRetry, onReveal, revea
       </View>
       <View style={[
         styles.colorArea,
-        !color && [styles.colorPlaceholder, { backgroundColor: theme.dailySurface }],
+        state.status === 'error' && [styles.colorPlaceholder, { backgroundColor: theme.dailySurface }],
       ]}>
         {color ? (
           <>
@@ -91,12 +92,12 @@ export default function HomePageDailyChallenge({ state, onRetry, onReveal, revea
             </View>
           </>
         ) : state.status === 'loading' ? (
-          <>
-            <ActivityIndicator color={theme.dailyAccent} />
-            <Text accessibilityLiveRegion="polite" style={[styles.stateText, { color: theme.dailyMuted }]}>
-              Chargement de la couleur…
-            </Text>
-          </>
+          <Skeleton label="Chargement de la couleur">
+            <View style={styles.loading}>
+              <SkeletonBlock style={styles.swatchPlaceholder} />
+              <SkeletonBlock style={styles.countdownPlaceholder} />
+            </View>
+          </Skeleton>
         ) : (
           <View style={styles.error}>
             <Text accessibilityLiveRegion="polite" style={[styles.stateText, { color: theme.dailyMuted }]}>

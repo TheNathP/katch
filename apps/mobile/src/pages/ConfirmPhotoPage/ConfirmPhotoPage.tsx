@@ -1,13 +1,14 @@
 import { Image, type ImageLoadEventData } from 'expo-image';
 import { router, Stack, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Button from '@/components/ui/Button';
-import { submitChallengePhoto, SubmitPhotoError, type ChallengeAttempt, type SubmitPhotoErrorCode } from '@/data/challenge-attempt';
+import { discardChallengeAttempt, submitChallengePhoto, SubmitPhotoError, type ChallengeAttempt, type SubmitPhotoErrorCode } from '@/data/challenge-attempt';
 import { discardChallengePhotoDraft, getChallengePhotoDraft } from '@/data/challenge-photo-draft';
 import { useSession } from '@/data/session-provider';
+import { useReleaseRouteResource } from '@/hooks/use-release-route-resource';
 import { useTheme } from '@/hooks/use-theme';
 
 import ConfirmPhotoPageScan from './_page/ConfirmPhotoPageScan';
@@ -35,9 +36,20 @@ export default function ConfirmPhotoPage() {
   const [imageSize, setImageSize] = useState<{ id: string; width: number; height: number }>();
   const submission = useRef<AbortController | null>(null);
 
-  useFocusEffect(useCallback(() => () => {
-    submission.current?.abort();
-    submission.current = null;
+  const stagedAttemptId = useRef<string>(undefined);
+
+  useReleaseRouteResource(photo?.id, discardChallengePhotoDraft);
+
+  useFocusEffect(useCallback(() => {
+    setAttempt(undefined);
+    setSubmitting(false);
+    return () => {
+      submission.current?.abort();
+      submission.current = null;
+      const stagedId = stagedAttemptId.current;
+      if (stagedId) discardChallengeAttempt(stagedId);
+      stagedAttemptId.current = undefined;
+    };
   }, []));
 
   const rememberSize = ({ source }: ImageLoadEventData) => {
@@ -48,12 +60,11 @@ export default function ConfirmPhotoPage() {
 
   const showOutcome = useCallback(() => {
     if (!photo || !attempt || submission.current?.signal.aborted || !submission.current) return;
-    discardChallengePhotoDraft(photo.id);
+    stagedAttemptId.current = undefined;
     router.replace({ pathname: '/defi/resultat', params: { attemptId: attempt.id } });
   }, [attempt, photo]);
 
   const retake = () => {
-    if (photo) discardChallengePhotoDraft(photo.id);
     if (router.canGoBack()) router.back();
     else router.replace('/defi');
   };
@@ -66,7 +77,12 @@ export default function ConfirmPhotoPage() {
     setError(undefined);
     try {
       const result = await submitChallengePhoto(photo.uri, photo.takenAt, user.id, controller.signal);
-      if (!controller.signal.aborted) setAttempt(result);
+      if (controller.signal.aborted) {
+        discardChallengeAttempt(result.id);
+        return;
+      }
+      stagedAttemptId.current = result.id;
+      setAttempt(result);
     } catch (cause) {
       if (controller.signal.aborted) return;
       setError(errorMessages[cause instanceof SubmitPhotoError ? cause.code : 'unknown']);
@@ -83,10 +99,13 @@ export default function ConfirmPhotoPage() {
           <View
             style={[styles.analysisFrame, photoSurface]}
             onLayout={({ nativeEvent: { layout } }) => {
-              setAnalysisFrame({ width: layout.width, height: layout.height });
+              const { width, height } = layout;
+              setAnalysisFrame(current => current.width === width && current.height === height
+                ? current : { width, height });
             }}>
             <Image
               source={{ uri: photo.uri }}
+              cachePolicy="none"
               contentFit="contain"
               accessibilityLabel="Photo en cours d’analyse"
               style={styles.photo}
@@ -115,6 +134,7 @@ export default function ConfirmPhotoPage() {
               {photo && (
                 <Image
                   source={{ uri: photo.uri }}
+                  cachePolicy="none"
                   contentFit="contain"
                   accessibilityLabel="Photo à valider"
                   style={styles.photo}
@@ -131,18 +151,14 @@ export default function ConfirmPhotoPage() {
           </View>
 
           <View style={styles.actions}>
-            <Pressable
-              accessibilityRole="button"
+            <Button
+              label="Refaire"
+              variant="outline"
+              leadingIcon={require("@/assets/icons/refresh.svg")}
+              leadingIconSize={20}
               onPress={retake}
-              style={({ pressed }) => [styles.secondary, { backgroundColor: pressed ? theme.dailySurface : theme.dailyCard, borderColor: theme.dailyBorder }]}>
-              <Image
-                source={require('@/assets/icons/refresh.svg')}
-                contentFit="contain"
-                tintColor={theme.dailyInk}
-                style={styles.secondaryIcon}
-              />
-              <Text style={[styles.secondaryLabel, { color: theme.dailyInk }]}>Refaire</Text>
-            </Pressable>
+              style={styles.secondary}
+            />
             <Button
               label="Valider"
               variant="primarySolid"

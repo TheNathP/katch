@@ -46,8 +46,8 @@ export default function ChallengeResultPagePhoto({ attempt }: { attempt: Challen
       onLayout={({ nativeEvent: { layout } }) => setFrame({ width: layout.width, height: layout.height })}
       style={[styles.frame, { backgroundColor: theme.dailySurface, height: Math.max(170, Math.min(300, height * 0.34)) }]}
     >
-      <Image aria-hidden source={{ uri: photoUri }} blurRadius={24} contentFit="cover" style={styles.ambientPhoto} />
-      <Image aria-hidden source={{ uri: photoUri }} contentFit="contain" style={styles.photo} />
+      <Image aria-hidden source={{ uri: photoUri }} cachePolicy="none" blurRadius={24} contentFit="cover" style={styles.ambientPhoto} />
+      <Image aria-hidden source={{ uri: photoUri }} cachePolicy="none" contentFit="contain" style={styles.photo} />
       {matchedArea && image.width > 0 && (
         <Animated.View
           aria-hidden

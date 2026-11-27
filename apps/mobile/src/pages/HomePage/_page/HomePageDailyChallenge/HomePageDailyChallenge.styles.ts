@@ -23,6 +23,9 @@ export const styles = StyleSheet.create({
     borderRadius: dailySwatchRadius,
     padding: Spacing.three,
   },
+  loading: { gap: Spacing.two },
+  swatchPlaceholder: { height: swatchHeight, borderRadius: dailySwatchRadius },
+  countdownPlaceholder: { alignSelf: 'flex-end', width: 96, height: 18, borderRadius: 9 },
   swatch: {
     height: swatchHeight,
     borderRadius: dailySwatchRadius,

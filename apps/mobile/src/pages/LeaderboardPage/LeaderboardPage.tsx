@@ -1,13 +1,14 @@
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
 import { AppState, FlatList, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Button from '@/components/ui/Button';
+import Screen from '@/components/ui/Screen';
 import SocialSkeleton from '@/components/ui/SocialSkeleton';
 import type { LeaderboardScope } from '@/data/api.types';
 import { useAvatarCatalog } from '@/data/avatar-catalog-provider';
 import { getLeaderboardPage } from '@/data/get-leaderboard-page';
+import { useRefreshHaptic } from '@/hooks/use-refresh-haptic';
 import { useTheme } from '@/hooks/use-theme';
 
 import LeaderboardPageHeader from './_page/LeaderboardPageHeader';
@@ -19,6 +20,7 @@ type LoadState = { board: Board | null; loading: boolean; error: boolean };
 
 export default function LeaderboardPage({ scope }: { scope: LeaderboardScope }) {
   const theme = useTheme();
+  const playRefreshHaptic = useRefreshHaptic();
   const { catalog } = useAvatarCatalog();
   const [{ board, loading, error }, setState] = useState<LoadState>({ board: null, loading: true, error: false });
   const [refreshing, setRefreshing] = useState(false);
@@ -34,6 +36,7 @@ export default function LeaderboardPage({ scope }: { scope: LeaderboardScope }) 
       pending = true;
       clearTimeout(refreshTimer);
       setRefreshing(pulledToRefresh);
+      if (pulledToRefresh) playRefreshHaptic();
       setState(({ board }) => ({
         board: board && board.refreshAt > performance.now() ? board : null,
         loading: true,
@@ -67,7 +70,7 @@ export default function LeaderboardPage({ scope }: { scope: LeaderboardScope }) 
       clearTimeout(refreshTimer);
       subscription.remove();
     };
-  }, [scope]));
+  }, [playRefreshHaptic, scope]));
 
   const ownEntry = board?.ownEntry;
   const openPlayer = (playerId: string) => {
@@ -75,7 +78,7 @@ export default function LeaderboardPage({ scope }: { scope: LeaderboardScope }) 
   };
 
   return (
-    <SafeAreaView edges={['top', 'left', 'right']} style={[styles.screen, { backgroundColor: theme.dailyCanvas }]}>
+    <Screen scroll={false} edges={['top', 'left', 'right']} backgroundColor={theme.dailyCanvas}>
       <LeaderboardPageHeader scope={scope} />
       <FlatList
         data={board?.entries ?? []}
@@ -109,7 +112,7 @@ export default function LeaderboardPage({ scope }: { scope: LeaderboardScope }) 
           </View>
         ) : undefined}
       />
-    </SafeAreaView>
+    </Screen>
   );
 }
 

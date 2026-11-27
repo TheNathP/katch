@@ -5,6 +5,7 @@ import Svg, { Path } from 'react-native-svg';
 
 import Button from '@/components/ui/Button';
 import Screen from '@/components/ui/Screen';
+import { SkeletonBlock } from '@/components/ui/Skeleton';
 import SocialAction from '@/components/ui/SocialAction';
 import SocialSkeleton from '@/components/ui/SocialSkeleton';
 import SocialPlayerRow from '@/components/ui/SocialPlayerRow';
@@ -13,8 +14,10 @@ import { getFriends } from '@/data/friends';
 import type { SocialPlayer } from '@/data/social-api.types';
 import { useFriendsQuery } from '@/hooks/use-friends-query';
 import { useFriendshipActions } from '@/hooks/use-friendship-actions';
-import { socialStyles as styles } from '@/styles/social';
+import { socialStyles } from '@/styles/social';
 import { OnboardingColors } from '@/styles/theme';
+
+import { styles } from './FriendsPage.styles';
 
 const corner = require('@/assets/icon-illus/decorations/onboarding-purple-corner.svg');
 const duo = require('@/assets/images/pix/friends-high-five.png');
@@ -42,7 +45,7 @@ export default function FriendsPage() {
 
   return (
     <Screen>
-      <View style={styles.layout}>
+      <View style={socialStyles.layout}>
         <View style={styles.friendsHero}>
           <Image source={corner} aria-hidden style={styles.friendsCorner} contentFit="fill" />
           <View aria-hidden pointerEvents="none" style={styles.friendsRibbon}>
@@ -62,17 +65,17 @@ export default function FriendsPage() {
             <View style={styles.friendsBadgeSlot}>
               {value ? (
                 <View style={styles.friendsBadge}>
-                  <ThemedText type="smallBold" style={styles.friendsBadgeText}>
+                  <ThemedText type="smallBold" style={socialStyles.onLime}>
                     {count > 1 ? `${count} amis` : `${count} ami`}
                   </ThemedText>
                 </View>
-              ) : !error && <View aria-hidden style={styles.friendsBadgeSkeleton} />}
+              ) : !error && <SkeletonBlock style={styles.friendsBadgeSkeleton} />}
             </View>
           </View>
         </View>
         <Button label="Trouver des amis" trailingIcon={chevron} onPress={() => router.push('/amis/recherche')} />
         {(error || actions.error) && (
-          <View style={styles.section}>
+          <View style={socialStyles.section}>
             <ThemedText accessibilityLiveRegion="polite" themeColor="danger">{actions.error ?? error}</ThemedText>
             {error && <SocialAction label="Réessayer" onPress={reload} />}
           </View>
@@ -83,9 +86,9 @@ export default function FriendsPage() {
           if (!value || (players.length === 0 && relationship !== 'friend')) return null;
 
           return (
-            <View style={styles.section} key={relationship}>
+            <View style={socialStyles.section} key={relationship}>
               {players.length > 0 ? (
-                <ThemedText accessibilityRole="header" style={styles.groupTitle}>{title}</ThemedText>
+                <ThemedText accessibilityRole="header" style={socialStyles.groupTitle}>{title}</ThemedText>
               ) : (
                 <View style={styles.emptyFriends}>
                   <View aria-hidden style={styles.emptyAvatars}>

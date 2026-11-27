@@ -28,20 +28,6 @@ export const styles = StyleSheet.create({
   photo: { ...StyleSheet.absoluteFill },
   error: { fontSize: 15, fontWeight: '600', textAlign: 'center', marginBottom: Spacing.three },
   actions: { flexDirection: "row", gap: 12, paddingBottom: Spacing.three },
-  secondary: {
-    flex: 1,
-    minHeight: 54,
-    borderRadius: 18,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 9,
-    borderWidth: 1,
-  },
-  secondaryIcon: { width: 20, height: 20 },
-  secondaryLabel: {
-    fontSize: 17,
-    fontWeight: "800",
-  },
+  secondary: { flex: 1 },
   primary: { flex: 1.3 },
 });

@@ -28,6 +28,7 @@ export const styles = StyleSheet.create({
   metricFull: { flexBasis: "100%" },
   metricArt: { width: 42, height: 42 },
   metricValue: { fontSize: 23, lineHeight: 25, fontWeight: "900" },
+  metricPlaceholder: { width: 33, height: 15, marginVertical: 5, borderRadius: 6 },
   metricLabel: { textAlign: "center", fontSize: 12, lineHeight: 16 },
   collection: { marginBottom: Spacing.one },
   collectionLink: {
@@ -35,25 +36,6 @@ export const styles = StyleSheet.create({
     minHeight: 44, paddingVertical: 0, justifyContent: "center",
   },
   chevron: { width: 11, height: 14 },
-  shortcuts: { gap: Spacing.two },
-  shortcutGrid: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.two },
-  shortcut: {
-    flex: 1, minWidth: 0, minHeight: 57, alignSelf: "stretch", alignItems: "center",
-    flexDirection: "row", borderRadius: 17, borderWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: Spacing.two, paddingVertical: Spacing.two, gap: Spacing.two,
-  },
-  shortcutFull: { flexBasis: "100%" },
-  shortcutIcon: { width: 33, height: 33, borderRadius: 12, justifyContent: "center", alignItems: "center" },
-  shortcutArt: { width: 22, height: 22 },
-  shortcutIllustration: { width: "100%", height: "100%" },
-  shortcutLabel: { flex: 1, minWidth: 0, fontWeight: "800", fontSize: 13, lineHeight: 17 },
-  historyLink: {
-    alignSelf: "stretch", flexDirection: "row", minHeight: 51, gap: Spacing.two,
-    paddingVertical: Spacing.one, paddingHorizontal: 10, borderRadius: 16,
-  },
-  historyArt: { width: 30, height: 34 },
-  historyLabel: { flex: 1, fontWeight: "800" },
-
   settingsButton: { width: 44, height: 44, marginRight: Spacing.two, alignItems: "center", justifyContent: "center" },
   settingsIcon: { width: 23, height: 23 },
   settingsPressed: { opacity: 0.6 },

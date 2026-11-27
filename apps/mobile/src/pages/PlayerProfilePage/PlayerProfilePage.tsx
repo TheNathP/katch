@@ -28,7 +28,7 @@ export default function PlayerProfilePage() {
   const { user } = useSession();
   const { playerId } = useLocalSearchParams<{ playerId: string }>();
   const ownProfile = user?.id === playerId;
-  const load = useCallback(() => getPlayerSocialProfile(playerId, user?.id), [playerId, user?.id]);
+  const load = useCallback((signal: AbortSignal) => getPlayerSocialProfile(playerId, user?.id, signal), [playerId, user?.id]);
   const { value, error, reload, update } = useFriendsQuery(load);
   const actions = useFriendshipActions(action => {
     update(profile => ({
@@ -85,7 +85,7 @@ export default function PlayerProfilePage() {
               <View key={result.date} style={[styles.result, { backgroundColor: theme.tabBarBackground, borderColor: theme.tabBarBorder }]}>
                 <ThemedText type="small">{dateLabel.format(new Date(`${result.date}T00:00:00Z`))}</ThemedText>
                 <View style={socialStyles.scorePill}>
-                  <ThemedText type="smallBold" style={socialStyles.friendsBadgeText}>{result.score} %</ThemedText>
+                  <ThemedText type="smallBold" style={socialStyles.onLime}>{result.score} %</ThemedText>
                 </View>
               </View>
             ))}

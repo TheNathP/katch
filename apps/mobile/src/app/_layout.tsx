@@ -81,8 +81,6 @@ function RootNavigator() {
     <Stack screenOptions={{ headerBackButtonDisplayMode: 'minimal', headerBackTitle: 'Retour' }}>
       <Stack.Protected guard={isSignedIn} redirectTo={completedOnboarding ? '/compte/connexion' : '/bienvenue'}>
         <Stack.Screen name="(tabs)" options={{ title: 'Katch', headerShown: false }} />
-        <Stack.Screen name="defi/import" options={{ title: 'Importer une photo' }} />
-        <Stack.Screen name="defi/zone" options={{ title: 'Sélectionner la zone' }} />
         <Stack.Screen name="defi/confirmation" options={{
           title: 'Confirmer la photo',
           headerStyle: { backgroundColor: theme.dailyCanvas },
@@ -90,7 +88,6 @@ function RootNavigator() {
           headerShadowVisible: false,
         }} />
         <Stack.Screen name="defi/resultat" options={{ title: 'Résultat', headerShown: false, gestureEnabled: false, animation: 'none' }} />
-        <Stack.Screen name="defi/photos" options={{ title: 'Photos du jour' }} />
         <Stack.Screen name="amis/index" options={{ title: 'Mes amis' }} />
         <Stack.Screen name="amis/recherche" options={{ title: 'Rechercher des amis' }} />
         <Stack.Screen name="joueurs/[playerId]" options={{ title: 'Profil du joueur' }} />

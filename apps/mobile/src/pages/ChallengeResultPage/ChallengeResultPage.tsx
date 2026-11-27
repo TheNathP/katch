@@ -2,12 +2,13 @@ import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useCallback, useState } from "react";
-import { Pressable, ScrollView, Text, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import Button from "@/components/ui/Button";
 import CaptureFeedback from "@/components/ui/CaptureFeedback";
-import { getChallengeAttempt } from "@/data/challenge-attempt";
+import { discardChallengeAttempt, getChallengeAttempt } from "@/data/challenge-attempt";
+import { useReleaseRouteResource } from "@/hooks/use-release-route-resource";
 import { useTheme } from "@/hooks/use-theme";
 import { minimumCaptureScore } from "@/lib/score-feedback";
 import { Colors } from "@/styles/theme";
@@ -28,6 +29,8 @@ export default function ChallengeResultPage() {
   const finishFeedback = useCallback(() => setPhase("score"), []);
   const { attemptId } = useLocalSearchParams<{ attemptId?: string }>();
   const attempt = typeof attemptId === "string" ? getChallengeAttempt(attemptId) : undefined;
+
+  useReleaseRouteResource(attempt?.id, discardChallengeAttempt);
 
   const retry = () => {
     if (router.canGoBack()) router.back();
@@ -57,7 +60,7 @@ export default function ChallengeResultPage() {
     <View style={styles.screen}>
       <StatusBar style={showingFeedback || theme === Colors.dark ? "light" : "dark"} />
       {phase === "feedback" ? (
-        <Image aria-hidden source={{ uri: attempt.photoUri }} contentFit="contain" style={styles.backingPhoto} />
+        <Image aria-hidden source={{ uri: attempt.photoUri }} cachePolicy="none" contentFit="contain" style={styles.backingPhoto} />
       ) : (
         <SafeAreaView
           aria-hidden={showingFeedback}
@@ -97,23 +100,15 @@ export default function ChallengeResultPage() {
           </ScrollView>
           <View style={[styles.footer, panelColor, { paddingBottom: bottom, borderColor: theme.dailyBorder }]}>
             <View style={styles.actions}>
-              <Pressable
-                accessibilityRole="button"
+              <Button
+                label="Refaire"
+                variant="outline"
                 accessibilityHint="Ta nouvelle photo remplacera celle-ci"
+                leadingIcon={require("@/assets/icons/refresh.svg")}
+                leadingIconSize={19}
                 onPress={retry}
-                style={({ pressed }) => [
-                  styles.secondary,
-                  { borderColor: theme.dailyBorder, backgroundColor: pressed ? theme.dailySurface : theme.dailyCard },
-                ]}
-              >
-                <Image
-                  source={require("@/assets/icons/refresh.svg")}
-                  contentFit="contain"
-                  tintColor={theme.dailyInk}
-                  style={styles.secondaryIcon}
-                />
-                <Text style={[styles.secondaryLabel, { color: theme.dailyInk }]}>Refaire</Text>
-              </Pressable>
+                style={styles.secondary}
+              />
               <Button
                 label="Continuer"
                 variant="primarySolid"

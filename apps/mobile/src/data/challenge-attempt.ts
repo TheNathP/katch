@@ -6,8 +6,10 @@ import {
   type ChallengeAttempt,
 } from "@/data/adapters/challenge-attempt.adapters";
 import { cacheDailySubmission } from "@/data/daily-color-cache";
+import { myProfileStore } from "@/data/my-profile";
 import { rewardsStore } from "@/data/rewards-store";
 import { callEdgeFunction, EdgeFunctionError } from "@/data/edge-functions";
+import { discardTemporaryPhoto } from "@/lib/discard-temporary-photo";
 
 export type { ChallengeAttempt };
 
@@ -27,8 +29,9 @@ export class SubmitPhotoError extends Error {
   }
 }
 
-// The last results, kept in memory so the result screen can show them without another request.
-const attempts = new Map<string, ChallengeAttempt>();
+// A single result can be open in the capture flow.
+let latestAttempt: ChallengeAttempt | undefined;
+let lastCreditedAttemptId: string | undefined;
 export type PhotoCoinReward = { amount: number; previousBalance?: number };
 const pendingPhotoCoins = new Map<string, PhotoCoinReward>();
 
@@ -40,7 +43,13 @@ export function takePhotoCoins(accountId: string) {
 }
 
 export function getChallengeAttempt(id: string): ChallengeAttempt | undefined {
-  return attempts.get(id);
+  return latestAttempt?.id === id ? latestAttempt : undefined;
+}
+
+export function discardChallengeAttempt(id: string) {
+  if (latestAttempt?.id !== id) return;
+  discardTemporaryPhoto(latestAttempt.photoUri);
+  latestAttempt = undefined;
 }
 
 type PreparedPhoto = { uri: string; width: number; height: number };
@@ -93,7 +102,7 @@ export async function submitChallengePhoto(
       // The result shows the very image the server analyzed, so the matched area lines up with it.
       upload,
     );
-    if (!attempts.has(attempt.id)) {
+    if (lastCreditedAttemptId !== attempt.id) {
       const wallet = rewardsStore(accountId);
       if (attempt.photoCoinsEarned > 0) {
         const previous = pendingPhotoCoins.get(accountId);
@@ -105,8 +114,11 @@ export async function submitChallengePhoto(
       const { score, scorePercent, matchedHex } = attempt;
       cacheDailySubmission(accountId, attempt.challengeDate, { score, scorePercent, matchedHex });
       wallet.invalidate();
-      attempts.set(attempt.id, attempt);
+      myProfileStore(accountId).invalidate();
+      lastCreditedAttemptId = attempt.id;
     }
+    if (latestAttempt) discardChallengeAttempt(latestAttempt.id);
+    latestAttempt = attempt;
     return attempt;
   } catch (error) {
     // The player only sees a generic message: log the real cause while developing.
@@ -118,5 +130,7 @@ export async function submitChallengePhoto(
       throw new SubmitPhotoError(error.code);
     }
     throw new SubmitPhotoError("unknown");
+  } finally {
+    if (latestAttempt?.photoUri !== upload.uri) discardTemporaryPhoto(upload.uri);
   }
 }
