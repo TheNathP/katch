@@ -1,29 +1,15 @@
 import { StyleSheet } from "react-native";
 
-import { CaptureColors, Spacing } from "@/styles/theme";
+import { Spacing } from "@/styles/theme";
 
 export const styles = StyleSheet.create({
-  root: { alignItems: "center", paddingTop: 8 },
-  mascot: { width: 170, height: 170 },
-  label: { color: CaptureColors.foreground, fontSize: 30, fontWeight: "900", marginTop: 4 },
+  summary: { width: "100%", alignItems: "center", gap: Spacing.one },
+  readout: { width: "100%", minWidth: 0, paddingHorizontal: Spacing.one },
+  beforeReveal: { opacity: 0 },
   score: {
-    color: CaptureColors.accent,
-    fontSize: 84,
-    fontWeight: "900",
-    letterSpacing: -3,
-    fontVariant: ["tabular-nums"],
+    width: "100%", textAlign: "center", fontSize: 76, lineHeight: 88, letterSpacing: -4,
+    fontWeight: "900", fontVariant: ["tabular-nums"],
   },
-  total: { color: CaptureColors.foreground, fontSize: 44, letterSpacing: -1 },
-  feedback: {
-    alignSelf: "stretch",
-    alignItems: "center",
-    gap: 4,
-    marginTop: Spacing.two,
-    paddingVertical: Spacing.three,
-    paddingHorizontal: Spacing.three,
-    borderRadius: 20,
-    backgroundColor: CaptureColors.feedback,
-  },
-  feedbackTitle: { color: CaptureColors.accent, fontSize: 26, fontWeight: "900", fontStyle: "italic" },
-  feedbackMessage: { color: CaptureColors.foreground, fontSize: 16, textAlign: "center" },
+  caption: { textAlign: "center", fontSize: 15, fontWeight: "700" },
+  progress: { width: "69%", maxWidth: 250, marginTop: Spacing.two },
 });

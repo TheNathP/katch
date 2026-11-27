@@ -1,10 +1,5 @@
-import { adaptDailyChallenge } from "@/data/adapters/daily-color.adapters";
-import { callEdgeFunction } from "@/data/edge-functions";
+import { refreshDailyChallenge } from '@/data/daily-color-cache';
 
-export async function getCapturePage(signal: AbortSignal) {
-  const response = await callEdgeFunction("get-daily-color", {
-    method: "GET",
-    signal,
-  });
-  return adaptDailyChallenge(response, performance.now()).color;
+export async function getCapturePage(accountId: string) {
+  return (await refreshDailyChallenge(accountId)).color;
 }

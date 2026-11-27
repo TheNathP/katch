@@ -5,11 +5,10 @@ import { useSharedValue } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import type { DailyChallenge } from '@/data/adapters/daily-color.adapters';
-import { takePhotoCoins } from '@/data/challenge-attempt';
+import { takePhotoCoins, type PhotoCoinReward } from '@/data/challenge-attempt';
 import { getCachedDailyChallenge } from '@/data/daily-color-cache';
 import { isDailyColorRevealed, rememberDailyColorReveal } from '@/data/daily-color-reveal';
 import { getHomePage } from '@/data/get-home-page';
-import { rewardsStore } from '@/data/rewards-store';
 import { useSession } from '@/data/session-provider';
 import { useProgression } from '@/hooks/use-progression';
 import { useTheme } from '@/hooks/use-theme';
@@ -25,15 +24,13 @@ export default function HomePage() {
   const theme = useTheme();
   const accountId = useSession().user?.id;
   const { summary } = useProgression();
-  const [photoReward, setPhotoReward] = useState<{ amount: number; previousBalance?: number }>();
+  const [photoReward, setPhotoReward] = useState<PhotoCoinReward>();
   const dismissPhotoCoins = useCallback(() => setPhotoReward(undefined), []);
 
   useFocusEffect(useCallback(() => {
     if (!accountId) return;
-    const amount = takePhotoCoins(accountId);
-    if (amount > 0) {
-      setPhotoReward({ amount, previousBalance: rewardsStore(accountId).snapshot().data?.coins });
-    }
+    const reward = takePhotoCoins(accountId);
+    if (reward) setPhotoReward(reward);
     return dismissPhotoCoins;
   }, [accountId, dismissPhotoCoins]));
   const [challenge, setChallenge] = useState<ChallengeState>({ status: 'loading' });
@@ -47,6 +44,8 @@ export default function HomePage() {
     : undefined;
 
   useFocusEffect(useCallback(() => {
+    const currentAccountId = accountId;
+    if (!currentAccountId) return;
     const controller = new AbortController();
     let pending = false;
     let refreshTimer: ReturnType<typeof setTimeout> | undefined;
@@ -80,25 +79,25 @@ export default function HomePage() {
       }, remainingMs);
     }
 
-    async function loadChallenge() {
+    const loadChallenge = async () => {
       if (pending || controller.signal.aborted) return;
       pending = true;
       setChallenge((current) => current.status === 'error' ? { status: 'loading' } : current);
 
       try {
-        const stored = await getCachedDailyChallenge();
+        const stored = await getCachedDailyChallenge(currentAccountId);
         const known = knownChallenge.current;
         const cached = stored && (!known || stored.color.date >= known.color.date) ? stored : known;
         if (cached) await displayChallenge(cached);
         if (controller.signal.aborted) return;
 
-        await displayChallenge(await getHomePage(controller.signal));
+        await displayChallenge(await getHomePage(currentAccountId));
       } catch {
         if (!controller.signal.aborted && !knownChallenge.current) setChallenge({ status: 'error' });
       } finally {
         pending = false;
       }
-    }
+    };
 
     reload.current = loadChallenge;
     void loadChallenge();
@@ -112,7 +111,7 @@ export default function HomePage() {
       clearTimeout(refreshTimer);
       subscription.remove();
     };
-  }, []));
+  }, [accountId]));
 
   const revealColor = async () => {
     if (challenge.status !== 'ready' || challenge.reveal !== 'hidden' || revealWrite.current) return;

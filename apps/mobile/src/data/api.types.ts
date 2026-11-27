@@ -64,6 +64,7 @@ export type DailyColorResponse = {
   serverTime: string;
   submission: {
     score: number;
+    scorePercent?: number;
     matchedHex: string;
   } | null;
 };
@@ -89,6 +90,7 @@ export type SubmitPhotoResponse = {
   matchedHex: string;
   matchedArea: { x: number; y: number; width: number; height: number };
   score: number;
+  scorePercent?: number;
   photoCoinsEarned?: number;
   submittedAt: string;
   takenAt: string | null;

@@ -111,6 +111,18 @@ Deno.test('the Edge Function validates the user before serving the same challeng
         }
         return Response.json({ id: token.slice(7), role: 'authenticated', aud: 'authenticated' });
       }
+      if (path === '/rest/v1/challenge_attempts') {
+        assert.equal(request.headers.get('apikey'), fakeEnv.SUPABASE_SERVICE_ROLE_KEY);
+        const filters = new URL(request.url).searchParams;
+        assert.equal(filters.get('select'), 'score,matched_hex,delta_e');
+        assert.equal(filters.get('challenge_date'), 'eq.2026-11-25');
+        const player = filters.get('player_id');
+        assert.ok(player === 'eq.player-one' || player === 'eq.player-two');
+        databaseCalls++;
+        return Response.json(player === 'eq.player-one' ? [
+          { score: 60, matched_hex: '#FFCCAA', delta_e: 19.95 },
+        ] : []);
+      }
       assert.equal(path, '/rest/v1/rpc/get_or_create_daily_challenge');
       assert.equal(request.headers.get('apikey'), fakeEnv.SUPABASE_SERVICE_ROLE_KEY);
       databaseCalls++;
@@ -143,9 +155,12 @@ Deno.test('the Edge Function validates the user before serving the same challeng
         colorHex: '#8A3FFC',
         endsAt: '2026-11-26T00:00:00Z',
         serverTime: '2026-11-25T16:00:00Z',
+        submission: token === 'player-one'
+          ? { score: 60, scorePercent: 60.1, matchedHex: '#FFCCAA' }
+          : null,
       });
     }
-    assert.equal(databaseCalls, 2);
+    assert.equal(databaseCalls, 4);
   } finally {
     globalThis.fetch = originalFetch;
     for (const [name, value] of savedEnv) {

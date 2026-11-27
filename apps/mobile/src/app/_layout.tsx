@@ -7,7 +7,7 @@ import { hasCompletedOnboarding } from '@/data/onboarding-progress';
 import { SessionProvider, useSession } from '@/data/session-provider';
 import { ThemePreferenceProvider, useThemePreference } from '@/data/theme-preference-provider';
 import { usePushNotifications } from '@/hooks/use-push-notifications';
-import { CaptureColors } from '@/styles/theme';
+import { useTheme } from '@/hooks/use-theme';
 
 // Keep the splash screen until the stored session and the onboarding flag have
 // been read, so a signed-in player never sees the sign-in screen flash.
@@ -50,6 +50,7 @@ function AppLayout() {
  * check in Edge Functions.
  */
 function RootNavigator() {
+  const theme = useTheme();
   const { user, isLoading } = useSession();
   const { ready: themeReady } = useThemePreference();
   // In development the onboarding is always shown (see onboarding-progress).
@@ -79,11 +80,11 @@ function RootNavigator() {
         <Stack.Screen name="defi/zone" options={{ title: 'Sélectionner la zone' }} />
         <Stack.Screen name="defi/confirmation" options={{
           title: 'Confirmer la photo',
-          headerStyle: { backgroundColor: CaptureColors.backdrop },
-          headerTintColor: CaptureColors.foreground,
+          headerStyle: { backgroundColor: theme.dailyCanvas },
+          headerTintColor: theme.dailyInk,
           headerShadowVisible: false,
         }} />
-        <Stack.Screen name="defi/resultat" options={{ title: 'Résultat', headerShown: false, gestureEnabled: false }} />
+        <Stack.Screen name="defi/resultat" options={{ title: 'Résultat', headerShown: false, gestureEnabled: false, animation: 'none' }} />
         <Stack.Screen name="defi/photos" options={{ title: 'Photos du jour' }} />
         <Stack.Screen name="amis/index" options={{ title: 'Mes amis' }} />
         <Stack.Screen name="amis/recherche" options={{ title: 'Rechercher des amis' }} />

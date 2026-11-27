@@ -2,6 +2,7 @@ import type { FlashMode } from "expo-camera";
 import { Image } from "expo-image";
 import { Pressable, View } from "react-native";
 
+import { useTheme } from "@/hooks/use-theme";
 import { CaptureColors } from "@/styles/theme";
 
 import { styles } from "./CapturePageTopBar.styles";
@@ -19,6 +20,7 @@ export default function CapturePageTopBar({
   onBack,
   onToggleFlash,
 }: Props) {
+  const theme = useTheme();
   const flashOn = flash !== "off";
 
   return (
@@ -28,12 +30,12 @@ export default function CapturePageTopBar({
         accessibilityLabel="Retour"
         hitSlop={8}
         onPress={onBack}
-        style={({ pressed }) => [styles.button, pressed && styles.pressed]}
+        style={({ pressed }) => [styles.button, { backgroundColor: pressed ? theme.dailySurface : theme.dailyCard, borderColor: theme.dailyBorder }]}
       >
         <Image
           source={require("@/assets/icons/arrow-left.svg")}
           contentFit="contain"
-          tintColor={CaptureColors.foreground}
+          tintColor={theme.dailyInk}
           style={styles.icon}
         />
       </Pressable>
@@ -45,15 +47,16 @@ export default function CapturePageTopBar({
         onPress={onToggleFlash}
         style={({ pressed }) => [
           styles.button,
+          { backgroundColor: pressed ? theme.dailySurface : theme.dailyCard, borderColor: theme.dailyBorder },
           flashOn && styles.active,
-          pressed && styles.pressed,
+          flashOn && pressed && styles.activePressed,
         ]}
       >
         <Image
           source={require("@/assets/icons/lightning.svg")}
           contentFit="contain"
           tintColor={
-            flashOn ? CaptureColors.accentInk : CaptureColors.foreground
+            flashOn ? CaptureColors.accentInk : theme.dailyInk
           }
           style={styles.icon}
         />

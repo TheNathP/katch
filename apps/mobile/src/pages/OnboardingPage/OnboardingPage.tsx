@@ -17,12 +17,13 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import Button from '@/components/ui/Button';
 import { completeOnboarding } from '@/data/onboarding-progress';
+import CaptureFeedback from '@/components/ui/CaptureFeedback';
+import { minimumCaptureScore } from '@/lib/score-feedback';
 import { ComicFeedbackColors, OnboardingColors } from '@/styles/theme';
 
 import { styles } from './OnboardingPage.styles';
 import OnboardingPageArt from './_page/OnboardingPageArt';
 import OnboardingPageCamera from './_page/OnboardingPageCamera';
-import OnboardingPageFeedback from './_page/OnboardingPageFeedback';
 import OnboardingPagePagination from './_page/OnboardingPagePagination';
 import OnboardingPageResult from './_page/OnboardingPageResult';
 
@@ -57,7 +58,6 @@ const slideLabels = slides.map(({ title, accent }) => `${title} ${accent}`);
 const autoAdvanceDelay = 6500;
 const lastSlide = slides.length - 1;
 const demoScore = 70;
-const minimumCaptureScore = 70;
 const transition = FadeInDown.duration(220).reduceMotion(ReduceMotion.System);
 const arrow = require('@/assets/icons/arrow-left.svg');
 const chevron = require('@/assets/icons/chevron-right.svg');
@@ -346,7 +346,7 @@ export default function OnboardingPage() {
       </View>
       {feedback && (
         <View style={styles.feedbackOverlay}>
-          <OnboardingPageFeedback
+          <CaptureFeedback
             validated={captureValidated}
             revealing={feedback.revealing}
             onReveal={revealScore}

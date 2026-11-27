@@ -23,10 +23,11 @@ export const styles = StyleSheet.create({
   label: { fontSize: 13, fontWeight: '700' },
   title: { fontSize: 17, fontWeight: '900' },
   score: {
-    fontSize: 34,
+    maxWidth: '45%',
+    flexShrink: 1,
+    fontSize: 29,
     fontWeight: '900',
     letterSpacing: -1,
     fontVariant: ['tabular-nums'],
   },
-  total: { fontSize: 16, fontWeight: '800', letterSpacing: 0 },
 });
