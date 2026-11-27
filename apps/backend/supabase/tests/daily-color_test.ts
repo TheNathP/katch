@@ -121,7 +121,7 @@ Deno.test('the Edge Function shares the daily color and returns each player thei
         assert.ok(player === 'eq.player-one' || player === 'eq.player-two');
         submissionLookups.push(player);
         return Response.json(player === 'eq.player-one' ? [
-          { score: 60, matched_hex: '#FFCCAA', delta_e: 19.95 },
+          { score: 12, matched_hex: '#FFCCAA', delta_e: 19.95 },
         ] : []);
       }
       assert.equal(path, '/rest/v1/rpc/get_or_create_daily_challenge');
@@ -157,7 +157,7 @@ Deno.test('the Edge Function shares the daily color and returns each player thei
         endsAt: '2026-11-26T00:00:00Z',
         serverTime: '2026-11-25T16:00:00Z',
         submission: token === 'player-one'
-          ? { score: 60, scorePercent: 60.1, matchedHex: '#FFCCAA' }
+          ? { score: 12, scorePercent: 12, matchedHex: '#FFCCAA' }
           : null,
       });
     }
