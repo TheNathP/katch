@@ -1,4 +1,4 @@
-# ADR-003: Email/Password Authentication with an Encrypted Session
+# ADR-004: Email/Password Authentication with an Encrypted Session
 
 **Status:** Accepted  
 **Date:** 2026-11-25
@@ -28,7 +28,7 @@ Players need an account to keep their scores, streaks and friends. Our security 
 
 ## Consequences
 
-- All the modules used (`expo-secure-store`, `expo-crypto`, `expo-sqlite`) are bundled in Expo Go, so no development build is required yet.
+- Expo Go bundles the three modules used for email authentication and secure session storage. See [ADR-007](007-expo-go-delivery.md) for the build requirements of other features.
 - The app reads `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` from `apps/mobile/.env.local` (gitignored, see `.env.example`).
 - Sign-up with email confirmations enabled returns no session. The app tells the user to confirm their email, then sign in. Confirmation links that open the app (deep links) and password reset are not implemented yet.
 
@@ -38,4 +38,4 @@ The development team is responsible for the Supabase Auth settings and the mobil
 
 ## Review
 
-This decision will be revisited when adding a social login (Google, and Sign in with Apple, which the App Store requires once a third-party login is offered on iOS), or if the encrypted storage causes session loss in practice.
+Revisit this decision when adding Google or Apple sign-in, or if the encrypted storage causes session loss in practice.

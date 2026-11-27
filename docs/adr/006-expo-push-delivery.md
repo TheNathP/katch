@@ -9,7 +9,7 @@ Use Expo Push Service for iOS and Android delivery. Supabase stores device regis
 
 ## Background
 
-The daily challenge, streak reminders, and friends' rankings depend on different game rules. All of them need the same device registration, delivery, and error handling.
+The daily challenge and friend requests share the same device registration, delivery, and error handling. Future notifications can reuse that infrastructure.
 
 ## Considerations
 
@@ -53,14 +53,20 @@ await enqueuePushNotification({
 
 ## Local verification
 
-Run `pnpm --filter @katch/backend test:push` from the repository root. The tests run with an in-memory PostgreSQL instance and simulated Supabase and Expo HTTP responses. The first run downloads the test runtime and dependencies. Delivery to a real device is verified separately after activation.
+Run the notification tests from `apps/backend`.
+
+```bash
+pnpm dlx deno@2.9.6 test --no-config --no-lock --node-modules-dir=none --allow-env --allow-read supabase/tests/*push*_test.ts
+```
+
+The tests run with an in-memory PostgreSQL instance and simulated Supabase and Expo HTTP responses. The first run downloads the test runtime and dependencies. Delivery to a real device is verified separately after activation.
 
 ## Activation
 
 - Configure a random `PUSH_WORKER_SECRET` of at least 32 characters in the Edge Function environment. Schedule `push-worker` at least once per minute with Supabase Cron and pass that secret from Vault in the `x-push-worker-secret` header. Set `EXPO_ACCESS_TOKEN` if the Expo project requires authenticated push requests.
-- In a signed-in native build, the profile lets players enable or disable notifications on their device. Katch asks for OS permission when they enable them, registers the Expo token, and opens the internal destination on tap. Disabling removes the registration. Katch attempts to remove the registration before signing out.
+- In a signed-in native build, players can enable or disable notifications from profile settings. Katch asks for OS permission when they enable them, registers the Expo token, and opens the internal destination on tap. Disabling removes the registration. Katch attempts to remove the registration before signing out.
 - Link the Expo project so its EAS project ID is available in the build, and configure APNs for iOS and FCM for Android. Install a development build to test remote delivery. The app uses the `daily-challenge` Android notification channel.
-- For development, use the local Supabase stack and `pnpm functions:serve --env-file <path-to-local-env>`. Call the worker with a POST request and an empty body or `{}`. Send only to devices enrolled for testing.
+- For development, use the local Supabase stack and `pnpm --filter @katch/backend exec supabase functions serve --env-file <path-to-local-env>`. Call the worker with a POST request and an empty body or `{}`. Send only to devices enrolled for testing.
 
 With the project URL and the worker secret stored in Vault as `project_url` and `push_worker_secret`, the Cron job can use this statement with `pg_net` enabled.
 

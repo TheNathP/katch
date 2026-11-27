@@ -1,7 +1,7 @@
 import { decode, Image } from "https://deno.land/x/imagescript@1.3.0/mod.ts";
 
 import { resolveUserId } from "../_shared/auth.ts";
-import { analyzePhoto } from "../_shared/color/analysis.ts";
+import { analyzePhoto, scorePercentFromDeltaE } from "../_shared/color/analysis.ts";
 import { type AdminClient, createAdminClient } from "../_shared/db.ts";
 import { EXTENSIONS, MIME_TYPES, readImageHeader } from "../_shared/image.ts";
 import type { SubmitPhotoResponse } from "../_shared/types.ts";
@@ -194,6 +194,7 @@ Deno.serve(async (request) => {
         matchedHex: analysis.matchedHex,
         matchedArea: analysis.matchedArea,
         score: analysis.score,
+        scorePercent: scorePercentFromDeltaE(analysis.deltaE),
         photoCoinsEarned: recorded.photo_coins_earned,
         submittedAt: new Date(recorded.submitted_at).toISOString(),
         takenAt,

@@ -3,21 +3,23 @@ import type { SubmitPhotoResponse } from "@/data/api.types";
 /** A scored photo, as shown on the result screen. The score always comes from the server. */
 export type ChallengeAttempt = {
   id: string;
+  challengeDate: string;
   photoUri: string;
   photoSize: { width: number; height: number };
   targetHex: string;
   matchedHex: string;
   matchedArea: PhotoArea | null;
   score: number;
+  scorePercent: number;
   photoCoinsEarned: number;
 };
 
 export type PhotoArea = { x: number; y: number; width: number; height: number };
 
 const HEX = /^#[0-9A-F]{6}$/;
-const isScore = (value: unknown): value is number =>
+const isScorePercent = (value: unknown): value is number =>
   typeof value === "number" &&
-  Number.isInteger(value) &&
+  Number.isFinite(value) &&
   value >= 0 &&
   value <= 100;
 
@@ -56,22 +58,26 @@ export function adaptChallengeAttempt(
     typeof body !== "object" ||
     body === null ||
     typeof body.attemptId !== "string" ||
+    typeof body.challengeDate !== "string" ||
     typeof body.targetHex !== "string" ||
     !HEX.test(body.targetHex) ||
     typeof body.matchedHex !== "string" ||
     !HEX.test(body.matchedHex) ||
-    !isScore(body.score)
+    !isScorePercent(body.score) ||
+    !Number.isInteger(body.score)
   ) {
     throw new Error("Invalid photo result");
   }
   return {
     id: body.attemptId,
+    challengeDate: body.challengeDate,
     photoUri: photo.uri,
     photoSize: { width: photo.width, height: photo.height },
     targetHex: body.targetHex,
     matchedHex: body.matchedHex,
     matchedArea: adaptArea(body.matchedArea),
     score: body.score,
+    scorePercent: isScorePercent(body.scorePercent) ? body.scorePercent : body.score,
     photoCoinsEarned: body.photoCoinsEarned === 5 || body.photoCoinsEarned === 10 ? body.photoCoinsEarned : 0,
   };
 }

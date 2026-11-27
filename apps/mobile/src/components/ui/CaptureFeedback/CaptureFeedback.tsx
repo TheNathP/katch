@@ -1,6 +1,6 @@
 import { AndroidHaptics, NotificationFeedbackType, notificationAsync, performAndroidHapticsAsync } from 'expo-haptics';
 import { Image } from 'expo-image';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Platform, View } from 'react-native';
 import Animated, {
   cancelAnimation,
@@ -14,9 +14,9 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { scheduleOnRN } from 'react-native-worklets';
 
-import { styles } from './OnboardingPageFeedback.styles';
-import { ComicBackdrop, ComicHeadline, ComicOutcomeMark } from './OnboardingPageFeedbackMark';
-import OnboardingPageFeedbackWave from './OnboardingPageFeedbackWave';
+import { styles } from './CaptureFeedback.styles';
+import { ComicBackdrop, ComicHeadline, ComicOutcomeMark } from './CaptureFeedbackMark';
+import CaptureFeedbackWave from './CaptureFeedbackWave';
 
 const comicWin = require('@/assets/images/pix/comic-win.png');
 const comicMiss = require('@/assets/images/pix/comic-miss.png');
@@ -28,18 +28,23 @@ const waveDuration = 445;
 type Props = {
   validated: boolean;
   revealing: boolean;
+  holdDuration?: number;
+  successHaptic?: boolean;
   onReveal: () => void;
   onComplete: () => void;
 };
 
-export default function OnboardingPageFeedback({
+export default function CaptureFeedback({
   validated,
   revealing,
+  holdDuration,
+  successHaptic = false,
   onReveal,
   onComplete,
 }: Props) {
   const reduceMotion = useReducedMotion();
   const [ready, setReady] = useState(false);
+  const signalledOutcome = useRef(false);
   const waveProgress = useSharedValue(0);
   const impact = useSharedValue(reduceMotion ? 1 : 0);
   const safeArea = useSafeAreaInsets();
@@ -50,18 +55,22 @@ export default function OnboardingPageFeedback({
       impact.set(withTiming(1, { duration: 220, easing: Easing.out(Easing.back(1.2)) }));
     }
 
-    if (!validated && Platform.OS === 'android') {
-      void performAndroidHapticsAsync(AndroidHaptics.Reject).catch(() => {});
-    } else if (!validated && Platform.OS === 'ios') {
-      void notificationAsync(NotificationFeedbackType.Warning).catch(() => {});
-    }
-
-    const timeout = setTimeout(onReveal, reduceMotion ? reducedMotionReadTime : readTime);
+    const timeout = setTimeout(onReveal, holdDuration ?? (reduceMotion ? reducedMotionReadTime : readTime));
     return () => {
       clearTimeout(timeout);
       cancelAnimation(impact);
     };
-  }, [impact, onReveal, ready, reduceMotion, validated]);
+  }, [holdDuration, impact, onReveal, ready, reduceMotion]);
+
+  useEffect(() => {
+    if (!ready || revealing || signalledOutcome.current || (validated && !successHaptic)) return;
+    signalledOutcome.current = true;
+    if (Platform.OS === 'android') {
+      void performAndroidHapticsAsync(validated ? AndroidHaptics.Confirm : AndroidHaptics.Reject).catch(() => {});
+    } else if (Platform.OS === 'ios') {
+      void notificationAsync(validated ? NotificationFeedbackType.Success : NotificationFeedbackType.Warning).catch(() => {});
+    }
+  }, [ready, revealing, successHaptic, validated]);
 
   useEffect(() => {
     if (!revealing) return;
@@ -91,7 +100,7 @@ export default function OnboardingPageFeedback({
       accessibilityElementsHidden={!ready}
       importantForAccessibility={ready ? 'auto' : 'no-hide-descendants'}
       style={[styles.feedback, !ready && styles.waiting]}>
-      <OnboardingPageFeedbackWave progress={waveProgress} validated={validated}>
+      <CaptureFeedbackWave progress={waveProgress} validated={validated}>
         <View aria-hidden pointerEvents="none" style={styles.backdrop}>
           <ComicBackdrop validated={validated} />
         </View>
@@ -128,7 +137,7 @@ export default function OnboardingPageFeedback({
             )}
           </View>
         </Animated.View>
-      </OnboardingPageFeedbackWave>
+      </CaptureFeedbackWave>
     </View>
   );
 }

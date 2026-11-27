@@ -1,6 +1,6 @@
 import { StyleSheet } from "react-native";
 
-import { CaptureColors } from "@/styles/theme";
+import { CaptureColors, Spacing } from "@/styles/theme";
 
 const CORNER = 46;
 const CORNER_WIDTH = 5;
@@ -9,7 +9,6 @@ export const styles = StyleSheet.create({
   viewfinder: {
     flex: 1,
     overflow: "hidden",
-    backgroundColor: CaptureColors.backdrop,
     borderBottomLeftRadius: 36,
     borderBottomRightRadius: 36,
   },
@@ -17,6 +16,32 @@ export const styles = StyleSheet.create({
     ...StyleSheet.absoluteFill,
     alignItems: "center",
     justifyContent: "center",
+  },
+  speech: {
+    position: "absolute",
+    left: 90,
+    right: Spacing.three,
+    bottom: 93,
+    alignSelf: "flex-start",
+    alignItems: "flex-start",
+  },
+  speechTail: {
+    position: "absolute",
+    left: 13,
+    bottom: -4,
+    width: 15,
+    height: 15,
+    borderRadius: 3,
+    transform: [{ rotate: "45deg" }],
+  },
+  speechText: {
+    borderRadius: 16,
+    overflow: "hidden",
+    fontSize: 15,
+    lineHeight: 20,
+    fontWeight: "800",
+    paddingHorizontal: Spacing.two,
+    paddingVertical: Spacing.two,
   },
   frame: {
     width: "78%",

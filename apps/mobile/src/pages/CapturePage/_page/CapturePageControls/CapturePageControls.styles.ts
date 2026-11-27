@@ -7,10 +7,8 @@ export const styles = StyleSheet.create({
     gap: 18,
     paddingTop: Spacing.four,
     paddingHorizontal: Spacing.four,
-    backgroundColor: CaptureColors.panel,
   },
   error: {
-    color: CaptureColors.danger,
     fontSize: 15,
     fontWeight: "600",
     textAlign: "center",
@@ -35,7 +33,6 @@ export const styles = StyleSheet.create({
     height: 84,
     borderRadius: 42,
     borderWidth: 4,
-    borderColor: CaptureColors.foreground,
     alignItems: "center",
     justifyContent: "center",
   },

@@ -17,14 +17,12 @@ export const styles = StyleSheet.create({
     borderRadius: 24,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: CaptureColors.control,
     borderWidth: 1,
-    borderColor: CaptureColors.controlBorder,
   },
   active: {
     backgroundColor: CaptureColors.accent,
     borderColor: CaptureColors.accent,
   },
-  pressed: { backgroundColor: CaptureColors.controlPressed },
+  activePressed: { opacity: 0.88 },
   icon: { width: 22, height: 22 },
 });
