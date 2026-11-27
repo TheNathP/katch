@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 
-import { Spacing } from '@/styles/theme';
+import { ComicFeedbackColors, OnboardingColors, Spacing } from '@/styles/theme';
 
 export const tileWidth = 94;
 export const tileGap = Spacing.two;
@@ -12,11 +12,16 @@ export const styles = StyleSheet.create({
   count: { fontVariant: ['tabular-nums'], fontWeight: '900' },
   rail: { gap: tileGap, paddingVertical: Spacing.one },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: tileGap },
-  tile: { width: tileWidth, padding: Spacing.one, gap: 3, borderRadius: 16, borderWidth: 1 },
+  tile: { width: tileWidth, paddingHorizontal: Spacing.one, paddingVertical: Spacing.one, gap: 3, borderRadius: 16, borderWidth: 1, alignItems: 'stretch', alignSelf: 'stretch' },
   gridTile: { flexBasis: '30%', flexGrow: 1, maxWidth: '32%', minWidth: 80 },
-  swatch: { height: 58, borderRadius: 12 },
+  swatch: { height: 58, borderRadius: 12, borderWidth: 1 },
+  fullSwatch: { height: 80, padding: 5, justifyContent: 'flex-end', alignItems: 'flex-start' },
   hex: { textAlign: 'center', fontSize: 12, lineHeight: 17 },
+  date: { textAlign: 'center', fontSize: 11, lineHeight: 14, paddingBottom: Spacing.one },
+  score: {
+    color: OnboardingColors.white, backgroundColor: ComicFeedbackColors.ink, borderRadius: 8,
+    overflow: 'hidden', fontWeight: '900', fontSize: 11, lineHeight: 15, paddingHorizontal: 5, paddingVertical: 1,
+  },
   emptyTile: { width: tileWidth, height: 75, borderRadius: 16, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
   lock: { width: 18, height: 18, opacity: 0.7 },
-  note: { fontSize: 13, lineHeight: 18 },
 });

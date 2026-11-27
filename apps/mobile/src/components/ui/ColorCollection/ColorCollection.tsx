@@ -1,9 +1,11 @@
 import { Image } from 'expo-image';
 import { ScrollView, View } from 'react-native';
 
+import NavigationLink from '@/components/ui/NavigationLink';
 import ThemedText from '@/components/ui/ThemedText';
 import type { ColorCollection as CollectionData } from '@/data/color-collection';
 import { useTheme } from '@/hooks/use-theme';
+import { formatChallengeScore, formatShortChallengeDay } from '@/lib/challenge-calendar';
 
 import { styles, tileGap, tileWidth } from './ColorCollection.styles';
 
@@ -11,26 +13,30 @@ const lock = require('@/assets/icons/lock.svg');
 const emptyTiles = ['first', 'second', 'third', 'fourth', 'fifth'];
 
 type Props = {
-  collection: CollectionData;
+  collection?: CollectionData;
   preview?: boolean;
 };
 
 export default function ColorCollection({ collection, preview = false }: Props) {
   const theme = useTheme();
-  const { validatedColors, offeredCount } = collection;
+  const validatedColors = collection?.validatedColors ?? [];
   const colors = preview ? validatedColors.slice(0, 8) : validatedColors;
-  const tiles = colors.map(({ id, hex }) => (
-    <View
-      key={id}
-      accessible
-      accessibilityLabel={`Couleur ${hex}`}
+  const tiles = colors.map(({ date, hex, score }) => (
+    <NavigationLink
+      key={date}
+      href={{ pathname: '/historique/[date]', params: { date } }}
+      label={`Couleur ${hex}, ${formatShortChallengeDay(date)}, ${formatChallengeScore(score)}`}
+      variant="plain"
       style={[
         styles.tile, !preview && styles.gridTile,
         { backgroundColor: theme.dailyCard, borderColor: theme.dailyBorder },
       ]}>
-      <View aria-hidden style={[styles.swatch, { backgroundColor: hex }]} />
+      <View aria-hidden style={[styles.swatch, !preview && styles.fullSwatch, { backgroundColor: hex, borderColor: theme.dailySwatchBorder }]}>
+        {!preview && <ThemedText style={styles.score}>{formatChallengeScore(score)}</ThemedText>}
+      </View>
       <ThemedText type="smallBold" aria-hidden style={[styles.hex, { color: theme.dailyInk }]}>{hex}</ThemedText>
-    </View>
+      {!preview && <ThemedText type="small" aria-hidden themeColor="dailyMuted" style={styles.date}>{formatShortChallengeDay(date)}</ThemedText>}
+    </NavigationLink>
   ));
 
   return (
@@ -39,12 +45,14 @@ export default function ColorCollection({ collection, preview = false }: Props) 
         {preview ? (
           <ThemedText accessibilityRole="header" style={[styles.title, { color: theme.dailyInk }]}>Ma collection</ThemedText>
         ) : <ThemedText type="smallBold">Couleurs validées</ThemedText>}
-        <ThemedText
-          accessibilityLabel={`${validatedColors.length} couleurs validées sur ${offeredCount} proposées depuis ton inscription`}
-          type="smallBold"
-          style={[styles.count, { color: theme.dailyInk }]}>
-          {validatedColors.length} / {offeredCount}
-        </ThemedText>
+        {collection && (
+          <ThemedText
+            accessibilityLabel={`${collection.validatedCount} couleurs validées sur ${collection.offeredCount} proposées depuis ton inscription`}
+            type="smallBold"
+            style={[styles.count, { color: theme.dailyInk }]}>
+            {collection.validatedCount} / {collection.offeredCount}
+          </ThemedText>
+        )}
       </View>
       {preview ? (
         <ScrollView
@@ -63,16 +71,7 @@ export default function ColorCollection({ collection, preview = false }: Props) 
             </View>
           ))}
         </ScrollView>
-      ) : (
-        <>
-          <ThemedText type="small" themeColor="textSecondary" style={styles.note}>
-            Couleurs validées sur les défis proposés depuis ton inscription.
-          </ThemedText>
-          {colors.length > 0 ? <View style={styles.grid}>{tiles}</View> : (
-            <ThemedText type="small" themeColor="textSecondary">Tes couleurs validées apparaîtront ici.</ThemedText>
-          )}
-        </>
-      )}
+      ) : <View style={styles.grid}>{tiles}</View>}
     </View>
   );
 }
