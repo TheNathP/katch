@@ -9,3 +9,7 @@ export async function isDailyColorRevealed(date: string) {
 export async function rememberDailyColorReveal(date: string) {
   await AsyncStorage.setItem(revealKey, date);
 }
+
+export async function forgetDailyColorReveal() {
+  await AsyncStorage.removeItem(revealKey);
+}

@@ -86,3 +86,9 @@ export function myProfileStore(accountId?: string) {
   stores.set(accountId, store);
   return store;
 }
+
+/** Forgets the account's profile kept in memory. */
+export function clearMyProfileCache(accountId: string) {
+  stores.get(accountId)?.invalidate();
+  stores.delete(accountId);
+}

@@ -42,6 +42,12 @@ export function takePhotoCoins(accountId: string) {
   return coins;
 }
 
+/** Drops the pending coin credit and the open result, deleting its temporary photo. */
+export function clearChallengeAttempts(accountId: string) {
+  pendingPhotoCoins.delete(accountId);
+  if (latestAttempt) discardChallengeAttempt(latestAttempt.id);
+}
+
 export function getChallengeAttempt(id: string): ChallengeAttempt | undefined {
   return latestAttempt?.id === id ? latestAttempt : undefined;
 }

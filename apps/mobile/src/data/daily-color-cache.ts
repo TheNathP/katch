@@ -67,6 +67,8 @@ export async function refreshDailyChallenge(accountId: string) {
     const submissionAtStart = cache.latestSubmission;
     cache.request = callEdgeFunction('get-daily-color', { method: 'GET', expectedUserId: accountId })
       .then(raw => {
+        // The account was cleared (sign-out) while the request was in flight.
+        if (accounts.get(accountId) !== cache) return;
         const savedAt = Date.now();
         const receivedAt = performance.now();
         const { color } = adaptDailyChallenge(raw, receivedAt);
@@ -106,4 +108,10 @@ export function cacheDailySubmission(accountId: string, date: string, submission
   } else {
     cache.freshUntil = undefined;
   }
+}
+
+/** Forgets the account's daily color and submission, in memory and on disk. */
+export async function clearDailyChallengeCache(accountId: string) {
+  accounts.delete(accountId);
+  await AsyncStorage.removeItem(accountKey(accountId));
 }

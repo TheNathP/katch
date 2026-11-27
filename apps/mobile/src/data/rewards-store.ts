@@ -5,6 +5,7 @@ import type { ChangeRewardRequest, RewardsResponse } from '@/data/api.types';
 import { callEdgeFunction, EdgeFunctionError } from '@/data/edge-functions';
 
 const freshnessMs = 30_000;
+const cacheKeyFor = (accountId: string) => `katch:rewards:${accountId}`;
 
 type Snapshot = { data?: RewardsResponse; busy: boolean; error?: string; actionError?: string };
 
@@ -14,7 +15,8 @@ function createStore(accountId?: string) {
   let reading: Promise<void> | undefined;
   let freshUntil = 0;
   let revision = 0;
-  const cacheKey = accountId ? `katch:rewards:${accountId}` : undefined;
+  let disposed = false;
+  const cacheKey = accountId ? cacheKeyFor(accountId) : undefined;
   const hydration = cacheKey ? AsyncStorage.getItem(cacheKey).then(stored => {
     if (stored && !snapshot.data) publish({ ...snapshot, data: adaptRewards(JSON.parse(stored)) });
   }).catch(() => {}) : undefined;
@@ -27,11 +29,11 @@ function createStore(accountId?: string) {
   function save(data: RewardsResponse, busy: boolean, actionError?: string) {
     freshUntil = performance.now() + freshnessMs;
     publish({ data, busy, actionError });
-    if (cacheKey) void AsyncStorage.setItem(cacheKey, JSON.stringify(data)).catch(() => {});
+    if (cacheKey && !disposed) void AsyncStorage.setItem(cacheKey, JSON.stringify(data)).catch(() => {});
   }
 
   function load() {
-    if (!accountId || reading || snapshot.busy || freshUntil > performance.now()) return reading;
+    if (!accountId || disposed || reading || snapshot.busy || freshUntil > performance.now()) return reading;
     const version = revision;
     reading = (async () => {
       await hydration;
@@ -95,8 +97,13 @@ function createStore(accountId?: string) {
     if (snapshot.actionError) publish({ ...snapshot, actionError: undefined });
   }
 
+  /** Stops a dropped store from writing back to disk once its account is cleared. */
+  function dispose() {
+    disposed = true;
+  }
+
   return {
-    load, invalidate, change, clearActionError,
+    load, invalidate, change, clearActionError, dispose,
     subscribe(listener: () => void) {
       listeners.add(listener);
       return () => { listeners.delete(listener); };
@@ -115,4 +122,11 @@ export function rewardsStore(accountId?: string) {
   const store = createStore(accountId);
   stores.set(accountId, store);
   return store;
+}
+
+/** Forgets the account's rewards, in memory and on disk. */
+export async function clearRewardsCache(accountId: string) {
+  stores.get(accountId)?.dispose();
+  stores.delete(accountId);
+  await AsyncStorage.removeItem(cacheKeyFor(accountId));
 }
