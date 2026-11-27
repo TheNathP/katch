@@ -8,6 +8,7 @@ import {
 import { AppState } from "react-native";
 
 import { toAuthUser, type AuthUser } from "./adapters/auth.adapters";
+import { clearLocalAccountData } from "./clear-local-account-data";
 import { supabase } from "./supabase";
 
 type SessionState = {
@@ -27,8 +28,14 @@ export function SessionProvider({ children }: PropsWithChildren) {
   });
 
   useEffect(() => {
-    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
-      setState({ user: toAuthUser(session), isLoading: false });
+    let signedInUserId: string | null = null;
+    const { data } = supabase.auth.onAuthStateChange((event, session) => {
+      const user = toAuthUser(session);
+      // Covers sign-out, account deletion and an expired session alike. Not
+      // awaited: Supabase advises against async work inside this callback.
+      if (event === "SIGNED_OUT" && signedInUserId) void clearLocalAccountData(signedInUserId);
+      signedInUserId = user?.id ?? null;
+      setState({ user, isLoading: false });
     });
     function syncAutoRefresh(appState: typeof AppState.currentState) {
       if (appState === "active") void supabase.auth.startAutoRefresh();
