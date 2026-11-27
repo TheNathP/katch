@@ -27,6 +27,14 @@ export class SubmitPhotoError extends Error {
 
 // The last results, kept in memory so the result screen can show them without another request.
 const attempts = new Map<string, ChallengeAttempt>();
+const pendingPhotoCoins = new Map<string, number>();
+
+/** Home consumes each confirmed photo credit once, including after a retake. */
+export function takePhotoCoins(accountId: string): number {
+  const coins = pendingPhotoCoins.get(accountId) ?? 0;
+  pendingPhotoCoins.delete(accountId);
+  return coins;
+}
 
 export function getChallengeAttempt(id: string): ChallengeAttempt | undefined {
   return attempts.get(id);
@@ -62,6 +70,7 @@ async function preparePhoto(uri: string): Promise<PreparedPhoto> {
 export async function submitChallengePhoto(
   photoUri: string,
   takenAt: string | null,
+  accountId: string,
 ): Promise<ChallengeAttempt> {
   const upload = await preparePhoto(photoUri).catch((error: unknown) => {
     if (__DEV__) console.warn("Could not prepare challenge photo", error);
@@ -75,10 +84,14 @@ export async function submitChallengePhoto(
     if (takenAt) form.append("takenAt", takenAt);
 
     const attempt = adaptChallengeAttempt(
-      await callEdgeFunction("submit-photo", { method: "POST", body: form }),
+      await callEdgeFunction("submit-photo", { method: "POST", body: form, expectedUserId: accountId }),
       // The result shows the very image the server analyzed, so the matched area lines up with it.
       upload,
     );
+    if (attempt.photoCoinsEarned > 0 && !attempts.has(attempt.id)) {
+      const previous = pendingPhotoCoins.get(accountId) ?? 0;
+      pendingPhotoCoins.set(accountId, previous + attempt.photoCoinsEarned);
+    }
     attempts.set(attempt.id, attempt);
     return attempt;
   } catch (error) {

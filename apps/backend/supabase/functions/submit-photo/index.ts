@@ -20,6 +20,7 @@ const ISO_DATE_PATTERN =
 
 type DailyChallengeRow = { challenge_date: string; color_hex: string };
 type RecordedAttemptRow = {
+  photo_coins_earned: number;
   submitted_at: string;
   /** Photo of the attempt this submission replaced, to delete from storage. */
   replaced_photo_path: string | null;
@@ -149,7 +150,7 @@ Deno.serve(async (request) => {
     uploadedPath = path;
 
     const { data: recorded, error: recordError } = await admin
-      .rpc("record_challenge_attempt", {
+      .rpc("record_rewarded_challenge_attempt", {
         attempt_id: attemptId,
         attempt_player: playerId,
         attempt_date: challenge.challenge_date,
@@ -193,6 +194,7 @@ Deno.serve(async (request) => {
         matchedHex: analysis.matchedHex,
         matchedArea: analysis.matchedArea,
         score: analysis.score,
+        photoCoinsEarned: recorded.photo_coins_earned,
         submittedAt: new Date(recorded.submitted_at).toISOString(),
         takenAt,
       } satisfies SubmitPhotoResponse,
