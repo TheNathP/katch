@@ -1,10 +1,10 @@
 import { Stack, useFocusEffect } from 'expo-router';
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { Modal, Pressable, ScrollView, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { useReducedMotion } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import Button from '@/components/ui/Button';
+import Dialog from '@/components/ui/Dialog';
 import Screen from '@/components/ui/Screen';
 import TextField from '@/components/ui/TextField';
 import ThemedText from '@/components/ui/ThemedText';
@@ -18,7 +18,6 @@ import {
 import { useSession } from '@/data/session-provider';
 import { type ThemePreference, useThemePreference } from '@/data/theme-preference-provider';
 import { useTheme } from '@/hooks/use-theme';
-import { Spacing } from '@/styles/theme';
 
 import { styles } from './SettingsPage.styles';
 
@@ -35,7 +34,6 @@ export default function SettingsPage() {
   const { user } = useSession();
   const userId = user?.id;
   const reducedMotion = useReducedMotion();
-  const { bottom } = useSafeAreaInsets();
   const { preference, setPreference } = useThemePreference();
   const themeSave = useRef(false);
   const pushUpdate = useRef(false);
@@ -165,8 +163,8 @@ export default function SettingsPage() {
           <Button
             label={updatingPush ? 'Mise à jour…' : pushEnabled ? 'Désactiver les notifications' : 'Activer les notifications'}
             onPress={() => void handlePushToggle()}
-            accessibilityState={{ busy: updatingPush || pushEnabled === undefined }}
-            disabled={pushEnabled === undefined || updatingPush || Boolean(prompt)}
+            busy={updatingPush || pushEnabled === undefined}
+            disabled={Boolean(prompt)}
           />
           {pushError && (
             <ThemedText type="small" themeColor="danger" accessibilityLiveRegion="polite">
@@ -197,83 +195,56 @@ export default function SettingsPage() {
               </ThemedText>
             )}
             <View style={styles.actions}>
-              <Pressable accessibilityRole="button" disabled={busy} onPress={() => changePrompt()} style={styles.ghost}>
-                <ThemedText type="smallBold" themeColor="textSecondary">Annuler</ThemedText>
-              </Pressable>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityState={{ busy }}
+              <Button label="Annuler" variant="ghost" tone="muted" disabled={busy} onPress={() => changePrompt()} />
+              <Button
+                label={busy ? 'En cours…' : 'Supprimer'}
+                variant="ghost"
+                tone="danger"
+                busy={busy}
                 disabled={!canDelete}
                 onPress={() => void confirmAction()}
-                style={({ pressed }) => [styles.ghost, (pressed || !canDelete) && styles.pressed]}>
-                <ThemedText type="smallBold" themeColor="danger">
-                  {busy ? 'En cours…' : 'Supprimer'}
-                </ThemedText>
-              </Pressable>
+              />
             </View>
           </View>
         ) : (
           <>
             <Button variant="primarySolid" label="Se déconnecter" leadingIcon={logout} disabled={updatingPush} onPress={() => changePrompt('signout')} style={styles.primary} />
-            <Pressable
-              accessibilityRole="button"
+            <Button
+              label="Supprimer mon compte"
+              variant="ghost"
+              tone="danger"
               disabled={updatingPush}
               onPress={() => changePrompt('delete')}
-              style={({ pressed }) => [styles.ghost, pressed && styles.pressed]}>
-              <ThemedText type="smallBold" themeColor="danger">Supprimer mon compte</ThemedText>
-            </Pressable>
+            />
           </>
         )}
       </View>
       {prompt === 'signout' && (
-        <Modal
-          transparent
-          animationType={reducedMotion ? 'none' : 'fade'}
-          statusBarTranslucent
-          navigationBarTranslucent
-          onRequestClose={() => changePrompt()}>
-          <View style={styles.modal}>
-            <View aria-hidden pointerEvents="none" style={styles.scrim} />
-            <ScrollView contentContainerStyle={styles.modalContent} bounces={false}>
-              <Pressable
-                aria-hidden
-                accessible={false}
-                focusable={false}
-                onPress={() => changePrompt()}
-                style={styles.backdrop}
-              />
-              <View accessibilityViewIsModal style={[styles.dialog, panel, { paddingBottom: Spacing.three + bottom }]}>
-                <ThemedText accessibilityRole="header" style={[styles.dialogTitle, { color: theme.dailyInk }]}>
-                  Te déconnecter ?
-                </ThemedText>
-                {actionError && (
-                  <ThemedText type="small" themeColor="danger" accessibilityLiveRegion="polite">
-                    Impossible de te déconnecter. Réessaie.
-                  </ThemedText>
-                )}
-                <View style={styles.dialogActions}>
-                  <Pressable
-                    accessibilityRole="button"
-                    disabled={busy}
-                    onPress={() => changePrompt()}
-                    style={({ pressed }) => [
-                      styles.dialogAction, styles.dialogCancel, { backgroundColor: theme.dailySurface },
-                      (pressed || busy) && styles.pressed,
-                    ]}>
-                    <ThemedText type="smallBold" style={{ color: theme.dailyInk }}>Annuler</ThemedText>
-                  </Pressable>
-                  <Button
-                    label={busy ? 'Déconnexion…' : 'Se déconnecter'}
-                    accessibilityState={{ busy }}
-                    disabled={busy}
-                    onPress={() => void confirmAction()}
-                    style={styles.dialogAction}
-                  />
-                </View>
-              </View>
-            </ScrollView>
+        <Dialog placement="bottom" animationType={reducedMotion ? 'none' : 'fade'} onClose={() => changePrompt()}>
+          <ThemedText accessibilityRole="header" style={[styles.dialogTitle, { color: theme.dailyInk }]}>
+            Te déconnecter ?
+          </ThemedText>
+          {actionError && (
+            <ThemedText type="small" themeColor="danger" accessibilityLiveRegion="polite">
+              Impossible de te déconnecter. Réessaie.
+            </ThemedText>
+          )}
+          <View style={styles.dialogActions}>
+            <Button
+              label="Annuler"
+              variant="ghost"
+              disabled={busy}
+              onPress={() => changePrompt()}
+              style={[styles.dialogAction, { backgroundColor: theme.dailySurface }]}
+            />
+            <Button
+              label={busy ? 'Déconnexion…' : 'Se déconnecter'}
+              busy={busy}
+              onPress={() => void confirmAction()}
+              style={styles.dialogAction}
+            />
           </View>
-        </Modal>
+        </Dialog>
       )}
     </Screen>
   );

@@ -1,6 +1,6 @@
 import { Image, type ImageProps } from 'expo-image';
 import { useEffect, useRef } from 'react';
-import { Modal, Pressable, ScrollView, View } from 'react-native';
+import { View } from 'react-native';
 import Animated, {
   cancelAnimation,
   Easing,
@@ -15,9 +15,9 @@ import Animated, {
 import { scheduleOnRN } from 'react-native-worklets';
 
 import Button from '@/components/ui/Button';
+import Dialog from '@/components/ui/Dialog';
 import Icon from '@/components/ui/Icon';
 import ThemedText from '@/components/ui/ThemedText';
-import { useTheme } from '@/hooks/use-theme';
 import { formatNumber } from '@/lib/format-number';
 
 import { styles } from './RewardsPagePurchaseDialog.styles';
@@ -39,7 +39,6 @@ type Props = {
 export default function RewardsPagePurchaseDialog({
   name, title, price, art, artBackground, busy, error, mode, equipped, onConfirm, onClose,
 }: Props) {
-  const theme = useTheme();
   const reduceMotion = useReducedMotion();
   const complete = mode === 'complete';
   const owned = mode === 'owned';
@@ -99,69 +98,50 @@ export default function RewardsPagePurchaseDialog({
   }));
 
   return (
-    <Modal transparent statusBarTranslucent navigationBarTranslucent onRequestClose={close}>
-      <View style={styles.viewport}>
-        <Animated.View aria-hidden pointerEvents="none" style={[styles.scrim, veil]} />
-        <ScrollView contentContainerStyle={styles.placement} bounces={false}>
-          <Pressable
-            aria-hidden
-            accessible={false}
-            focusable={false}
-            onPress={close}
-            style={styles.backdropTarget}
-          />
-          <Animated.View accessibilityViewIsModal style={[
-            styles.panel, { backgroundColor: theme.dailyCard, borderColor: theme.dailyBorder }, panelMotion,
-          ]}>
-            {(complete || owned) && (
-              <View aria-hidden style={[styles.stage, { backgroundColor: artBackground }]}>
-                <Animated.View style={pixMotion}>
-                  <Image source={art} style={styles.mascot} contentFit="contain" />
-                </Animated.View>
-              </View>
-            )}
-            <View style={styles.copy}>
-              <ThemedText accessibilityRole="header" accessibilityLiveRegion="polite" style={styles.title}>
-                {complete ? title : owned ? 'Personnaliser Pix' : 'Confirmer l’achat ?'}
-              </ThemedText>
-              <ThemedText type="smallBold" accessibilityLiveRegion="polite" style={styles.item}>{name}</ThemedText>
-              {owned || complete ? (
-                <ThemedText type="small" themeColor="textSecondary">
-                  {equipped ? 'Équipé sur ton profil' : 'Dans tes accessoires'}
-                </ThemedText>
-              ) : (
-                <View style={styles.price}>
-                  <Icon name="coin" size={23} />
-                  <ThemedText type="small" themeColor="textSecondary">{formatNumber(price)} KatchCoins</ThemedText>
-                </View>
-              )}
-            </View>
-            {!complete && error && (
-              <ThemedText accessibilityLiveRegion="polite" type="small" themeColor="danger" style={styles.error}>
-                {error}
-              </ThemedText>
-            )}
-            {complete ? (
-              <Button variant="limeSolid" label="Continuer" onPress={close} style={styles.action} />
-            ) : (
-              <View style={styles.actions}>
-                <Pressable accessibilityRole="button" disabled={busy} onPress={close} style={styles.cancel}>
-                  <ThemedText type="smallBold" themeColor="textSecondary">Annuler</ThemedText>
-                </Pressable>
-                <Button
-                  variant="limeSolid"
-                  size="compact"
-                  label={owned ? (equipped ? 'Retirer' : 'Équiper') : 'Acheter'}
-                  disabled={busy}
-                  accessibilityState={{ busy }}
-                  onPress={() => void confirm()}
-                  style={styles.confirm}
-                />
-              </View>
-            )}
+    <Dialog onClose={close} scrimStyle={veil} panelStyle={panelMotion}>
+      {(complete || owned) && (
+        <View aria-hidden style={[styles.stage, { backgroundColor: artBackground }]}>
+          <Animated.View style={pixMotion}>
+            <Image source={art} style={styles.mascot} contentFit="contain" />
           </Animated.View>
-        </ScrollView>
+        </View>
+      )}
+      <View style={styles.copy}>
+        <ThemedText accessibilityRole="header" accessibilityLiveRegion="polite" style={styles.title}>
+          {complete ? title : owned ? 'Personnaliser Pix' : 'Confirmer l’achat ?'}
+        </ThemedText>
+        <ThemedText type="smallBold" accessibilityLiveRegion="polite" style={styles.item}>{name}</ThemedText>
+        {owned || complete ? (
+          <ThemedText type="small" themeColor="textSecondary">
+            {equipped ? 'Équipé sur ton profil' : 'Dans tes accessoires'}
+          </ThemedText>
+        ) : (
+          <View style={styles.price}>
+            <Icon name="coin" size={23} />
+            <ThemedText type="small" themeColor="textSecondary">{formatNumber(price)} KatchCoins</ThemedText>
+          </View>
+        )}
       </View>
-    </Modal>
+      {!complete && error && (
+        <ThemedText accessibilityLiveRegion="polite" type="small" themeColor="danger" style={styles.error}>
+          {error}
+        </ThemedText>
+      )}
+      {complete ? (
+        <Button variant="limeSolid" label="Continuer" onPress={close} style={styles.action} />
+      ) : (
+        <View style={styles.actions}>
+          <Button label="Annuler" variant="ghost" tone="muted" disabled={busy} onPress={close} style={styles.cancel} />
+          <Button
+            variant="limeSolid"
+            size="compact"
+            label={owned ? (equipped ? 'Retirer' : 'Équiper') : 'Acheter'}
+            busy={busy}
+            onPress={() => void confirm()}
+            style={styles.confirm}
+          />
+        </View>
+      )}
+    </Dialog>
   );
 }

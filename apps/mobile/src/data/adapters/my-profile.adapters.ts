@@ -1,6 +1,7 @@
 import type {
   EquippedRewards,
   MyProfileResponse,
+  ProfileChallengeStats,
   UpdateMyProfileRequest,
 } from "@/data/api.types";
 import { adaptEquippedRewards } from "@/data/adapters/rewards.adapters";
@@ -11,6 +12,7 @@ export type MyProfile = {
   displayName: string;
   avatar: AvatarChoice;
   equippedRewards: EquippedRewards;
+  challengeStats?: ProfileChallengeStats;
 };
 
 /** Only the fields that changed. */
@@ -32,12 +34,16 @@ export function adaptMyProfile(response: unknown): MyProfile {
   ) {
     throw new Error("Invalid profile");
   }
-  const { displayName, avatarId, avatarBackgroundId } =
+  const { displayName, avatarId, avatarBackgroundId, challengeStats } =
     response as MyProfileResponse;
+  const validStats = challengeStats && Number.isSafeInteger(challengeStats.completedChallenges)
+    && challengeStats.completedChallenges >= 0 && Number.isFinite(challengeStats.averageScore)
+    && challengeStats.averageScore >= 0 && challengeStats.averageScore <= 100;
   return {
     displayName,
     avatar: { avatar: avatarId, background: avatarBackgroundId },
     equippedRewards: adaptEquippedRewards(response.equippedRewards),
+    challengeStats: validStats ? challengeStats : undefined,
   };
 }
 

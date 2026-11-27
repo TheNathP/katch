@@ -23,7 +23,7 @@
   <a href="#fonctionnalités">Fonctionnalités</a> ·
   <a href="#installer-et-lancer-lapp">Installation</a> ·
   <a href="#démonstration-fonctionnelle">Démonstration</a> ·
-  <a href="#limites-connues">Limites</a> ·
+  <a href="#limites-connues-et-axes-damélioration">Limites et suite</a> ·
   <a href="#décisions-darchitecture">ADR</a>
 </p>
 
@@ -77,10 +77,14 @@ Connecte ton téléphone et ton ordinateur au même réseau, puis scanne le QR c
 
 Si le QR code ne permet pas de joindre Metro sur le réseau local, essaie `pnpm mobile --go --tunnel`. Le tunnel Expo donne accès à Metro. Un backend Supabase local doit toujours être joignable séparément depuis le téléphone. [Configuration d’Expo](https://docs.expo.dev/get-started/set-up-your-environment/)
 
-## Limites connues
+## Limites connues et axes d’amélioration
 
-- **Caméra Android.** Une bande noire peut apparaître dans l’aperçu quand on reprend une photo avec Expo Go. Le correctif concerne le code natif d’`expo-camera`. Pour l’essayer, il faut installer un APK de Katch compilé avec le patch du dépôt. Pour la démo dans Expo Go, l’import depuis la galerie permet de tester le parcours photo si l’aperçu pose problème.
-- **Connexion avec Google et Apple.** Le rendu utilise la connexion par e-mail et mot de passe. L’intégration SSO envisagée pour Katch demandait une build propre à l’application pour configurer et valider les dépendances, les redirections et les capacités natives. L’équipe a conservé Expo Go pour le rendu afin de tenir le délai et a reporté cette intégration. [Authentification avec Expo](https://docs.expo.dev/guides/authentication/)
+### Passer à un build de développement
+
+Le rendu reste accessible dans Expo Go. Pour la suite du projet, l’équipe passera à un **development build** propre à Katch afin de tester la caméra et les connexions Google et Apple dans le binaire de l’application. [Documentation Expo sur les development builds](https://docs.expo.dev/develop/development-builds/introduction/)
+
+- **Caméra Android** — Une bande noire peut apparaître dans l’aperçu lors d’une reprise de photo avec Expo Go. Le correctif natif d’`expo-camera` est dans le dépôt et s’applique lorsqu’on compile Katch. L’import depuis la galerie permet de poursuivre la démo dans Expo Go si l’aperçu pose problème.
+- **Connexion Google et Apple** — Le rendu utilise la connexion par e-mail et mot de passe. Le development build permettra de configurer et de vérifier les redirections OAuth, les identifiants de Katch et les capacités natives nécessaires à ces connexions. [Authentification avec Expo](https://docs.expo.dev/guides/authentication/)
 
 ### Installer le build Android avec le correctif caméra
 
@@ -91,6 +95,13 @@ pnpm --filter @katch/mobile exec expo run:android
 ```
 
 `expo run:android` génère et installe un APK de développement sur un appareil connecté ou un émulateur. Utilise un téléphone Android pour vérifier la reprise d’une photo. Sur macOS avec Xcode, la commande équivalente pour compiler l’app iOS est `pnpm --filter @katch/mobile exec expo run:ios`.
+
+### Autres pistes
+
+- **Accessibilité** — Tester les parcours avec VoiceOver et TalkBack, avec du texte agrandi et différents niveaux de contraste. Affiner les annonces et la navigation au lecteur d’écran.
+- **Mise en cache** — Étendre la mise en cache aux listes souvent consultées et définir leur durée de fraîcheur, leur invalidation après modification et leur affichage hors connexion.
+- **Analytics** — Mesurer la compréhension de l’onboarding et les étapes où les joueurs abandonnent le défi, avec des événements minimaux qui excluent les photos et les données nominatives.
+- **CI/CD** — Automatiser le lint, le contrôle TypeScript et les tests sur chaque PR, puis préparer des builds de prévisualisation et fiabiliser le déploiement des migrations et des Edge Functions.
 
 ## Utiliser Supabase en local
 
@@ -135,6 +146,15 @@ pnpm --filter @katch/backend test:photo-analysis
 - [`apps/mobile`](apps/mobile) héberge l’app Expo et React Native.
 - [`apps/backend/supabase`](apps/backend/supabase) contient les migrations SQL et les Edge Functions.
 - [`docs/adr`](docs/adr) documente les décisions d’architecture.
+
+### Réutiliser les composants mobiles
+
+Les composants communs vivent dans `apps/mobile/src/components/ui`. Les composants propres à un écran vivent dans son dossier `_page`. L’écran garde la navigation, les données et les actions métier.
+
+- `Screen` fournit le fond et les marges de zone sûre. Utilise `scroll={false}` si l’écran contient déjà une `FlatList`.
+- `Button` propose les variantes `primarySolid`, `limeSolid`, `outline` et `ghost`. Sur `ghost`, `tone="danger"` signale une action destructive et `tone="muted"` convient à une action secondaire. `busy` désactive l’action et indique son état aux lecteurs d’écran.
+- `Dialog` se configure avec `placement` et `onClose`. `SegmentedTabs` reçoit `options`, `value` et `onChange` pour les changements de vue.
+- `Skeleton` annonce le chargement d’une section. Les `SkeletonBlock` reprennent les dimensions du contenu attendu.
 
 ## Décisions d’architecture
 

@@ -32,7 +32,7 @@ export default function SocialAction({ label, icon, accessibilityLabel, disabled
       {icon != null ? (
         <Icon name={icon} size={20} color={accent ? OnboardingColors.ink : theme.text} />
       ) : (
-        <ThemedText type="smallBold" style={accent && styles.friendsBadgeText}>{label}</ThemedText>
+        <ThemedText type="smallBold" style={accent && styles.onLime}>{label}</ThemedText>
       )}
     </Pressable>
   );

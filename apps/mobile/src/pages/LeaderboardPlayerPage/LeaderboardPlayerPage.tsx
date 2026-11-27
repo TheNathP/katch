@@ -5,9 +5,13 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import Button from '@/components/ui/Button';
+import PhotoReactionBadge from '@/components/ui/PhotoReactionBadge';
+import PixReactionBar from '@/components/ui/PixReactionBar';
 import type { LeaderboardPlayer } from '@/data/adapters/leaderboard-player.adapters';
 import { getLeaderboardPlayerPage } from '@/data/get-leaderboard-player-page';
+import { useSession } from '@/data/session-provider';
 import { useFriendshipActions } from '@/hooks/use-friendship-actions';
+import { usePhotoReactions } from '@/hooks/use-photo-reactions';
 import { useTheme } from '@/hooks/use-theme';
 
 import { styles } from './LeaderboardPlayerPage.styles';
@@ -19,10 +23,19 @@ type State = { status: 'loading' } | { status: 'error'; message: string } | { st
 export default function LeaderboardPlayerPage() {
   const { playerId } = useLocalSearchParams<{ playerId: string }>();
   const theme = useTheme();
+  const { user } = useSession();
   const [version, setVersion] = useState(0);
   const [state, setState] = useState<State>({ status: 'loading' });
   const reload = () => setVersion((previous) => previous + 1);
   const friendship = useFriendshipActions(reload);
+  const { pending, reactionErrors, react } = usePhotoReactions(user?.id, (attempt, reactions) => {
+    setState(previous => {
+      if (previous.status !== 'ready') return previous;
+      const { player } = previous;
+      if (player.photo.status !== 'available' || player.photo.reactionContext?.id !== attempt) return previous;
+      return { status: 'ready', player: { ...player, photo: { ...player.photo, reactionContext: { id: attempt, reactions } } } };
+    });
+  });
 
   useEffect(() => {
     const controller = new AbortController();
@@ -48,6 +61,7 @@ export default function LeaderboardPlayerPage() {
 
   const player = state.status === 'ready' ? state.player : undefined;
   const photo = player?.photo;
+  const reactionContext = photo?.status === 'available' ? photo.reactionContext : undefined;
   const pendingLabel = player?.relationship === 'outgoing' ? 'Demande envoyée'
     : player?.relationship === 'incoming' ? 'Demande reçue'
       : undefined;
@@ -98,18 +112,36 @@ export default function LeaderboardPlayerPage() {
               <Button label="Réessayer" onPress={reload} />
             </>
           )}
-          {photo?.status === 'available' && (
-            <Image
-              accessible
-              accessibilityLabel={`Photo du défi de ${player?.name}`}
-              source={photo.url}
-              cachePolicy="none"
-              contentFit="contain"
-              style={[styles.photo, { backgroundColor: theme.dailySurface }]}
-              onError={() => setState((previous) => previous.status === 'ready'
-                ? { status: 'ready', player: { ...previous.player, photo: { status: 'missing' } } }
-                : previous)}
+          {user && player?.relationship === 'friend' && reactionContext && (
+            <PixReactionBar
+              value={reactionContext.reactions}
+              onReact={reaction => void react(reactionContext.id, reaction)}
+              busy={pending.has(reactionContext.id)}
+              error={reactionErrors[reactionContext.id]}
             />
+          )}
+          {photo?.status === 'available' && (
+            <View>
+              <Image
+                accessible
+                accessibilityLabel={`Photo du défi de ${player?.name}`}
+                source={photo.url}
+                cachePolicy="none"
+                contentFit="contain"
+                style={[styles.photo, { backgroundColor: theme.dailySurface }]}
+                onError={() => setState((previous) => previous.status === 'ready'
+                  ? { status: 'ready', player: { ...previous.player, photo: { status: 'missing' } } }
+                  : previous)}
+              />
+              {user && player?.relationship === 'friend' && reactionContext && (
+                <PhotoReactionBadge
+                  value={reactionContext.reactions}
+                  onReact={reaction => react(reactionContext.id, reaction)}
+                  busy={pending.has(reactionContext.id)}
+                  error={reactionErrors[reactionContext.id]}
+                />
+              )}
+            </View>
           )}
           {photo && photo.status !== 'available' && (
             <View style={[styles.photoMessage, { backgroundColor: theme.dailySurface }]}>

@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 
-import { ButtonTokens, Spacing } from '@/styles/theme';
+import { Spacing } from '@/styles/theme';
 
 export const styles = StyleSheet.create({
   row: {
@@ -23,7 +23,4 @@ export const styles = StyleSheet.create({
   profileAvatar: { width: 105, height: 105, borderRadius: 53 },
   profileStatus: { width: 98, height: 26, borderRadius: 13 },
   profileSubtitle: { width: 136, height: 15, marginTop: Spacing.two, marginBottom: 6, borderRadius: 7 },
-  label: { width: 96, height: 14, borderRadius: 7 },
-  caption: { width: '83%', height: 12, borderRadius: 6 },
-  formButton: { minHeight: ButtonTokens.primarySolid.minHeight, borderRadius: 18 },
 });

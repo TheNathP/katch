@@ -1,7 +1,5 @@
 import type { RewardsResponse } from '@/data/api.types';
 
-export const xpPerLevel = 600;
-
 export const shopItems = [
   { id: 'original', name: 'Pix Original', art: 'original', category: 'mascots' },
   { id: 'aqua', name: 'Pix Aqua', art: 'aqua', category: 'mascots' },

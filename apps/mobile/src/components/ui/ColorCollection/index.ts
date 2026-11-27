@@ -1,1 +1,1 @@
-export { default } from './ColorCollection';
+export { default, CollectionHeading, CollectionTile } from './ColorCollection';

@@ -17,4 +17,6 @@ Waiting for a fresh response before each display would simplify synchronization,
 
 The last known state can remain visible during an update or a network outage. The interface identifies an expired color as belonging to an earlier challenge. Scoring, purchases, and coin credits still depend on a server response. Activity on another device may only appear on the next refresh.
 
+Temporary camera captures and resized upload files are removed when their flow ends. The app keeps the latest result in memory while its screen is open. Photos selected from the library remain under the system picker’s control.
+
 Related decisions cover [the UTC challenge day](005-daily-challenge-color.md) and [server-side rewards](010-server-side-rewards.md).

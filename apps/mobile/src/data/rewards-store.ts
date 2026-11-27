@@ -43,7 +43,7 @@ function createStore(accountId?: string) {
         }
       } catch (error) {
         if (version !== revision || snapshot.data) return;
-        const unavailable = error instanceof EdgeFunctionError && error.status === 404 && error.code === null;
+        const unavailable = error instanceof EdgeFunctionError && error.status === 404 && (error.code === null || error.code === "NOT_FOUND");
         publish({
           ...snapshot,
           error: unavailable

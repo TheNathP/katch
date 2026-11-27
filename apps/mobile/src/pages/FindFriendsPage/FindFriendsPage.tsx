@@ -32,7 +32,7 @@ export default function FindFriendsPage() {
   const [query, setQuery] = useState(q ?? '');
   const term = input.trim();
   const searching = term.length >= 2;
-  const load = useCallback(() => query ? searchFriends(query) : Promise.resolve([]), [query]);
+  const load = useCallback((signal: AbortSignal) => query ? searchFriends(query, signal) : Promise.resolve([]), [query]);
   const { value, error, reload, update } = useFriendsQuery(load);
   const actions = useFriendshipActions((action, target) => {
     update(players => players.map(player => player.id === target

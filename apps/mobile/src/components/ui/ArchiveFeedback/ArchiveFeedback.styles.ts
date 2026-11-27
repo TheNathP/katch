@@ -7,6 +7,8 @@ export const styles = StyleSheet.create({
     minHeight: 144, borderWidth: 1, borderRadius: 23, padding: Spacing.three,
     gap: Spacing.two, alignItems: 'center', justifyContent: 'center',
   },
+  stretch: { alignItems: 'stretch' },
+  placeholder: { gap: Spacing.two },
   pix: { width: 60, height: 60 },
   center: { textAlign: 'center' },
   line: { width: '42%', height: 20, borderRadius: 10, alignSelf: 'flex-start' },

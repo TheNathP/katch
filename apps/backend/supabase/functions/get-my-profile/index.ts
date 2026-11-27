@@ -1,6 +1,7 @@
 import { resolveUserId } from "../_shared/auth.ts";
 import { createAdminClient } from "../_shared/db.ts";
 import { PROFILE_COLUMNS, toMyProfileResponse } from "../_shared/profile.ts";
+import type { MyProfileResponse, ProfileChallengeStats } from "../_shared/types.ts";
 
 const headers = { "Cache-Control": "no-store" };
 
@@ -28,11 +29,12 @@ Deno.serve(async (request) => {
       );
     }
 
-    const { data, error } = await admin
-      .from("social_profiles")
-      .select(PROFILE_COLUMNS)
-      .eq("player_id", playerId)
-      .maybeSingle();
+    const [profile, stats] = await Promise.all([
+      admin.from("social_profiles").select(PROFILE_COLUMNS).eq("player_id", playerId).maybeSingle(),
+      admin.rpc("get_profile_challenge_stats", { p_player: playerId })
+        .overrideTypes<ProfileChallengeStats, { merge: false }>(),
+    ]);
+    const { data, error } = profile;
     if (error) throw new Error("Could not load profile");
     if (!data)
       return Response.json(
@@ -40,7 +42,12 @@ Deno.serve(async (request) => {
         { status: 404, headers },
       );
 
-    return Response.json(toMyProfileResponse(data), { headers });
+    if (stats.error) console.error("Could not load profile challenge stats");
+    const response: MyProfileResponse = {
+      ...toMyProfileResponse(data),
+      ...(stats.data && !stats.error ? { challengeStats: stats.data } : {}),
+    };
+    return Response.json(response, { headers });
   } catch {
     console.error("Get my profile request failed");
     return Response.json(

@@ -43,13 +43,15 @@ export const secureSessionStorage = {
   },
 
   async setItem(key: string, value: string): Promise<void> {
-    const aesKey = await AESEncryptionKey.generate();
+    let aesKey = await getKey(key);
+    if (!aesKey) {
+      aesKey = await AESEncryptionKey.generate();
+      await SecureStore.setItemAsync(
+        secureStoreKey(key),
+        await aesKey.encoded("base64"),
+      );
+    }
     const sealed = await aesEncryptAsync(encoder.encode(value), aesKey);
-
-    await SecureStore.setItemAsync(
-      secureStoreKey(key),
-      await aesKey.encoded("base64"),
-    );
     await Storage.setItemAsync(
       VALUE_PREFIX + key,
       await sealed.combined("base64"),

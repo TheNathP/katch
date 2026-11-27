@@ -4,6 +4,7 @@ import { View, type StyleProp, type ViewStyle } from 'react-native';
 
 import Button from '@/components/ui/Button';
 import Screen from '@/components/ui/Screen';
+import Skeleton, { SkeletonBlock } from '@/components/ui/Skeleton';
 import ThemedText from '@/components/ui/ThemedText';
 import { useTheme } from '@/hooks/use-theme';
 import { styles } from '@/styles/progression';
@@ -27,23 +28,22 @@ export default function ProgressionLayout({ children, loading, backgroundColor, 
     headerShadowVisible: false,
   }), [theme.dailyCanvas, theme.dailyInk]);
   const panel = { backgroundColor: theme.dailyCard, borderColor: theme.dailyBorder };
-  const placeholder = { backgroundColor: theme.dailySurface };
 
   return (
     <Screen backgroundColor={rewardsHeader ? theme.dailyCanvas : backgroundColor}>
       {rewardsHeader && <Stack.Screen options={headerOptions} />}
       <View style={[styles.layout, contentStyle]}>
         {loading && (
-          <View accessible accessibilityLabel="Chargement de la progression" accessibilityState={{ busy: true }}>
-            <View aria-hidden style={styles.section}>
+          <Skeleton label="Chargement de la progression">
+            <View style={styles.section}>
               <View style={[styles.loadingHero, panel]}>
-                <View style={[styles.loadingShort, placeholder]} />
-                <View style={[styles.loadingWide, placeholder]} />
+                <SkeletonBlock style={styles.loadingShort} />
+                <SkeletonBlock style={styles.loadingWide} />
               </View>
               <View style={[styles.loadingRow, panel]} />
               <View style={[styles.loadingRow, panel]} />
             </View>
-          </View>
+          </Skeleton>
         )}
         {children}
         {error && (

@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { View } from "react-native";
 
 import AvatarPicker from "@/components/ui/AvatarPicker";
@@ -10,11 +10,10 @@ import TextField from "@/components/ui/TextField";
 import ThemedText from "@/components/ui/ThemedText";
 import {
   toMyProfileErrorMessage,
-  type MyProfile,
   type MyProfileChanges,
 } from "@/data/adapters/my-profile.adapters";
 import { useAvatarCatalog } from "@/data/avatar-catalog-provider";
-import { getMyProfile, updateMyProfile } from "@/data/my-profile";
+import { useMyProfile } from "@/hooks/use-my-profile";
 import {
   DISPLAY_NAME_MAX_LENGTH,
   validateDisplayName,
@@ -25,27 +24,12 @@ import { styles } from "./EditProfilePage.styles";
 
 export default function EditProfilePage() {
   const avatarCatalog = useAvatarCatalog();
-  const [profile, setProfile] = useState<MyProfile | null>(null);
-  const [loadFailed, setLoadFailed] = useState(false);
-  const [loadAttempt, setLoadAttempt] = useState(0);
+  const { profile, loadFailed, load, update } = useMyProfile();
   // null = untouched, the saved value is shown.
   const [draftName, setDraftName] = useState<string | null>(null);
   const [draftAvatar, setDraftAvatar] = useState<AvatarChoice | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    getMyProfile(controller.signal).then(
-      (loaded) => {
-        if (!controller.signal.aborted) setProfile(loaded);
-      },
-      () => {
-        if (!controller.signal.aborted) setLoadFailed(true);
-      },
-    );
-    return () => controller.abort();
-  }, [loadAttempt]);
 
   if (!profile) {
     return (
@@ -57,10 +41,7 @@ export default function EditProfilePage() {
             </ThemedText>
             <Button
               label="Réessayer"
-              onPress={() => {
-                setLoadFailed(false);
-                setLoadAttempt((attempt) => attempt + 1);
-              }}
+              onPress={() => void load(true)}
             />
           </View>
         ) : (
@@ -94,7 +75,7 @@ export default function EditProfilePage() {
     setSaving(true);
     setError(null);
     try {
-      await updateMyProfile(changes);
+      await update(changes);
       router.back();
     } catch (saveError) {
       setError(toMyProfileErrorMessage(saveError));

@@ -1,4 +1,4 @@
-import type { Relationship } from "./social-api.types";
+import type { PhotoReactionContext, Relationship } from "./social-api.types";
 
 // Mirrors the public contract in apps/backend/supabase/functions/_shared/types.ts.
 
@@ -25,6 +25,11 @@ export type AvatarCatalogResponse = {
   backgrounds: { id: string; hex: string; label: string }[];
 };
 
+export type ProfileChallengeStats = {
+  completedChallenges: number;
+  averageScore: number;
+};
+
 /**
  * GET get-my-profile — requires a session: the signed-in player's own public profile.
  * Also the response of update-my-profile.
@@ -36,6 +41,8 @@ export type MyProfileResponse = {
   /** Id from the avatar catalog (`backgrounds[].id`). */
   avatarBackgroundId: string;
   equippedRewards?: EquippedRewards;
+  /** Personal challenge totals returned on GET when available. */
+  challengeStats?: ProfileChallengeStats;
 };
 
 /**
@@ -130,7 +137,7 @@ export type LeaderboardPlayerResponse = {
   score: number | null;
   relationship: Relationship | "self";
   photo:
-    | { status: "available"; url: string }
+    | { status: "available"; url: string; reactionContext?: PhotoReactionContext }
     | { status: "locked" | "missing" };
 };
 

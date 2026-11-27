@@ -2,17 +2,19 @@ import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { FlatList, Pressable, View, type ListRenderItemInfo } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 import ArchiveFeedback from '@/components/ui/ArchiveFeedback';
 import ArchiveHero from '@/components/ui/ArchiveHero';
 import Button from '@/components/ui/Button';
+import Screen from '@/components/ui/Screen';
 import NavigationLink from '@/components/ui/NavigationLink';
+import SegmentedTabs from '@/components/ui/SegmentedTabs';
 import ThemedText from '@/components/ui/ThemedText';
 import type { ChallengeResult, PhotoGallery } from '@/data/adapters/challenge-history.adapters';
 import { getChallengeHistory, getPhotoGallery } from '@/data/challenge-history';
 import { useArchivePagination } from '@/hooks/use-archive-pagination';
 import { useArchiveQuery } from '@/hooks/use-archive-query';
+import { useRefreshHaptic } from '@/hooks/use-refresh-haptic';
 import { useTheme } from '@/hooks/use-theme';
 import { formatChallengeMonth, isChallengeMonth, shiftChallengeMonth } from '@/lib/challenge-calendar';
 
@@ -26,8 +28,8 @@ const chevron = require('@/assets/icons/chevron-right.svg');
 const collection = require('@/assets/icons/collection.svg');
 
 const views = [
-  { id: 'calendar', label: 'Calendrier' },
-  { id: 'gallery', label: 'Galerie' },
+  { value: 'calendar', label: 'Calendrier' },
+  { value: 'gallery', label: 'Galerie' },
 ] as const;
 const noPhotos: ChallengeResult[] = [];
 
@@ -45,6 +47,7 @@ function GalleryRowSeparator() {
 
 export default function ChallengeHistoryPage({ initialView = 'calendar' }: { initialView?: 'calendar' | 'gallery' }) {
   const theme = useTheme();
+  const playRefreshHaptic = useRefreshHaptic();
   const params = useLocalSearchParams<{ month?: string }>();
   const [view, setView] = useState(initialView);
   const [visitedGallery, setVisitedGallery] = useState(initialView === 'gallery');
@@ -84,27 +87,20 @@ export default function ChallengeHistoryPage({ initialView = 'calendar' }: { ini
         transitionKey={view}
       />
 
-      <View accessibilityRole="tablist" style={[styles.tabs, { backgroundColor: theme.dailySurface }]}>
-        {views.map(({ id, label }) => (
-          <Pressable
-            key={id}
-            accessibilityRole="tab"
-            accessibilityState={{ selected: view === id }}
-            onPress={() => {
-              if (view === id) return;
-              setView(id);
-              if (id === 'gallery') {
-                if (visitedGallery) gallery.refreshIfStale();
-                setVisitedGallery(true);
-              } else if (range) {
-                refreshIfStale();
-              }
-            }}
-            style={({ pressed }) => [styles.tab, view === id && styles.activeTab, pressed && styles.pressed]}>
-            <ThemedText type="smallBold" style={view === id ? styles.activeTabText : { color: theme.dailyMuted }}>{label}</ThemedText>
-          </Pressable>
-        ))}
-      </View>
+      <SegmentedTabs
+        label="Vue de l’historique"
+        options={views}
+        value={view}
+        onChange={next => {
+          setView(next);
+          if (next === 'gallery') {
+            if (visitedGallery) gallery.refreshIfStale();
+            setVisitedGallery(true);
+          } else if (range) {
+            refreshIfStale();
+          }
+        }}
+      />
 
       {isGallery ? (
         !gallery.data ? (
@@ -194,7 +190,7 @@ export default function ChallengeHistoryPage({ initialView = 'calendar' }: { ini
   );
 
   return (
-    <SafeAreaView edges={['left', 'right']} style={[styles.screen, { backgroundColor: theme.dailyCanvas }]}>
+    <Screen scroll={false} backgroundColor={theme.dailyCanvas}>
       <FlatList
         data={galleryEntries}
         renderItem={renderGalleryPhoto}
@@ -209,9 +205,13 @@ export default function ChallengeHistoryPage({ initialView = 'calendar' }: { ini
         initialNumToRender={4}
         maxToRenderPerBatch={4}
         windowSize={5}
-        onRefresh={isGallery && gallery.data ? gallery.retry : undefined}
+        onRefresh={isGallery && gallery.data ? () => {
+          if (gallery.loading) return;
+          playRefreshHaptic();
+          void gallery.retry();
+        } : undefined}
         refreshing={isGallery && !!gallery.data && gallery.loading}
       />
-    </SafeAreaView>
+    </Screen>
   );
 }

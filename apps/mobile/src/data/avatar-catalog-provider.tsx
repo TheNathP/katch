@@ -46,6 +46,7 @@ export function AvatarCatalogProvider({ children }: PropsWithChildren) {
     });
     refreshAvatarCatalog(controller.signal).then(
       (fresh) => {
+        if (controller.signal.aborted) return;
         refreshed = true;
         setCatalog(fresh);
         setRefreshFailed(false);

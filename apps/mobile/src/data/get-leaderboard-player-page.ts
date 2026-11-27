@@ -1,20 +1,21 @@
 import { adaptLeaderboardPlayer } from '@/data/adapters/leaderboard-player.adapters';
 import type { LeaderboardPlayerResponse } from '@/data/api.types';
-import { supabase, supabaseConfig } from '@/data/supabase';
+import { callEdgeFunction, EdgeFunctionError } from '@/data/edge-functions';
 
 export async function getLeaderboardPlayerPage(playerId: string, signal: AbortSignal) {
-  const { url, publishableKey } = supabaseConfig;
-  const { data: { session }, error } = await supabase.auth.getSession();
-  if (error || !session) throw new Error('Reconnecte-toi pour voir ce profil.');
-
   const query = new URLSearchParams({ player: playerId });
-  const response = await fetch(`${url}/functions/v1/get-leaderboard-player?${query}`, {
-    headers: { apikey: publishableKey, Authorization: `Bearer ${session.access_token}` },
-    signal,
-  });
-  if (response.status === 404) throw new Error('Ce profil n’est plus disponible dans le classement du jour.');
-  if (!response.ok) throw new Error('Impossible de charger le profil.');
-
-  const player: LeaderboardPlayerResponse = await response.json();
-  return adaptLeaderboardPlayer(player);
+  try {
+    const player = await callEdgeFunction(`get-leaderboard-player?${query}`, {
+      method: 'GET', signal,
+    }) as LeaderboardPlayerResponse;
+    return adaptLeaderboardPlayer(player);
+  } catch (error) {
+    if (error instanceof EdgeFunctionError && error.status === 401) {
+      throw new Error('Reconnecte-toi pour voir ce profil.');
+    }
+    if (error instanceof EdgeFunctionError && error.status === 404) {
+      throw new Error('Ce profil n’est plus disponible dans le classement du jour.');
+    }
+    throw new Error('Impossible de charger le profil.');
+  }
 }

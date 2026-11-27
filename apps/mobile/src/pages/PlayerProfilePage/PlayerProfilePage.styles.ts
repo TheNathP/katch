@@ -25,6 +25,7 @@ export const styles = StyleSheet.create({
   },
   friendStatus: { backgroundColor: OnboardingColors.lime },
   statusLabel: { color: OnboardingColors.ink },
+  resultGrid: { flexDirection: 'row', flexWrap: 'wrap', columnGap: '3%', rowGap: Spacing.two },
   result: {
     minHeight: 56, padding: Spacing.three, gap: Spacing.two, flexDirection: 'row',
     justifyContent: 'space-between', alignItems: 'center', borderRadius: 18, borderWidth: 1,

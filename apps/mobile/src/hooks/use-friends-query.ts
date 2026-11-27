@@ -1,7 +1,7 @@
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 
-export function useFriendsQuery<T>(load: () => Promise<T>, refreshKey?: string) {
+export function useFriendsQuery<T>(load: (signal: AbortSignal) => Promise<T>, refreshKey?: string) {
   const [state, setState] = useState<{
     source?: typeof load;
     revision?: number;
@@ -12,23 +12,23 @@ export function useFriendsQuery<T>(load: () => Promise<T>, refreshKey?: string) 
   const [revision, setRevision] = useState(0);
 
   useFocusEffect(useCallback(() => {
-    let active = true;
+    const controller = new AbortController();
     setState(current => ({
       source: load,
       revision,
       refreshKey,
       value: current.source === load ? current.value : undefined,
     }));
-    load().then(
-      value => { if (active) setState({ source: load, revision, refreshKey, value }); },
+    load(controller.signal).then(
+      value => { if (!controller.signal.aborted) setState({ source: load, revision, refreshKey, value }); },
       error => {
-        if (active) setState(current => ({
+        if (!controller.signal.aborted) setState(current => ({
           ...current,
           error: error instanceof Error ? error.message : 'Impossible de charger cette page.',
         }));
       },
     );
-    return () => { active = false; };
+    return () => controller.abort();
   }, [load, revision, refreshKey]));
 
   return {
