@@ -1,5 +1,4 @@
-import { useFocusEffect } from 'expo-router';
-import { useCallback } from 'react';
+import { useEffect } from 'react';
 import { View } from 'react-native';
 import Animated, {
   cancelAnimation,
@@ -31,7 +30,7 @@ export default function HomePageChallengeVeil({ color, idle, revealing, progress
   const hint = useSharedValue(0);
   const reduceMotion = useReducedMotion();
 
-  useFocusEffect(useCallback(() => {
+  useEffect(() => {
     if (!idle || reduceMotion) return;
 
     const timer = setInterval(() => {
@@ -47,10 +46,10 @@ export default function HomePageChallengeVeil({ color, idle, revealing, progress
       cancelAnimation(hint);
       hint.set(0);
     };
-  }, [hint, idle, reduceMotion]));
+  }, [hint, idle, reduceMotion]);
 
   const questionMotion = useAnimatedStyle(() => {
-    const amount = progress.get();
+    const amount = revealing ? progress.get() : 0;
     const nudge = hint.get();
     const suspense = interpolate(
       amount,
