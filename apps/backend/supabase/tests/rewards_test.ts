@@ -48,17 +48,28 @@ Deno.test('rewards persist per player, credit each tier once, and spend the serv
     await db.exec(await Deno.readTextFile(
       new URL('../migrations/20261126113000_reward_coin_claims.sql', import.meta.url),
     ));
+    await db.exec(await Deno.readTextFile(
+      new URL('../migrations/20261127082652_profile_average_score.sql', import.meta.url),
+    ));
     const permissions = await db.query(`
       select has_table_privilege('authenticated', 'public.reward_purchases', 'select') as inventory,
         has_function_privilege('anon', 'public.get_rewards(uuid)', 'execute') as public_read,
         has_function_privilege('authenticated', 'public.change_reward(uuid, text, text)', 'execute') as public_write,
-        has_function_privilege('service_role', 'public.change_reward(uuid, text, text)', 'execute') as server_write
+        has_function_privilege('service_role', 'public.change_reward(uuid, text, text)', 'execute') as server_write,
+        has_function_privilege('authenticated', 'public.get_profile_challenge_stats(uuid)', 'execute') as public_stats
     `);
     assert.deepEqual(permissions.rows[0], {
-      inventory: false, public_read: false, public_write: false, server_write: true,
+      inventory: false, public_read: false, public_write: false, server_write: true, public_stats: false,
     });
 
     await db.exec('set role service_role');
+    async function challengeStats(id = player) {
+      const { rows: [row] } = await db.query<{ value: { completedChallenges: number; averageScore: number } }>(
+        'select public.get_profile_challenge_stats($1) as value', [id],
+      );
+      return row.value;
+    }
+
     async function rewards(id = player) {
       const { rows: [row] } = await db.query<{ value: RewardsResponse }>(
         'select public.get_rewards($1) as value', [id],
@@ -84,6 +95,7 @@ Deno.test('rewards persist per player, credit each tier once, and spend the serv
     assert.equal(restored.badges.find(badge => badge.id === 'first')?.claimed, true);
     assert.equal((await claim('first', legacy)).coins, 25);
 
+    assert.deepEqual(await challengeStats(), { completedChallenges: 0, averageScore: 0 });
     const empty = await rewards();
     assert.equal(empty.coins, 0);
     assert.equal(empty.xp, 0);
@@ -133,6 +145,7 @@ Deno.test('rewards persist per player, credit each tier once, and spend the serv
 
     const latest = await db.query<{ score: number }>('select score::int from public.social_results where player_id = $1', [player]);
     assert.equal(latest.rows[0].score, 20);
+    assert.deepEqual(await challengeStats(), { completedChallenges: 1, averageScore: 20 });
 
     // Create genuine attempts on prior days to reach the shop prices.
     await db.exec('reset role');
@@ -186,6 +199,26 @@ Deno.test('rewards persist per player, credit each tier once, and spend the serv
     assert.equal(await submit(100, stranger), 10);
     assert.equal((await rewards(stranger)).coins, 10);
     assert.equal((await rewards(stranger)).badges.find(badge => badge.id === 'first')?.claimed, false);
+
+    // Seed a previous-day submission for the same player. Live submissions target today only.
+    await db.exec('reset role');
+    const { rows: [yesterday] } = await db.query<{ date: string }>(`
+      insert into public.challenge_attempts
+        (id, player_id, challenge_date, photo_path, target_hex, matched_hex, delta_e, score)
+      values (gen_random_uuid(), $1, $2::date - 1, $3, $4, $4, 0, 83)
+      returning challenge_date::text as date
+    `, [stranger, today.date, `${stranger}/yesterday.jpg`, today.hex]);
+    await db.query(`
+      insert into public.social_results (player_id, challenge_date, score)
+      values ($1, $2, 83)
+    `, [stranger, yesterday.date]);
+    await db.exec('set role service_role');
+
+    const twoDays = await rewards(stranger);
+    assert.deepEqual(twoDays.validatedDays, [yesterday.date, today.date]);
+    assert.equal(twoDays.xp, 240);
+    assert.deepEqual(await challengeStats(stranger), { completedChallenges: 2, averageScore: 91.5 });
+    assert.deepEqual(await challengeStats(), { completedChallenges: 1, averageScore: 20 });
   } finally {
     await db.close();
   }

@@ -27,6 +27,11 @@ export type AvatarCatalogResponse = {
   backgrounds: { id: string; hex: string; label: string }[];
 };
 
+export type ProfileChallengeStats = {
+  completedChallenges: number;
+  averageScore: number;
+};
+
 /**
  * GET get-my-profile — requires a session: the signed-in player's own public profile.
  * Also the response of update-my-profile.
@@ -36,6 +41,8 @@ export type MyProfileResponse = {
   avatarId: string;
   avatarBackgroundId: string;
   equippedRewards?: EquippedRewards;
+  /** Personal challenge totals returned on GET when available. */
+  challengeStats?: ProfileChallengeStats;
 };
 
 /**

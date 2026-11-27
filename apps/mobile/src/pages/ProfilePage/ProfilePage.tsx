@@ -14,8 +14,10 @@ import { useAvatarCatalog } from "@/data/avatar-catalog-provider";
 import { getColorCollection } from "@/data/challenge-history";
 import { getMyProfile } from "@/data/my-profile";
 import { useArchiveQuery } from "@/hooks/use-archive-query";
+import { useProgression } from "@/hooks/use-progression";
 import { useTheme } from "@/hooks/use-theme";
-import { xpPerLevel } from "@/lib/progression";
+import { formatNumber } from "@/lib/format-number";
+import { formatChallengePercent } from "@/lib/score-feedback";
 import { rewardAvatarAppearance } from "@/styles/reward-art";
 import { Colors, OnboardingColors } from "@/styles/theme";
 
@@ -27,13 +29,11 @@ const pencil = require("@/assets/icons/edit-pencil.svg");
 const settings = require("@/assets/icons/settings.svg");
 const chevron = require("@/assets/icons/chevron-right.svg");
 const history = require("@/assets/icon-illus/profile-history.svg");
-const startingStats = { level: 0, xp: 0, challenges: 0, streak: 0, averageScore: 0 };
-
 const metrics = [
-  { label: "Défis", value: startingStats.challenges, art: require("@/assets/icon-illus/target.png") },
-  { label: "Série", value: startingStats.streak, art: require("@/assets/icon-illus/flame.png") },
-  { label: "Score moyen", value: startingStats.averageScore, art: require("@/assets/icon-illus/trophy.png") },
-] satisfies { label: string; value: number; art: ImageProps["source"] }[];
+  { key: "challenges", label: "Défis réalisés", art: require("@/assets/icon-illus/target.png") },
+  { key: "streak", label: "Série", art: require("@/assets/icon-illus/flame.png") },
+  { key: "averageScore", label: "Score moyen", art: require("@/assets/icon-illus/trophy.png") },
+] as const;
 
 const shortcuts = [
   { href: "/amis", label: "Mes amis", art: require("@/assets/icons/community.svg"), tone: OnboardingColors.avatarCoral, tint: OnboardingColors.ink },
@@ -48,6 +48,19 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<MyProfile | null>(null);
   const [loadFailed, setLoadFailed] = useState(false);
   const { data: collection } = useArchiveQuery('collection', getColorCollection);
+  const { summary, error: progressionError } = useProgression();
+  const stats = profile?.challengeStats;
+  const level = summary?.level ?? 0;
+  const levelXp = summary?.levelXp ?? 0;
+  const xpPerLevel = summary?.xpPerLevel;
+  const xpText = xpPerLevel === undefined
+    ? formatNumber(levelXp)
+    : `${formatNumber(levelXp)} / ${formatNumber(xpPerLevel)}`;
+  const metricValues = {
+    challenges: formatNumber(stats?.completedChallenges ?? 0),
+    streak: formatNumber(summary?.currentStreak ?? 0),
+    averageScore: formatChallengePercent(stats?.averageScore ?? 0),
+  };
 
   const headerOptions = useMemo(() => ({
     headerTitleAlign: "center" as const,
@@ -146,29 +159,39 @@ export default function ProfilePage() {
           />
         )}
 
-        <View accessible accessibilityLabel={`Niveau ${startingStats.level}, ${startingStats.xp} XP`} style={styles.experience}>
-          <ThemedText aria-hidden type="smallBold" style={{ color: theme.dailyMuted }}>Niveau {startingStats.level}</ThemedText>
+        <View
+          accessible
+          accessibilityLabel={`Niveau ${level}, ${formatNumber(summary?.xp ?? 0)} XP`}
+          accessibilityState={{ busy: !summary && !progressionError }}
+          style={styles.experience}>
+          <ThemedText aria-hidden type="smallBold" style={{ color: theme.dailyMuted }}>Niveau {level}</ThemedText>
           <View aria-hidden style={styles.xpRow}>
             <View style={styles.xpTrack}>
-              <ProgressBar value={startingStats.xp} max={xpPerLevel} size="small" />
+              <ProgressBar value={levelXp} max={xpPerLevel ?? 0} size="small" />
             </View>
-            <ThemedText type="smallBold" style={{ color: theme.dailyMuted }}>{startingStats.xp} XP</ThemedText>
+            <ThemedText type="smallBold" style={{ color: theme.dailyMuted }}>{xpText} XP</ThemedText>
           </View>
         </View>
+        {progressionError && !summary && (
+          <ThemedText type="smallBold" style={{ color: theme.dailyMuted }}>Progression indisponible</ThemedText>
+        )}
       </View>
 
       <View style={styles.metrics}>
-        {metrics.map(({ label, value, art }) => (
-          <View
-            key={label}
-            accessible
-            accessibilityLabel={`${label}, ${value}`}
-            style={[styles.metric, fontScale > 1.5 && styles.metricFull, { backgroundColor: theme.dailySurface }]}>
-            <Image aria-hidden source={art} style={styles.metricArt} contentFit="contain" />
-            <ThemedText aria-hidden style={[styles.metricValue, { color: theme.dailyInk }]}>{value}</ThemedText>
-            <ThemedText aria-hidden type="smallBold" style={[styles.metricLabel, { color: theme.dailyMuted }]}>{label}</ThemedText>
-          </View>
-        ))}
+        {metrics.map(({ key, label, art }) => {
+          const value = metricValues[key];
+          return (
+            <View
+              key={key}
+              accessible
+              accessibilityLabel={`${label}, ${value}`}
+              style={[styles.metric, fontScale > 1.5 && styles.metricFull, { backgroundColor: theme.dailySurface }]}>
+              <Image aria-hidden source={art} style={styles.metricArt} contentFit="contain" />
+              <ThemedText aria-hidden style={[styles.metricValue, { color: theme.dailyInk }]}>{value}</ThemedText>
+              <ThemedText aria-hidden type="smallBold" style={[styles.metricLabel, { color: theme.dailyMuted }]}>{label}</ThemedText>
+            </View>
+          );
+        })}
       </View>
 
       <View style={styles.collection}>
