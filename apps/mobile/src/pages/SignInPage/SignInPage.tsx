@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { View } from 'react-native';
 
 import Button from '@/components/ui/Button';
@@ -8,8 +8,6 @@ import TextField from '@/components/ui/TextField';
 import ThemedText from '@/components/ui/ThemedText';
 import type { AuthResult } from '@/data/adapters/auth.adapters';
 import { signInWithEmail } from '@/data/auth';
-import { getCachedDailyChallenge } from '@/data/daily-color-cache';
-import { isDailyColorRevealed } from '@/data/daily-color-reveal';
 import { isValidEmail } from '@/lib/email';
 
 import { styles } from './SignInPage.styles';
@@ -19,22 +17,6 @@ export default function SignInPage() {
   const [password, setPassword] = useState('');
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [cachedHex, setCachedHex] = useState<string | null>(null);
-
-  useEffect(() => {
-    let active = true;
-
-    async function loadRevealedColor() {
-      const color = (await getCachedDailyChallenge())?.color;
-      if (color && await isDailyColorRevealed(color.date).catch(() => false) && active) {
-        setCachedHex(color.hex);
-      }
-    }
-
-    void loadRevealedColor();
-    return () => { active = false; };
-  }, []);
-
   async function run(action: () => Promise<AuthResult>) {
     setPending(true);
     setError(null);
@@ -95,14 +77,6 @@ export default function SignInPage() {
       </View>
 
       <NavigationLink href="/compte/inscription" label="Pas encore de compte ? Créer un compte" replace />
-
-      {cachedHex && (
-        <View style={styles.savedColor}>
-          <ThemedText type="smallBold">Dernière couleur enregistrée</ThemedText>
-          <View aria-hidden style={[styles.swatch, { backgroundColor: cachedHex }]} />
-          <ThemedText type="code" selectable>{cachedHex}</ThemedText>
-        </View>
-      )}
     </Screen>
   );
 }
