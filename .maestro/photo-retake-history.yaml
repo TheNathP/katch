@@ -1,0 +1,41 @@
+appId: ${APP_ID}
+name: Retake an imported photo and find its result in history
+---
+- launchApp:
+    clearState: true
+- addMedia:
+    - "../apps/backend/supabase/fixtures/challenge-photos/pink-zinnia.jpg"
+- runFlow: subflows/sign-in.yaml
+- extendedWaitUntil:
+    visible: "Capturer ma couleur"
+    timeout: 15000
+- tapOn: "Capturer ma couleur"
+- runFlow: subflows/import-photo.yaml
+- tapOn: "Refaire"
+- runFlow: subflows/import-photo.yaml
+- tapOn: "Valider"
+- extendedWaitUntil:
+    visible: '^Correspondance, [0-9]+([,.][0-9]+)?\s*%\.$'
+    timeout: 30000
+- assertVisible: "^Photo du défi( avec la couleur repérée)?$"
+- copyTextFrom: '^Correspondance, [0-9]+([,.][0-9]+)?\s*%\.$'
+- evalScript: ${output.resultScore = Number(maestro.copiedText.match(/[0-9]+([,.][0-9]+)?/)[0].replace(',', '.'))}
+- tapOn: "Continuer"
+- tapOn: "Profil"
+- scrollUntilVisible:
+    element: "Historique et galerie"
+- tapOn: "Historique et galerie"
+- scrollUntilVisible:
+    element:
+      id: "history-today-result"
+- tapOn:
+    id: "history-today-result"
+- extendedWaitUntil:
+    visible: "^Photo du défi du .+$"
+    timeout: 15000
+- copyTextFrom: '^Score [0-9]+([,.][0-9]+)?\s*%$'
+# The immediate result displays a decimal score and history shows the saved whole number.
+- assertTrue:
+    condition: ${Math.abs(Number(maestro.copiedText.match(/[0-9]+([,.][0-9]+)?/)[0].replace(',', '.')) - output.resultScore) <= 1}
+    label: History shows the result of today's attempt
+- assertNotVisible: "Photo indisponible"

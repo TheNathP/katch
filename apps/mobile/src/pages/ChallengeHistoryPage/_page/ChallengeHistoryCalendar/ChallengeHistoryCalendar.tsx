@@ -50,6 +50,7 @@ export default function ChallengeHistoryCalendar({ month, today, entries, onOpen
             return (
               <Pressable
                 key={day}
+                testID={day === today ? 'history-today-result' : undefined}
                 accessibilityRole="button"
                 accessibilityLabel={formatChallengeDay(day) + ', ' + formatChallengeScore(entry.score) + ', voir le résultat'}
                 onPress={() => onOpenResult(day)}

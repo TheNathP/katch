@@ -1,0 +1,23 @@
+appId: ${APP_ID}
+name: Remember the daily color after restarting Katch
+---
+- launchApp:
+    clearState: true
+- runFlow: subflows/sign-in.yaml
+- extendedWaitUntil:
+    visible: "Dévoiler la couleur"
+    timeout: 15000
+- tapOn: "Dévoiler la couleur"
+- extendedWaitUntil:
+    visible: "^(Code couleur )?#[0-9A-F]{6}$"
+    timeout: 10000
+- copyTextFrom: "^(Code couleur )?#[0-9A-F]{6}$"
+- evalScript: ${output.revealedColor = maestro.copiedText}
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible: "^(Code couleur )?#[0-9A-F]{6}$"
+    timeout: 15000
+- copyTextFrom: "^(Code couleur )?#[0-9A-F]{6}$"
+- assertTrue: ${Boolean(output.revealedColor) && output.revealedColor === maestro.copiedText}
+- assertNotVisible: "Dévoiler la couleur"

@@ -61,6 +61,7 @@ export default function SignInPage() {
     <Screen>
       <View style={styles.form}>
         <TextField
+          testID="sign-in-email"
           label="Email"
           value={email}
           onChangeText={setEmail}
@@ -71,6 +72,7 @@ export default function SignInPage() {
           returnKeyType="next"
         />
         <TextField
+          testID="sign-in-password"
           label="Mot de passe"
           value={password}
           onChangeText={setPassword}
