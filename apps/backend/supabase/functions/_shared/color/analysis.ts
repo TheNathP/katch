@@ -1,5 +1,5 @@
-// Photo analysis: downscale the decoded photo into blocks of pixels, then keep the
-// block whose average color is the closest to the daily target. Pure functions.
+// Photo analysis: downscale the decoded photo into blocks of pixels, then score the
+// part of the photo (a minimum share of its blocks) closest to the daily target. Pure functions.
 import { deltaE2000, hexToRgb, type Rgb, rgbToHex, rgbToLab } from "./color.ts";
 
 /** A decoded image: RGBA bytes, row by row (4 bytes per pixel). */
@@ -11,8 +11,16 @@ export type RgbaBitmap = {
 
 /** Number of blocks along the longest side once the photo is downscaled. */
 export const ANALYSIS_SIZE = 64;
+/** CIEDE2000 distance at (and below) which the score is 100: the eye can't see the difference. */
+export const PERFECT_DELTA_E = 1;
 /** CIEDE2000 distance at (and above) which the score drops to 0. */
-export const ZERO_SCORE_DELTA_E = 50;
+export const ZERO_SCORE_DELTA_E = 30;
+/**
+ * Share of the photo the matched color has to cover. The scored distance is the average
+ * over that many closest blocks, so a small patch of the right color in a busy scene
+ * isn't enough: the player has to frame an object of that color.
+ */
+export const MIN_MATCH_AREA = 0.05;
 /** Pixels more transparent than this are ignored (PNG with an alpha channel). */
 const MIN_ALPHA = 128;
 /**
@@ -87,12 +95,23 @@ export function downscale(
   return blocks;
 }
 
-/** Linear score: 100 for an exact match, 0 from `ZERO_SCORE_DELTA_E` onwards. */
+/**
+ * Quadratic score: 100 up to `PERFECT_DELTA_E`, 0 from `ZERO_SCORE_DELTA_E` onwards. The
+ * curve drops fast at first, so a high score takes a really close shade (~50 at deltaE 10).
+ */
 export function scoreFromDeltaE(deltaE: number): number {
-  return Math.round(100 * Math.max(0, 1 - deltaE / ZERO_SCORE_DELTA_E));
+  const progress = Math.min(
+    1,
+    Math.max(0, deltaE - PERFECT_DELTA_E) /
+      (ZERO_SCORE_DELTA_E - PERFECT_DELTA_E),
+  );
+  return Math.round(100 * (1 - progress) ** 2);
 }
 
-/** Goes through every block of the downscaled photo and keeps the closest one to the target. */
+/**
+ * Goes through every block of the downscaled photo and scores the `MIN_MATCH_AREA` share of
+ * blocks closest to the target: their average distance and average color.
+ */
 export function analyzePhoto(
   bitmap: RgbaBitmap,
   targetHex: string,
@@ -102,11 +121,23 @@ export function analyzePhoto(
     ...block,
     delta: deltaE2000(target, rgbToLab(block.color)),
   }));
-  let best: (typeof blocks)[number] | undefined;
-  for (const block of blocks) {
-    if (!best || block.delta < best.delta) best = block;
-  }
-  if (!best) throw new Error("The photo has no opaque pixel");
+  if (blocks.length === 0) throw new Error("The photo has no opaque pixel");
+  const closest = [...blocks].sort((a, b) => a.delta - b.delta);
+  const best = closest[0];
+  const matched = closest.slice(
+    0,
+    Math.max(1, Math.ceil(blocks.length * MIN_MATCH_AREA)),
+  );
+  const deltaE =
+    matched.reduce((sum, block) => sum + block.delta, 0) / matched.length;
+  const matchedColor = matched.reduce(
+    (sum, { color }) => ({
+      r: sum.r + color.r / matched.length,
+      g: sum.g + color.g / matched.length,
+      b: sum.b + color.b / matched.length,
+    }),
+    { r: 0, g: 0, b: 0 },
+  );
 
   // Among the blocks of the same color as the best one, point at the one closest to their middle.
   const bestDelta = best.delta;
@@ -136,9 +167,9 @@ export function analyzePhoto(
   );
 
   return {
-    matchedHex: rgbToHex(best.color),
+    matchedHex: rgbToHex(matchedColor),
     matchedArea: shown.area,
-    deltaE: bestDelta,
-    score: scoreFromDeltaE(bestDelta),
+    deltaE,
+    score: scoreFromDeltaE(deltaE),
   };
 }

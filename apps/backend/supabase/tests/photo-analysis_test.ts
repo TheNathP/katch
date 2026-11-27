@@ -84,16 +84,23 @@ Deno.test(
 );
 
 Deno.test("the analysis keeps the photo area closest to the target", () => {
-  // A small purple object on a green background: only the object counts.
+  // A purple object filling part of the frame on a green background: only the object counts.
   const photo = bitmap(640, 480, "#347D45", {
     hex: "#8A3FFC",
     x: 300,
     y: 200,
-    size: 60,
+    size: 200,
   });
   const result = analyzePhoto(photo, "#8A3FFC");
   assert.equal(result.matchedHex, "#8A3FFC");
   assert.equal(result.score, 100);
+
+  // The same object too small in the frame (about 1% of the photo) isn't enough.
+  const tiny = analyzePhoto(
+    bitmap(640, 480, "#347D45", { hex: "#8A3FFC", x: 300, y: 200, size: 60 }),
+    "#8A3FFC",
+  );
+  assert.ok(tiny.score < 50, `score ${tiny.score}`);
 
   // Nothing purple: low score, and the best block is the background.
   const miss = analyzePhoto(bitmap(640, 480, "#347D45"), "#8A3FFC");
@@ -107,9 +114,11 @@ Deno.test("the analysis keeps the photo area closest to the target", () => {
   );
   assert.ok(noisy.score < 20);
 
-  // A close shade scores high but not perfect.
+  // A close shade scores high but not perfect; a visibly different shade scores much lower.
   const close = analyzePhoto(bitmap(100, 100, "#8040F0"), "#8A3FFC");
-  assert.ok(close.score >= 85 && close.score < 100, `score ${close.score}`);
+  assert.ok(close.score >= 75 && close.score < 100, `score ${close.score}`);
+  const shade = analyzePhoto(bitmap(100, 100, "#6A3FC0"), "#8A3FFC");
+  assert.ok(shade.score <= 50, `score ${shade.score}`);
 });
 
 Deno.test("the analysis tells where the matched color is in the photo", () => {
@@ -143,7 +152,11 @@ Deno.test("the photo is downscaled to at most 64 blocks per side", () => {
   const transparent = { width: 2, height: 2, data: new Uint8Array(16) };
   assert.throws(() => analyzePhoto(transparent, "#000000"));
   assert.equal(scoreFromDeltaE(0), 100);
-  assert.equal(scoreFromDeltaE(25), 50);
+  assert.equal(scoreFromDeltaE(1), 100);
+  assert.equal(scoreFromDeltaE(5), 74);
+  assert.equal(scoreFromDeltaE(10), 48);
+  assert.equal(scoreFromDeltaE(20), 12);
+  assert.equal(scoreFromDeltaE(30), 0);
   assert.equal(scoreFromDeltaE(80), 0);
 });
 
