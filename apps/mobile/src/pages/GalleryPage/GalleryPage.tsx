@@ -1,5 +1,5 @@
-import Screen from '@/components/ui/Screen';
+import ChallengeHistoryPage from '@/pages/ChallengeHistoryPage';
 
 export default function GalleryPage() {
-  return <Screen />;
+  return <ChallengeHistoryPage initialView="gallery" />;
 }

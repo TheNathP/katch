@@ -4,6 +4,7 @@ import { View } from "react-native";
 
 import AvatarPicker from "@/components/ui/AvatarPicker";
 import Button from "@/components/ui/Button";
+import IconLink from "@/components/ui/IconLink";
 import Screen from "@/components/ui/Screen";
 import TextField from "@/components/ui/TextField";
 import ThemedText from "@/components/ui/ThemedText";
@@ -111,6 +112,7 @@ export default function EditProfilePage() {
           value={avatar}
           onChange={setDraftAvatar}
         />
+        <IconLink href="/recompenses" icon="gift" label="Gérer mes accessoires Pix" />
         <TextField
           label="Pseudo"
           value={displayName}

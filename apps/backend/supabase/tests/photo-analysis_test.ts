@@ -7,6 +7,7 @@ import {
   downscale,
   type RgbaBitmap,
   scoreFromDeltaE,
+  scorePercentFromDeltaE,
 } from "../functions/_shared/color/analysis.ts";
 import {
   deltaE2000,
@@ -158,6 +159,10 @@ Deno.test("the photo is downscaled to at most 64 blocks per side", () => {
   assert.equal(scoreFromDeltaE(20), 12);
   assert.equal(scoreFromDeltaE(30), 0);
   assert.equal(scoreFromDeltaE(80), 0);
+  assert.equal(scorePercentFromDeltaE(0), 100);
+  assert.equal(scorePercentFromDeltaE(10), 47.5);
+  assert.equal(scorePercentFromDeltaE(19.91), 12.1);
+  assert.equal(scorePercentFromDeltaE(80), 0);
 });
 
 Deno.test("image headers give the real format and size", async () => {

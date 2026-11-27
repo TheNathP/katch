@@ -49,7 +49,7 @@ export default function ProgressionLayout({ children, loading, backgroundColor, 
         {error && (
           <View style={styles.section}>
             <ThemedText accessibilityLiveRegion="polite" themeColor="danger">{error}</ThemedText>
-            {!children && <Button label="Réessayer" onPress={retry} />}
+            <Button label="Réessayer" onPress={retry} />
           </View>
         )}
       </View>

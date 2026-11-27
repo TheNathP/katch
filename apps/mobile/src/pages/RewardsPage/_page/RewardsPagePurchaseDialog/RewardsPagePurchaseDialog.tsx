@@ -30,16 +30,19 @@ type Props = {
   artBackground: string;
   busy: boolean;
   error?: string;
-  onConfirm?: () => Promise<void>;
+  mode: 'purchase' | 'complete' | 'owned';
+  equipped: boolean;
+  onConfirm: () => Promise<void>;
   onClose: () => void;
 };
 
 export default function RewardsPagePurchaseDialog({
-  name, title, price, art, artBackground, busy, error, onConfirm, onClose,
+  name, title, price, art, artBackground, busy, error, mode, equipped, onConfirm, onClose,
 }: Props) {
   const theme = useTheme();
   const reduceMotion = useReducedMotion();
-  const complete = !onConfirm;
+  const complete = mode === 'complete';
+  const owned = mode === 'owned';
   const closing = useRef(false);
   const submitting = useRef(false);
   const visibility = useSharedValue(reduceMotion ? 1 : 0);
@@ -52,16 +55,16 @@ export default function RewardsPagePurchaseDialog({
   }, [reduceMotion, visibility]);
 
   useEffect(() => {
-    if (!complete || reduceMotion) return;
+    if ((!complete && !owned) || reduceMotion) return;
     reveal.set(withDelay(85, withSequence(
       withTiming(1.12, { duration: 265, easing: Easing.out(Easing.cubic) }),
       withTiming(1, { duration: 180, easing: Easing.out(Easing.quad) }),
     )));
     return () => cancelAnimation(reveal);
-  }, [complete, reduceMotion, reveal]);
+  }, [complete, owned, reduceMotion, reveal]);
 
   async function confirm() {
-    if (!onConfirm || closing.current || submitting.current || busy) return;
+    if (closing.current || submitting.current || busy) return;
     submitting.current = true;
     try {
       await onConfirm();
@@ -110,7 +113,7 @@ export default function RewardsPagePurchaseDialog({
           <Animated.View accessibilityViewIsModal style={[
             styles.panel, { backgroundColor: theme.dailyCard, borderColor: theme.dailyBorder }, panelMotion,
           ]}>
-            {complete && (
+            {(complete || owned) && (
               <View aria-hidden style={[styles.stage, { backgroundColor: artBackground }]}>
                 <Animated.View style={pixMotion}>
                   <Image source={art} style={styles.mascot} contentFit="contain" />
@@ -119,13 +122,19 @@ export default function RewardsPagePurchaseDialog({
             )}
             <View style={styles.copy}>
               <ThemedText accessibilityRole="header" accessibilityLiveRegion="polite" style={styles.title}>
-                {complete ? title : 'Confirmer l’achat ?'}
+                {complete ? title : owned ? 'Personnaliser Pix' : 'Confirmer l’achat ?'}
               </ThemedText>
               <ThemedText type="smallBold" accessibilityLiveRegion="polite" style={styles.item}>{name}</ThemedText>
-              <View style={styles.price}>
-                <Icon name="coin" size={23} />
-                <ThemedText type="small" themeColor="textSecondary">{complete ? '−' : ''}{formatNumber(price)} KatchCoins</ThemedText>
-              </View>
+              {owned || complete ? (
+                <ThemedText type="small" themeColor="textSecondary">
+                  {equipped ? 'Équipé sur ton profil' : 'Dans tes accessoires'}
+                </ThemedText>
+              ) : (
+                <View style={styles.price}>
+                  <Icon name="coin" size={23} />
+                  <ThemedText type="small" themeColor="textSecondary">{formatNumber(price)} KatchCoins</ThemedText>
+                </View>
+              )}
             </View>
             {!complete && error && (
               <ThemedText accessibilityLiveRegion="polite" type="small" themeColor="danger" style={styles.error}>
@@ -142,7 +151,7 @@ export default function RewardsPagePurchaseDialog({
                 <Button
                   variant="limeSolid"
                   size="compact"
-                  label="Acheter"
+                  label={owned ? (equipped ? 'Retirer' : 'Équiper') : 'Acheter'}
                   disabled={busy}
                   accessibilityState={{ busy }}
                   onPress={() => void confirm()}

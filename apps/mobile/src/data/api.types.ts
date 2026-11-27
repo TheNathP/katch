@@ -35,6 +35,7 @@ export type MyProfileResponse = {
   avatarId: string;
   /** Id from the avatar catalog (`backgrounds[].id`). */
   avatarBackgroundId: string;
+  equippedRewards?: EquippedRewards;
 };
 
 /**
@@ -63,6 +64,7 @@ export type DailyColorResponse = {
   serverTime: string;
   submission: {
     score: number;
+    scorePercent?: number;
     matchedHex: string;
   } | null;
 };
@@ -88,6 +90,8 @@ export type SubmitPhotoResponse = {
   matchedHex: string;
   matchedArea: { x: number; y: number; width: number; height: number };
   score: number;
+  scorePercent?: number;
+  photoCoinsEarned?: number;
   submittedAt: string;
   takenAt: string | null;
 };
@@ -129,3 +133,50 @@ export type LeaderboardPlayerResponse = {
     | { status: "available"; url: string }
     | { status: "locked" | "missing" };
 };
+
+export type ChallengeHistoryEntry = {
+  date: string;
+  score: number;
+  targetHex: string | null;
+  collected: boolean;
+  photoUrl: string | null;
+};
+
+export type ChallengeHistoryResponse = {
+  today: string;
+  firstMonth: string;
+  entries: ChallengeHistoryEntry[];
+};
+
+export type ColorCollectionResponse = {
+  offeredCount: number;
+  validatedCount: number;
+  validatedColors: { date: string; hex: string; score: number }[];
+  nextCursor: string | null;
+};
+
+export type PhotoGalleryResponse = {
+  entries: ChallengeHistoryEntry[];
+  nextCursor: string | null;
+};
+
+export type EquippedRewards = {
+  mascots: string | null;
+  backgrounds: string | null;
+  frames: string | null;
+};
+
+export type RewardsResponse = {
+  coins: number;
+  owned: string[];
+  items: { id: string; price: number }[];
+  badges: { id: string; progress: number; goal: number; coins: number; eligible: boolean; claimed: boolean }[];
+  validatedDays: string[];
+  xp: number;
+  xpPerLevel: number;
+  equipped: EquippedRewards;
+};
+
+export type ChangeRewardRequest =
+  | { action: 'purchase' | 'equip' | 'unequip'; itemId: string }
+  | { action: 'claim'; badgeId: string };

@@ -15,6 +15,7 @@ type EdgeFunctionRequest = {
   /** Sent as JSON, except a `FormData` which is sent as `multipart/form-data`. */
   body?: unknown;
   signal?: AbortSignal;
+  expectedUserId?: string;
 };
 
 /**
@@ -23,14 +24,16 @@ type EdgeFunctionRequest = {
  */
 export async function callEdgeFunction(
   name: string,
-  { method, body, signal }: EdgeFunctionRequest,
+  { method, body, signal, expectedUserId }: EdgeFunctionRequest,
 ): Promise<unknown> {
   const url = process.env.EXPO_PUBLIC_SUPABASE_URL?.replace(/\/+$/, "");
   const key = process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
   if (!url || !key) throw new Error("Missing Supabase configuration");
 
   const { data } = await supabase.auth.getSession();
-  if (!data.session) throw new EdgeFunctionError(401, "unauthorized");
+  if (!data.session || (expectedUserId && data.session.user.id !== expectedUserId)) {
+    throw new EdgeFunctionError(401, "unauthorized");
+  }
 
   const response = await fetch(`${url}/functions/v1/${name}`, {
     method,

@@ -6,12 +6,15 @@ const DISPLAY_NAME_PATTERN = /^[A-Za-z0-9_.-]{3,20}$/;
 const CATALOG_ID_PATTERN = /^[a-z]+(-[a-z]+)*$/;
 const CATALOG_ID_MAX_LENGTH = 64;
 
-export const PROFILE_COLUMNS = "display_name, avatar_id, avatar_background_id";
+export const PROFILE_COLUMNS = "display_name, avatar_id, avatar_background_id, reward_mascot_id, reward_background_id, reward_frame_id";
 
 export type SocialProfileRow = {
   display_name: string;
   avatar_id: string;
   avatar_background_id: string;
+  reward_mascot_id?: string | null;
+  reward_background_id?: string | null;
+  reward_frame_id?: string | null;
 };
 
 export type SocialProfileUpdate = Partial<SocialProfileRow>;
@@ -21,6 +24,11 @@ export function toMyProfileResponse(row: SocialProfileRow): MyProfileResponse {
     displayName: row.display_name,
     avatarId: row.avatar_id,
     avatarBackgroundId: row.avatar_background_id,
+    equippedRewards: {
+      mascots: row.reward_mascot_id ?? null,
+      backgrounds: row.reward_background_id ?? null,
+      frames: row.reward_frame_id ?? null,
+    },
   };
 }
 

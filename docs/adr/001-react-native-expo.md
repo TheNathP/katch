@@ -9,7 +9,7 @@ We have decided to use **React Native with Expo and TypeScript** to develop our 
 
 ## Background
 
-Our application must run on both platforms, provide a native user experience, and access device capabilities such as the camera, geolocation, and local storage.
+Our application must run on both platforms, provide a native user experience, and access device capabilities such as the camera and local storage.
 
 We want to minimize development time while maintaining a reliable and scalable codebase.
 

@@ -99,13 +99,24 @@ export function downscale(
  * Quadratic score: 100 up to `PERFECT_DELTA_E`, 0 from `ZERO_SCORE_DELTA_E` onwards. The
  * curve drops fast at first, so a high score takes a really close shade (~50 at deltaE 10).
  */
-export function scoreFromDeltaE(deltaE: number): number {
+function rawScoreFromDeltaE(deltaE: number): number {
   const progress = Math.min(
     1,
     Math.max(0, deltaE - PERFECT_DELTA_E) /
       (ZERO_SCORE_DELTA_E - PERFECT_DELTA_E),
   );
-  return Math.round(100 * (1 - progress) ** 2);
+  return 100 * (1 - progress) ** 2;
+}
+
+export function scoreFromDeltaE(deltaE: number): number {
+  return Math.round(rawScoreFromDeltaE(deltaE));
+}
+
+/** Keep the first decimal for display, with a tolerance for binary floating point. */
+export function scorePercentFromDeltaE(deltaE: number): number {
+  // Stored attempts already use hundredths of Delta E; match their display on the result page.
+  const recordedDeltaE = Math.round(deltaE * 100) / 100;
+  return Math.trunc(rawScoreFromDeltaE(recordedDeltaE) * 10 + 1e-9) / 10;
 }
 
 /**

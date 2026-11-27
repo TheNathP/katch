@@ -5,6 +5,8 @@ import {
   adaptChallengeAttempt,
   type ChallengeAttempt,
 } from "@/data/adapters/challenge-attempt.adapters";
+import { cacheDailySubmission } from "@/data/daily-color-cache";
+import { rewardsStore } from "@/data/rewards-store";
 import { callEdgeFunction, EdgeFunctionError } from "@/data/edge-functions";
 
 export type { ChallengeAttempt };
@@ -27,6 +29,15 @@ export class SubmitPhotoError extends Error {
 
 // The last results, kept in memory so the result screen can show them without another request.
 const attempts = new Map<string, ChallengeAttempt>();
+export type PhotoCoinReward = { amount: number; previousBalance?: number };
+const pendingPhotoCoins = new Map<string, PhotoCoinReward>();
+
+/** Home consumes each confirmed photo credit once, including after a retake. */
+export function takePhotoCoins(accountId: string) {
+  const coins = pendingPhotoCoins.get(accountId);
+  pendingPhotoCoins.delete(accountId);
+  return coins;
+}
 
 export function getChallengeAttempt(id: string): ChallengeAttempt | undefined {
   return attempts.get(id);
@@ -62,6 +73,8 @@ async function preparePhoto(uri: string): Promise<PreparedPhoto> {
 export async function submitChallengePhoto(
   photoUri: string,
   takenAt: string | null,
+  accountId: string,
+  signal?: AbortSignal,
 ): Promise<ChallengeAttempt> {
   const upload = await preparePhoto(photoUri).catch((error: unknown) => {
     if (__DEV__) console.warn("Could not prepare challenge photo", error);
@@ -69,17 +82,31 @@ export async function submitChallengePhoto(
   });
 
   try {
+    if (signal?.aborted) throw new Error("Photo submission aborted");
     const form = new FormData();
     // The global fetch is expo/fetch: it uploads Blob-like files, not React Native's { uri } descriptors.
     form.append("photo", new File(upload.uri));
     if (takenAt) form.append("takenAt", takenAt);
 
     const attempt = adaptChallengeAttempt(
-      await callEdgeFunction("submit-photo", { method: "POST", body: form }),
+      await callEdgeFunction("submit-photo", { method: "POST", body: form, expectedUserId: accountId, signal }),
       // The result shows the very image the server analyzed, so the matched area lines up with it.
       upload,
     );
-    attempts.set(attempt.id, attempt);
+    if (!attempts.has(attempt.id)) {
+      const wallet = rewardsStore(accountId);
+      if (attempt.photoCoinsEarned > 0) {
+        const previous = pendingPhotoCoins.get(accountId);
+        pendingPhotoCoins.set(accountId, {
+          amount: (previous?.amount ?? 0) + attempt.photoCoinsEarned,
+          previousBalance: previous ? previous.previousBalance : wallet.snapshot().data?.coins,
+        });
+      }
+      const { score, scorePercent, matchedHex } = attempt;
+      cacheDailySubmission(accountId, attempt.challengeDate, { score, scorePercent, matchedHex });
+      wallet.invalidate();
+      attempts.set(attempt.id, attempt);
+    }
     return attempt;
   } catch (error) {
     // The player only sees a generic message: log the real cause while developing.

@@ -29,8 +29,8 @@ Supabase offers the best balance between setup speed, cost and features for our 
 - The database schema is versioned in the repository through SQL migrations.
 - Edge Functions run on Deno, a different runtime from the mobile app.
 - The free tier has limits (database size, storage, invocations, project paused after inactivity).
-- Each developer needs Docker to run the local stack, and must link the hosted project once (`supabase login` then `supabase link`).
-- The linked project is production: commands that modify it (`db push`, `functions deploy`…) must only be run deliberately.
+- Local development requires a running Docker engine. For hosted deployments, authenticate and link the intended project with `supabase login` and `supabase link`.
+- Commands such as `db push` and `functions deploy` modify the targeted hosted project. Check the link before running them.
 
 ## Ownership
 

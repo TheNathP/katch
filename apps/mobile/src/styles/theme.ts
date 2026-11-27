@@ -206,7 +206,7 @@ export const ButtonTokens = {
   },
 } as const;
 
-/** The capture flow is always dark, whatever the system theme, so the camera preview stays the focus. */
+/** Contrast and game accents drawn directly over a photograph. */
 export const CaptureColors = {
   backdrop: "#120D1C",
   panel: "#1B1526",

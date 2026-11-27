@@ -1,6 +1,17 @@
 // Wording shown for a score returned by the server. Presentation only: the
 // app never computes a score, it picks the message for the one it received.
 
+export const minimumCaptureScore = 70;
+
+const challengePercent = new Intl.NumberFormat("fr-FR", {
+  style: "percent",
+  maximumFractionDigits: 1,
+});
+
+export function formatChallengePercent(score: number): string {
+  return challengePercent.format(score / 100);
+}
+
 export type ScoreTier = "perfect" | "great" | "good" | "miss";
 
 export type ScoreFeedback = { tier: ScoreTier; title: string; message: string };

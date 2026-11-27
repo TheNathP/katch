@@ -1,16 +1,10 @@
 import { StyleSheet } from 'react-native';
 
-import { OnboardingColors, Spacing } from '@/styles/theme';
+import { Spacing } from '@/styles/theme';
 
 export const styles = StyleSheet.create({
   headerTitle: { fontWeight: '900' },
-  wallet: {
-    flexDirection: 'row', alignItems: 'center', gap: Spacing.half,
-    paddingLeft: Spacing.half, paddingRight: 10, marginRight: Spacing.three, marginBottom: Spacing.half,
-    minHeight: 32, borderRadius: 16, backgroundColor: OnboardingColors.avatarAmber,
-  },
-  walletIcon: { width: 30, height: 30, alignItems: 'center', justifyContent: 'center' },
-  walletValue: { color: OnboardingColors.ink, fontVariant: ['tabular-nums'], fontWeight: '900' },
+  wallet: { marginRight: Spacing.three, marginBottom: Spacing.half },
   shop: { gap: Spacing.three },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two },
   item: { borderRadius: 19 },

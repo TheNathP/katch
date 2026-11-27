@@ -11,10 +11,12 @@ import Screen from "@/components/ui/Screen";
 import ThemedText from "@/components/ui/ThemedText";
 import type { MyProfile } from "@/data/adapters/my-profile.adapters";
 import { useAvatarCatalog } from "@/data/avatar-catalog-provider";
-import { emptyColorCollection } from "@/data/color-collection";
+import { getColorCollection } from "@/data/challenge-history";
 import { getMyProfile } from "@/data/my-profile";
+import { useArchiveQuery } from "@/hooks/use-archive-query";
 import { useTheme } from "@/hooks/use-theme";
 import { xpPerLevel } from "@/lib/progression";
+import { rewardAvatarAppearance } from "@/styles/reward-art";
 import { Colors, OnboardingColors } from "@/styles/theme";
 
 import { styles } from "./ProfilePage.styles";
@@ -45,6 +47,7 @@ export default function ProfilePage() {
   const profileRequest = useRef<AbortController | null>(null);
   const [profile, setProfile] = useState<MyProfile | null>(null);
   const [loadFailed, setLoadFailed] = useState(false);
+  const { data: collection } = useArchiveQuery('collection', getColorCollection);
 
   const headerOptions = useMemo(() => ({
     headerTitleAlign: "center" as const,
@@ -106,6 +109,7 @@ export default function ProfilePage() {
             />
           ) : (
             <Avatar
+              {...rewardAvatarAppearance(profile?.equippedRewards)}
               imageUrl={avatar?.imageUrl}
               fallbackSource={pix}
               backgroundHex={background?.hex ?? OnboardingColors.violetEdge}
@@ -168,7 +172,7 @@ export default function ProfilePage() {
       </View>
 
       <View style={styles.collection}>
-        <ColorCollection collection={emptyColorCollection} preview />
+        <ColorCollection collection={collection} preview />
         <NavigationLink
           href="/collection"
           label="Voir toute la collection"
@@ -208,11 +212,11 @@ export default function ProfilePage() {
 
         <NavigationLink
           href="/historique"
-          label="Historique des défis"
+          label="Historique et galerie"
           variant="plain"
           style={[styles.historyLink, { backgroundColor: theme.dailyCard, boxShadow: theme.dailyShadow }]}>
           <Image aria-hidden source={history} style={styles.historyArt} contentFit="contain" />
-          <ThemedText type="smallBold" style={[styles.historyLabel, { color: theme.dailyInk }]}>Historique des défis</ThemedText>
+          <ThemedText type="smallBold" style={[styles.historyLabel, { color: theme.dailyInk }]}>Historique et galerie</ThemedText>
           <Image aria-hidden source={chevron} style={styles.chevron} tintColor={theme.dailyAccent} contentFit="contain" />
         </NavigationLink>
       </View>

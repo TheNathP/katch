@@ -1,13 +1,16 @@
 import type {
+  EquippedRewards,
   MyProfileResponse,
   UpdateMyProfileRequest,
 } from "@/data/api.types";
+import { adaptEquippedRewards } from "@/data/adapters/rewards.adapters";
 import { EdgeFunctionError } from "@/data/edge-functions";
 import type { AvatarChoice } from "@/lib/profile";
 
 export type MyProfile = {
   displayName: string;
   avatar: AvatarChoice;
+  equippedRewards: EquippedRewards;
 };
 
 /** Only the fields that changed. */
@@ -34,6 +37,7 @@ export function adaptMyProfile(response: unknown): MyProfile {
   return {
     displayName,
     avatar: { avatar: avatarId, background: avatarBackgroundId },
+    equippedRewards: adaptEquippedRewards(response.equippedRewards),
   };
 }
 

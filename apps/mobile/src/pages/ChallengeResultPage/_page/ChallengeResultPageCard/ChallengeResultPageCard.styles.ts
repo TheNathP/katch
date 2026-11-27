@@ -1,27 +1,14 @@
 import { StyleSheet } from "react-native";
 
-import { CaptureColors, Spacing } from "@/styles/theme";
+import { Spacing } from "@/styles/theme";
 
 export const styles = StyleSheet.create({
-  card: {
-    gap: Spacing.three,
-    padding: Spacing.three,
-    borderRadius: 28,
-    backgroundColor: CaptureColors.panel,
-    borderWidth: 1,
-    borderColor: CaptureColors.controlBorder,
-  },
-  colors: { flexDirection: "row", justifyContent: "space-between", gap: Spacing.two },
-  colorRow: { flexDirection: "row", alignItems: "center", gap: 10 },
-  targetRow: { justifyContent: "flex-end" },
-  swatch: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: CaptureColors.controlBorder,
-  },
-  colorCaption: { color: CaptureColors.muted, fontSize: 12, fontWeight: "700" },
-  hex: { color: CaptureColors.foreground, fontSize: 17, fontWeight: "900", fontVariant: ["tabular-nums"] },
-  alignEnd: { textAlign: "right" },
+  comparison: { width: "100%", borderTopWidth: StyleSheet.hairlineWidth, padding: Spacing.two + Spacing.one },
+  colors: { flexDirection: "row", gap: Spacing.two },
+  colorsStacked: { flexDirection: "column" },
+  color: { flex: 1, gap: Spacing.one + Spacing.half },
+  caption: { gap: 1, paddingHorizontal: Spacing.one, paddingBottom: Spacing.one },
+  swatch: { width: "100%", height: 30, borderRadius: 8, borderWidth: 1 },
+  colorCaption: { fontSize: 12, fontWeight: "700" },
+  hex: { fontSize: 15, fontWeight: "900", fontVariant: ["tabular-nums"] },
 });

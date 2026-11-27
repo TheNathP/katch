@@ -8,6 +8,7 @@ export type DailyColor = {
 
 export type DailySubmission = {
   score: number;
+  scorePercent: number;
   matchedHex: string;
 };
 
@@ -38,7 +39,12 @@ function adaptSubmission(submission: unknown): DailySubmission | null {
   ) {
     throw new Error('Invalid daily submission');
   }
-  return { score: body.score, matchedHex: body.matchedHex };
+  const { score, scorePercent, matchedHex } = body;
+  return {
+    score, matchedHex,
+    scorePercent: typeof scorePercent === 'number' && Number.isFinite(scorePercent)
+      && scorePercent >= 0 && scorePercent <= 100 ? scorePercent : score,
+  };
 }
 
 export function adaptDailyChallenge(response: unknown, receivedAt: number): DailyChallenge {
