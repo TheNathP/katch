@@ -132,13 +132,28 @@ Relance Metro après avoir modifié les variables d’environnement. Pour arrêt
 
 ## Vérifications
 
-Depuis la racine du dépôt, lance le lint, la vérification TypeScript et les tests backend du parcours photo.
+Depuis la racine du dépôt, lance les vérifications mobiles et backend. Les tests mobiles couvrent le cache du défi, le rafraîchissement du profil après une participation, les liens signés et les erreurs d’aperçu photo. La suite backend utilise des bases de test isolées.
 
 ```bash
 pnpm lint
 pnpm typecheck
-pnpm --filter @katch/backend test:daily-color
-pnpm --filter @katch/backend test:photo-analysis
+pnpm test
+```
+
+Utilise `pnpm --filter @katch/mobile test` pour lancer uniquement la suite mobile.
+
+### Parcours Maestro
+
+Utilise un simulateur iOS ou un émulateur Android dédié avec un build de Katch installé et configuré pour un backend de test accessible depuis l’appareil. Les scénarios réinitialisent les données locales du build avant de se connecter.
+
+Avec [Maestro CLI](https://docs.maestro.dev/maestro-cli/how-to-install-maestro-cli), définis `APP_ID` avec le bundle ID iOS ou le nom du package Android du build. Exporte `MAESTRO_TEST_EMAIL` et `MAESTRO_TEST_PASSWORD` pour un compte confirmé sur ce backend. Lance les scénarios depuis la racine du dépôt, hors du changement de jour à minuit UTC.
+
+- `daily-color-persists.yaml` vérifie que la couleur dévoilée reste visible après redémarrage. Lance-le avec un compte qui n’a encore envoyé aucune photo pour le défi du jour.
+- `photo-retake-history.yaml` ajoute un JPEG de test à la galerie, l’importe deux fois après « Refaire », puis vérifie le score et la photo dans l’historique. Utilise un appareil de test réglé en anglais avec une galerie vide ou réservée à cette image. Le scénario enregistre une participation sur le backend de test.
+
+```bash
+maestro test -e APP_ID="$APP_ID" .maestro/daily-color-persists.yaml
+maestro test -e APP_ID="$APP_ID" .maestro/photo-retake-history.yaml
 ```
 
 ## Structure du dépôt

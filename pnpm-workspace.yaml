@@ -1,4 +1,6 @@
 packages:
   - 'apps/*'
+allowBuilds:
+  '@parcel/watcher@2.6.0': false
 patchedDependencies:
   expo-camera@58.0.14: patches/expo-camera@58.0.14.patch

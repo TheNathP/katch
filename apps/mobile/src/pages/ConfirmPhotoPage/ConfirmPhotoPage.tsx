@@ -134,6 +134,7 @@ export default function ConfirmPhotoPage() {
               {photo && (
                 <Image
                   source={{ uri: photo.uri }}
+                  testID={imageSize?.id === photo.id ? 'challenge-photo-preview-ready' : undefined}
                   cachePolicy="none"
                   contentFit="contain"
                   accessibilityLabel="Photo à valider"

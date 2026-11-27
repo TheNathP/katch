@@ -1,0 +1,19 @@
+appId: ${APP_ID}
+---
+- extendedWaitUntil:
+    visible: "Passer"
+    timeout: 15000
+- tapOn: "Passer"
+- tapOn: "J’ai déjà un compte"
+- extendedWaitUntil:
+    visible:
+      id: "sign-in-email"
+    timeout: 15000
+- tapOn:
+    id: "sign-in-email"
+- inputText: ${MAESTRO_TEST_EMAIL}
+- tapOn:
+    id: "sign-in-password"
+- inputText: ${MAESTRO_TEST_PASSWORD}
+- hideKeyboard
+- tapOn: "Se connecter"
