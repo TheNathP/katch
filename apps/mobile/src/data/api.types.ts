@@ -1,4 +1,4 @@
-import type { Relationship } from "./social-api.types";
+import type { PhotoReactionContext, Relationship } from "./social-api.types";
 
 // Mirrors the public contract in apps/backend/supabase/functions/_shared/types.ts.
 
@@ -137,7 +137,7 @@ export type LeaderboardPlayerResponse = {
   score: number | null;
   relationship: Relationship | "self";
   photo:
-    | { status: "available"; url: string }
+    | { status: "available"; url: string; reactionContext?: PhotoReactionContext }
     | { status: "locked" | "missing" };
 };
 

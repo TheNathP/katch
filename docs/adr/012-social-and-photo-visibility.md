@@ -13,6 +13,8 @@ The server authenticates the viewer before responding. The global leaderboard re
 
 Challenge photos are stored in a private bucket. From the leaderboard, a player can view their own photo. To view another player's photo for the day, they must first submit their own attempt that day. After checking access, the server issues a signed URL that expires after two minutes.
 
+On an accepted friend's profile, photos from the previous three UTC challenge days are visible. Today's photo follows the same participation rule as the leaderboard. Profile responses use signed URLs with the same two-minute lifetime. Each friend can set one Pix reaction per attempt, change it, or remove it. Photo replacement removes the previous attempt's reactions, and totals include reactions from currently accepted friends only.
+
 Showing all leaderboard photos immediately would make it easier to discover submissions, but it could reveal clues before the first attempt. Restricting photo access to accepted friends would reduce exposure and limit interaction on the global leaderboard.
 
 ## Consequences and limitations

@@ -1,9 +1,9 @@
-import type { FriendMutation, FriendOverview, FriendProfile, FriendsRequest, SocialPlayer } from './social-api.types';
+import type { FriendMutation, FriendOverview, FriendProfile, FriendsRequest, PhotoReactions, PixReaction, SocialPlayer } from './social-api.types';
 import { callEdgeFunction, EdgeFunctionError } from './edge-functions';
 
-async function requestFriends<T>(body: FriendsRequest, signal?: AbortSignal): Promise<T> {
+async function requestFriends<T>(body: FriendsRequest, signal?: AbortSignal, expectedUserId?: string): Promise<T> {
   try {
-    return await callEdgeFunction('friends', { method: 'POST', body, signal }) as T;
+    return await callEdgeFunction('friends', { method: 'POST', body, signal, expectedUserId }) as T;
   } catch (error) {
     if (error instanceof EdgeFunctionError && error.status === 401) {
       throw new Error('Reconnecte-toi pour retrouver tes amis.');
@@ -24,14 +24,27 @@ export async function searchFriends(text: string, signal?: AbortSignal) {
 }
 
 export async function getPlayerSocialProfile(target: string, viewer: string | undefined, signal: AbortSignal) {
-  const [profile, overview] = await Promise.all([
-    requestFriends<FriendProfile>({ action: 'profile', target }, signal),
-    target === viewer ? null : getFriends(signal),
-  ]);
+  const profile = await requestFriends<FriendProfile>({ action: 'profile', target }, signal, viewer);
+  const overview = !profile.relationship && target !== viewer
+    ? await requestFriends<FriendOverview>({ action: 'overview' }, signal, viewer) : null;
   return {
     ...profile,
-    relationship: overview?.players.find(player => player.id === target)?.relationship ?? 'none',
+    relationship: profile.relationship ?? overview?.players.find(player => player.id === target)?.relationship ?? 'none',
   };
+}
+
+export async function reactToFriendPhoto(attempt: string, reaction: PixReaction | null, viewer: string) {
+  try {
+    return await callEdgeFunction('friends', {
+      method: 'POST', body: { action: 'react', attempt, reaction } satisfies FriendsRequest,
+      expectedUserId: viewer,
+    }) as PhotoReactions;
+  } catch (error) {
+    if (error instanceof EdgeFunctionError && error.status === 403) {
+      throw new Error('Cette photo n’est plus disponible pour les réactions.');
+    }
+    throw new Error('Ta réaction n’a pas pu être enregistrée. Réessaie.');
+  }
 }
 
 export const changeFriendship = (action: FriendMutation, target: string) =>

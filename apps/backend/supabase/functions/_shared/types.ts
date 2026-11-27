@@ -1,4 +1,4 @@
-import type { Relationship } from "./social.types.ts";
+import type { PhotoReactionContext, Relationship } from "./social.types.ts";
 
 export type PushRegistrationRequest = {
   token: string;
@@ -136,7 +136,7 @@ export type LeaderboardPlayerResponse = {
   score: number | null;
   relationship: Relationship | "self";
   photo:
-    | { status: "available"; url: string }
+    | { status: "available"; url: string; reactionContext?: PhotoReactionContext }
     | { status: "locked" | "missing" };
 };
 

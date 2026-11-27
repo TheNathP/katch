@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { useLocalSearchParams } from 'expo-router';
 import { useCallback } from 'react';
-import { View } from 'react-native';
+import { View, useWindowDimensions } from 'react-native';
 
 import Button from '@/components/ui/Button';
 import Screen from '@/components/ui/Screen';
@@ -13,18 +13,20 @@ import { getPlayerSocialProfile } from '@/data/friends';
 import { useSession } from '@/data/session-provider';
 import { useFriendsQuery } from '@/hooks/use-friends-query';
 import { useFriendshipActions } from '@/hooks/use-friendship-actions';
+import { usePhotoReactions } from '@/hooks/use-photo-reactions';
 import { useTheme } from '@/hooks/use-theme';
 import { socialStyles } from '@/styles/social';
 import { OnboardingColors } from '@/styles/theme';
 
+import PlayerProfileResult from './_page/PlayerProfileResult';
 import { styles } from './PlayerProfilePage.styles';
 
 const lock = require('@/assets/icons/lock.svg');
 const corner = require('@/assets/icon-illus/decorations/onboarding-purple-corner.svg');
-const dateLabel = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
 
 export default function PlayerProfilePage() {
   const theme = useTheme();
+  const { fontScale } = useWindowDimensions();
   const { user } = useSession();
   const { playerId } = useLocalSearchParams<{ playerId: string }>();
   const ownProfile = user?.id === playerId;
@@ -38,6 +40,14 @@ export default function PlayerProfilePage() {
     reload();
   });
   const avatar = value ? getSocialAvatar(value.id) : undefined;
+  const { pending, reactionErrors, react } = usePhotoReactions(user?.id, (attempt, reactions) => {
+    update(profile => ({
+      ...profile,
+      results: profile.results.map(result => result.photo?.status === 'available' && result.photo.id === attempt
+        ? { ...result, photo: { ...result.photo, reactions } }
+        : result),
+    }));
+  });
 
   return (
     <Screen>
@@ -81,14 +91,29 @@ export default function PlayerProfilePage() {
 
           <View style={socialStyles.section}>
             <ThemedText accessibilityRole="header" style={socialStyles.groupTitle}>Résultats récents</ThemedText>
-            {value.canViewResults && value.results.map(result => (
-              <View key={result.date} style={[styles.result, { backgroundColor: theme.tabBarBackground, borderColor: theme.tabBarBorder }]}>
-                <ThemedText type="small">{dateLabel.format(new Date(`${result.date}T00:00:00Z`))}</ThemedText>
-                <View style={socialStyles.scorePill}>
-                  <ThemedText type="smallBold" style={socialStyles.onLime}>{result.score} %</ThemedText>
+            {user && value.canViewResults && value.results.length > 0 && (
+              <>
+                <ThemedText type="small" themeColor="textSecondary">Les 4 derniers jours</ThemedText>
+                <View style={styles.resultGrid}>
+                  {value.results.slice(0, 4).map(result => {
+                    const attempt = result.photo?.status === 'available' ? result.photo.id : undefined;
+                    return (
+                      <PlayerProfileResult
+                        key={attempt ?? result.date}
+                        result={result}
+                        viewerId={user.id}
+                        canReact={value.relationship === 'friend'}
+                        wide={fontScale > 1.4}
+                        busy={!!attempt && pending.has(attempt)}
+                        error={attempt ? reactionErrors[attempt] : undefined}
+                        onReact={reaction => attempt ? react(attempt, reaction) : Promise.resolve(false)}
+                        onReload={reload}
+                      />
+                    );
+                  })}
                 </View>
-              </View>
-            ))}
+              </>
+            )}
             {value.results.length === 0 && (
               <View style={[styles.result, { backgroundColor: theme.tabBarBackground, borderColor: theme.tabBarBorder }]}>
                 {!value.canViewResults && (

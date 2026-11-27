@@ -1,5 +1,6 @@
 import { resolveUserId } from '../_shared/auth.ts';
 import { createAdminClient, type AdminClient } from '../_shared/db.ts';
+import type { PhotoReactionContext } from '../_shared/social.types.ts';
 import type { LeaderboardPlayerResponse } from '../_shared/types.ts';
 
 const headers = { 'Cache-Control': 'no-store' };
@@ -11,6 +12,7 @@ type PlayerRow = {
   relationship: LeaderboardPlayerResponse['relationship'];
   can_view_photo: boolean;
   photo_object_path: string | null;
+  reaction_context?: PhotoReactionContext;
 };
 
 async function getPhoto(admin: AdminClient, row: PlayerRow): Promise<LeaderboardPlayerResponse['photo']> {
@@ -22,7 +24,11 @@ async function getPhoto(admin: AdminClient, row: PlayerRow): Promise<Leaderboard
     console.error('Could not sign challenge photo');
     return { status: 'missing' };
   }
-  return { status: 'available', url: data.signedUrl };
+  return {
+    status: 'available',
+    url: data.signedUrl,
+    ...(row.reaction_context && { reactionContext: row.reaction_context }),
+  };
 }
 
 Deno.serve(async (request) => {
@@ -41,7 +47,7 @@ Deno.serve(async (request) => {
       return Response.json({ error: 'invalid_player' }, { status: 400, headers });
     }
 
-    const { data, error } = await admin.rpc('get_leaderboard_player', {
+    const { data, error } = await admin.rpc('get_leaderboard_player_with_reactions', {
       p_viewer: viewer,
       p_player: player,
     }).overrideTypes<PlayerRow, { merge: false }>();

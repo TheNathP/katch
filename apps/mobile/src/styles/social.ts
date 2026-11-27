@@ -19,5 +19,4 @@ export const socialStyles = StyleSheet.create({
     minHeight: 52, paddingHorizontal: Spacing.three, paddingVertical: Spacing.two,
     borderRadius: 14, borderWidth: 1, fontSize: 16,
   },
-  scorePill: { borderRadius: 99, backgroundColor: OnboardingColors.lime, paddingHorizontal: 12, paddingVertical: 4 },
 });
